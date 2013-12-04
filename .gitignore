@@ -13,3 +13,5 @@ extras/documentation
 /composer.lock
 
 /vendor/
+
+/.buildpath
