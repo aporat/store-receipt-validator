@@ -3,3 +3,13 @@ LICENSE.txt
 README.txt
 demos/
 extras/documentation
+
+/.DS_Store
+
+/.project
+
+/composer.phar
+
+/composer.lock
+
+/vendor/

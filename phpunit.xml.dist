@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit colors="true" bootstrap="./tests/Bootstrap.php">
+  <logging>
+    <log type="coverage-clover" target="build/logs/clover.xml"/>
+    <log type="coverage-php" target="build/logs/coverage.cov"/>
+    <log type="coverage-clover" target="build/logs/clover.xml"/>
+    <log type="coverage-html" target="build/logs/coverage"/>
+  </logging>
+  <testsuites>
+    <testsuite name="GearmanDaemons Test Suite">
+      <directory>./tests/</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
