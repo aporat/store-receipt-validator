@@ -20,7 +20,7 @@ required, but makes life a lot easier.
 
 If you're not familiar with Composer, please see <http://getcomposer.org/>.
 
-1. Add reply-me-by-email to your application's composer.json.
+1. Add iap-validator to your application's composer.json.
 
         {
             ...
