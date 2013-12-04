@@ -2,6 +2,7 @@
 namespace IAPValidator;
 
 use Guzzle\Http\Client;
+use IAPValidator\Response;
 
 class IAPValidator
 {
@@ -121,6 +122,8 @@ class IAPValidator
      * validate the receipt data
      * 
      * @param string $receiptData
+     * 
+     * @return Response
      */
     public function validate($receiptData = null)
     {
@@ -129,12 +132,27 @@ class IAPValidator
             $this->setReceiptData($receiptData);
         }
         
-        $response = $this->getClient()->post(null, null, $this->encodeRequest(), array('verify'=> false))->send();
+        $httpResponse = $this->getClient()->post(null, null, $this->encodeRequest(), array('verify'=> false))->send();
         
-        if ($response->getStatusCode()!=200) {
+        if ($httpResponse->getStatusCode()!=200) {
             throw new RunTimeException('Unable to get response from itunes server');
         }
         
-        return $response->json();
+        $response = new Response($httpResponse->json());
+        
+        // on a 21007 error retry the request for the Sandbox environment (if the current environment is Production)
+        if ($this->_endpoint == self::ENDPOINT_PRODUCTION && $response->getResultCode()==Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
+            $client = new Client(self::ENDPOINT_SANDBOX);
+            
+            $httpResponse = $this->getClient()->post(null, null, $this->encodeRequest(), array('verify'=> false))->send();
+
+            if ($httpResponse->getStatusCode()!=200) {
+                throw new RunTimeException('Unable to get response from itunes server');
+            }
+            
+            $response = new Response($httpResponse->json());
+        }
+        
+        return $response;
     }
 }
