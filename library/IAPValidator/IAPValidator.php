@@ -23,6 +23,14 @@ class IAPValidator
      * @var string
      */
     protected $_receiptData;
+    
+    
+    /**
+     * Guzzle http client
+     * 
+     * @var \Guzzle\Http\Client
+     */
+    protected $_client = null;
 
     public function __construct($endpoint = ENDPOINT_PRODUCTION)
     {
@@ -91,7 +99,7 @@ class IAPValidator
     protected function getClient()
     {
         if ($this->_client == null) {
-            $this->_client = new Client($this->_environmentUrl);
+            $this->_client = new Client($this->_endpoint);
         }
         
         return $this->_client;
@@ -108,12 +116,25 @@ class IAPValidator
             'receipt-data' => $this->getReceiptData()
         ));
     }
-
-    private function decodeResponse($response)
+    
+    /**
+     * validate the receipt data
+     * 
+     * @param string $receiptData
+     */
+    public function validate($receiptData = null)
     {
-        return json_decode($response);
+    	
+        if ($receiptData!=null) {
+            $this->setReceiptData($receiptData);
+        }
+        
+        $response = $this->getClient()->post(null, null, $this->encodeRequest(), array('verify'=> false))->send();
+        
+        if ($response->getStatusCode()!=200) {
+            throw new RunTimeException('Unable to get response from itunes server');
+        }
+        
+        return $response->json();
     }
-
-    public function validate($receiptData)
-    {}
 }
