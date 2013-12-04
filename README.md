@@ -1,6 +1,8 @@
 iap-validator
 =======
 
+[![Latest Stable Version](https://poser.pugx.org/aporat/iap-validator/version.png)](https://packagist.org/packages/aporat/iap-validator) [![Composer Downloads](https://poser.pugx.org/aporat/iap-validator/d/total.png)](https://packagist.org/packages/aporat/iap-validator)
+
 [![Build Status](https://travis-ci.org/aporat/iap-validator.png?branch=master)](https://travis-ci.org/aporat/iap-validator) [![Dependency Status](https://www.versioneye.com/user/projects/529f708e632bac512c000002/badge.png)](https://www.versioneye.com/user/projects/521b6fd1632bac7a5900b02a) [![Coverage Status](https://coveralls.io/repos/aporat/iap-validator/badge.png)](https://coveralls.io/r/aporat/iap-validator)
 
 PHP library that can be used to validate base64 encoded iTunes in app purchase receipts.
