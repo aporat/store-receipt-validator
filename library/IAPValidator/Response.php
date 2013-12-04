@@ -76,7 +76,17 @@ class Response
         
         return $this;
     }
-
+    
+    /**
+     * Get receipt info
+     *
+     * @return array
+     */
+    public function getReceipt()
+    {
+        return $this->_receipt;
+    }
+    
     /**
      * returns if the receipt is valid or not
      *
