@@ -30,14 +30,11 @@
 	},
 	"autoload" : {
 		"psr-0" : {
-			"IAP" : "library/"
+			"IAPValidator" : "src/"
 		}
 	},
 	"support" : {
 		"email" : "adar.porat@gmail.com",
 		"issues" : "https://github.com/aporat/iap-validator/issues"
-	},
-	"include-path" : [
-		"library/"
-	]
+	}
 }
