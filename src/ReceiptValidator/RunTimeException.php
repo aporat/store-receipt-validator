@@ -1,5 +1,5 @@
 <?php 
-namespace IAPValidator;
+namespace ReceiptValidator;
 
 class RunTimeException extends \Exception {
     

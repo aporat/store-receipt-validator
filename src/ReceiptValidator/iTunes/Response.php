@@ -1,5 +1,7 @@
 <?php
-namespace IAPValidator;
+namespace ReceiptValidator\iTunes;
+
+use ReceiptValidator\RunTimeException;
 
 class Response
 {

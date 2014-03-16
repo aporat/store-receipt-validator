@@ -1,5 +1,5 @@
 {
-	"name" : "aporat/iap-validator",
+	"name" : "aporat/store-receipt-validator",
 	"description" : "PHP library that can be used to validate base64 encoded iTunes in app purchase receipts.",
 	"type" : "library",
 	"authors" : [{
@@ -15,26 +15,26 @@
 		"purchase",
 		"receipt"
 	],
-	"homepage" : "https://github.com/aporat/iap-validator",
+	"homepage" : "https://github.com/aporat/store-receipt-validator",
 	"license" : [
 		"Apache-2.0"
 	],
 	"require" : {
 		"php" : ">=5.3",
-		"guzzle/guzzle" : "3.7.*"
+		"guzzle/guzzle" : "3.7.*",
+		"google/apiclient": "dev-master"
 	},
 	"require-dev" : {
 		"phpunit/phpunit" : "3.7.*@stable",
-		"phpunit/php-invoker" : ">=1.1.0,<1.2.0",
 		"satooshi/php-coveralls" : "0.6.*"
 	},
 	"autoload" : {
 		"psr-0" : {
-			"IAPValidator" : "src/"
+			"ReceiptValidator" : "src/"
 		}
 	},
 	"support" : {
 		"email" : "adar.porat@gmail.com",
-		"issues" : "https://github.com/aporat/iap-validator/issues"
+		"issues" : "https://github.com/aporat/store-receipt-validator/issues"
 	}
 }

@@ -15,3 +15,5 @@ extras/documentation
 /vendor/
 
 /.buildpath
+
+/.settings/

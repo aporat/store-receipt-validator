@@ -1,5 +1,5 @@
 <?php
-use IAPValidator\Response;
+use ReceiptValidator\iTunes\Response;
 
 /**
  * @group library
@@ -9,7 +9,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase
     
     public function testInvalidOptionsToConstructor()
     {
-        $this->setExpectedException("IAPValidator\\RuntimeException", "Response must be a scalar value");
+        $this->setExpectedException("ReceiptValidator\\RuntimeException", "Response must be a scalar value");
         
         $response = new Response('invalid');
     }

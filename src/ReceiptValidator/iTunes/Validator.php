@@ -1,10 +1,11 @@
 <?php
-namespace IAPValidator;
+namespace ReceiptValidator\iTunes;
 
-use Guzzle\Http\Client;
-use IAPValidator\Response;
+use Guzzle\Http\Client as GuzzleClient;
+use ReceiptValidator\iTunes\Response;
+use ReceiptValidator\RunTimeException;
 
-class IAPValidator
+class Validator
 {
 
     const ENDPOINT_SANDBOX = 'https://sandbox.itunes.apple.com/verifyReceipt';
@@ -56,7 +57,7 @@ class IAPValidator
      * set receipt data, either in base64, or in json
      *
      * @param string $receiptData            
-     * @return \IAPValidator\IAPValidator
+     * @return \ReceiptValidator\iTunes\Validator;
      */
     function setReceiptData($receiptData)
     {
@@ -82,8 +83,8 @@ class IAPValidator
     /**
      * set endpoint
      *
-     * @param unknown $endpoint            
-     * @return \IAPValidator\IAPValidator
+     * @param string $endpoint            
+     * @return\ReceiptValidator\iTunes\Validator;
      */
     function setEndpoint($endpoint)
     {
@@ -100,7 +101,7 @@ class IAPValidator
     protected function getClient()
     {
         if ($this->_client == null) {
-            $this->_client = new Client($this->_endpoint);
+            $this->_client = new GuzzleClient($this->_endpoint);
         }
         
         return $this->_client;
@@ -140,9 +141,10 @@ class IAPValidator
         
         $response = new Response($httpResponse->json());
         
-        // on a 21007 error retry the request for the Sandbox environment (if the current environment is Production)
+        // on a 21007 error retry the request in the sandbox environment (if the current environment is Production)
+        // these are receipts from apple review team 
         if ($this->_endpoint == self::ENDPOINT_PRODUCTION && $response->getResultCode()==Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
-            $client = new Client(self::ENDPOINT_SANDBOX);
+            $client = new GuzzleClient(self::ENDPOINT_SANDBOX);
             
             $httpResponse = $this->getClient()->post(null, null, $this->encodeRequest(), array('verify'=> false))->send();
 
