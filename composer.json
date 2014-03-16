@@ -20,8 +20,8 @@
 		"Apache-2.0"
 	],
 	"require" : {
-		"php" : ">=5.3",
-		"guzzle/guzzle" : "3.7.*",
+		"php" : ">=5.4",
+		"guzzle/guzzle" : "3.8.*",
 		"google/apiclient": "dev-master"
 	},
 	"require-dev" : {
