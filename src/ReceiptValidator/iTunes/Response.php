@@ -1,8 +1,6 @@
 <?php
 namespace ReceiptValidator\iTunes;
 
-use ReceiptValidator\RunTimeException;
-
 class Response
 {
 
@@ -96,7 +94,7 @@ class Response
      */
     public function isValid()
     {
-        if ($this->_code == self::RESULT_OK || $this->_code == self::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
+        if ($this->_code == self::RESULT_OK) {
             return true;
         }
         

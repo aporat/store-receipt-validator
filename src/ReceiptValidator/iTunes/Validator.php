@@ -146,12 +146,12 @@ class Validator
         if ($this->_endpoint == self::ENDPOINT_PRODUCTION && $response->getResultCode()==Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
             $client = new GuzzleClient(self::ENDPOINT_SANDBOX);
             
-            $httpResponse = $this->getClient()->post(null, null, $this->encodeRequest(), array('verify'=> false))->send();
+            $httpResponse = $client->post(null, null, $this->encodeRequest(), array('verify'=> false))->send();
 
             if ($httpResponse->getStatusCode()!=200) {
                 throw new RunTimeException('Unable to get response from itunes server');
             }
-            
+                        
             $response = new Response($httpResponse->json());
         }
         
