@@ -3,14 +3,14 @@ iap-validator
 
 [![Latest Stable Version](https://poser.pugx.org/aporat/store-receipt-validator/version.png)](https://packagist.org/packages/aporat/store-receipt-validator) [![Composer Downloads](https://poser.pugx.org/aporat/store-receipt-validator/d/total.png)](https://packagist.org/packages/aporat/store-receipt-validator)
 
-[![Build Status](https://travis-ci.org/aporat/store-receipt-validator.png?branch=master)](https://travis-ci.org/aporat/iap-receipt-validator) [![Dependency Status](https://www.versioneye.com/user/projects/529f708e632bac512c000002/badge.png)](https://www.versioneye.com/user/projects/521b6fd1632bac7a5900b02a) [![Coverage Status](https://coveralls.io/repos/aporat/store-receipt-validator/badge.png)](https://coveralls.io/r/aporat/store-receipt-validator) [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/badges/quality-score.png?s=5b8ac393ba82b0d8850c6397ba32ec460cd398cf)](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/)
+[![Build Status](https://travis-ci.org/aporat/store-receipt-validator.png?branch=master)](https://travis-ci.org/aporat/store-receipt-validator) [![Dependency Status](https://www.versioneye.com/user/projects/529f708e632bac512c000002/badge.png)](https://www.versioneye.com/user/projects/521b6fd1632bac7a5900b02a) [![Coverage Status](https://coveralls.io/repos/aporat/store-receipt-validator/badge.png)](https://coveralls.io/r/aporat/store-receipt-validator) [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/badges/quality-score.png?s=5b8ac393ba82b0d8850c6397ba32ec460cd398cf)](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/)
 
 PHP library that can be used to validate base64 encoded iTunes in app purchase receipts.
 
 
 ## Requirements ##
 
-* PHP >= 5.3
+* PHP >= 5.4
 
 ## Getting Started ##
 
