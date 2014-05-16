@@ -1,4 +1,4 @@
-iap-validator
+store-receipt-validator
 =======
 
 [![Latest Stable Version](https://poser.pugx.org/aporat/store-receipt-validator/version.png)](https://packagist.org/packages/aporat/store-receipt-validator) [![Composer Downloads](https://poser.pugx.org/aporat/store-receipt-validator/d/total.png)](https://packagist.org/packages/aporat/store-receipt-validator)
@@ -25,7 +25,7 @@ If you're not familiar with Composer, please see <http://getcomposer.org/>.
         {
             ...
             "require": {
-                "aporat/iap-validator": "dev-master"
+                "aporat/store-receipt-validator": "dev-master"
             },
             ...
         }
