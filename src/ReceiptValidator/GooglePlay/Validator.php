@@ -1,7 +1,7 @@
 <?php
 namespace ReceiptValidator\GooglePlay;
 
-use ReceiptValidator\RunTimeException;
+use ReceiptValidator\RunTimeException as RunTimeException;
 
 class Validator
 {
@@ -12,12 +12,24 @@ class Validator
      */
     protected $_client = null;
 
-    protected $_play_client = null;
-    
+    /**
+     * @var \Google_Service_AndroidPublisher
+     */
+    protected $_androidPublisherService = null;
+
+    /**
+     * @var string
+     */
     protected $_package_name = null;
-    
+
+    /**
+     * @var string
+     */
     protected $_purchase_token = null;
-    
+
+    /**
+     * @var string
+     */
     protected $_product_id = null;
     
     public function __construct(array $options = [])
@@ -25,21 +37,26 @@ class Validator
         $this->_client = new \Google_Client();
         $this->_client->setClientId($options['client_id']);
         $this->_client->setClientSecret($options['client_secret']);
+
+        touch(sys_get_temp_dir() . '/googleplay_access_token.txt');
+        chmod(sys_get_temp_dir() . '/googleplay_access_token.txt', 0777);
+
+        try {
+            $this->_client->setAccessToken(file_get_contents(sys_get_temp_dir() . '/googleplay_access_token.txt'));
+        } catch (\Exception $e) {
+            // skip exceptions when the access token is not valid
+        }
         
         try {
-            $this->_client->setAccessToken(file_get_contents('/tmp/google_access_token.txt'));
+            if ($this->_client->isAccessTokenExpired()) {
+                $this->_client->refreshToken($options['refresh_token']);
+                file_put_contents(sys_get_temp_dir() . '/googleplay_access_token.txt', $this->_client->getAccessToken());
+            }
         } catch (\Exception $e) {
-            echo 'Unable to load existing token - ' . $e->getMessage() . PHP_EOL;
+            throw new RuntimeException('Failed refreshing access token - ' . $e->getMessage());
         }
-        
-        if ($this->_client->isAccessTokenExpired()) {
-            echo 'Access Token Expired' . PHP_EOL;
-            $this->_client->refreshToken($options['refresh_token']);
-            
-            file_put_contents('/tmp/google_access_token.txt', $this->_client->getAccessToken());
-        }
-        
-        $this->_play_client = new \Google_Service_AndroidPublisher($this->_client);
+
+        $this->_androidPublisherService = new \Google_Service_AndroidPublisher($this->_client);
         
     }
 
@@ -83,14 +100,8 @@ class Validator
 
     public function validate()
     {
-        $response = null;
-        try {
-            $response = $this->_play_client->inapppurchases->get($this->_package_name, $this->_product_id, $this->_purchase_token);
-        } catch (\Exception $e) {
-            echo 'Unable to load reciept - ' . $e->getMessage() . PHP_EOL;
-        
-        }
-        
+        $response = $this->_androidPublisherService->inapppurchases->get($this->_package_name, $this->_product_id, $this->_purchase_token);
+
        return $response;
     }
 }
