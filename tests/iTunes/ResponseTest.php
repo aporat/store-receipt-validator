@@ -16,14 +16,14 @@ class ResponseTest extends PHPUnit_Framework_TestCase
     
     public function testInvalidReceipt()
     {
-        $response = new Response(array('status' => 21002));
+        $response = new Response(array('status' => 21002, 'receipt' => []));
         
         $this->assertFalse($response->isValid(), 'receipt must be invalid');
     }
     
     public function testValidReceipt()
     {
-        $response = new Response(array('status' => 0));
+        $response = new Response(array('status' => 0, 'receipt' => []));
     
         $this->assertTrue($response->isValid(), 'receipt must be valid');
     }

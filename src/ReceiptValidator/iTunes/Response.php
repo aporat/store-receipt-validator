@@ -24,7 +24,7 @@ class Response
     const RESULT_RECEIPT_SERVER_UNAVAILABLE = 21005;
 
     const RESULT_RECEIPT_VALID_BUT_SUB_EXPIRED = 21006;
-    
+
     // special case for app review handling - forward any request that is intended for the Sandbox but was sent to Production, this is what the app review team does
     const RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION = 21007;
 
@@ -36,17 +36,23 @@ class Response
      * @var int
      */
     protected $_code;
-    
+
     /**
      * receipt info
      * @var array
      */
-    protected $_receipt;
+    protected $_receipt = [];
+
+    /**
+     * purhcases info
+     * @var array
+     */
+    protected $_purchases = [];
 
     /**
      * Constructor
      *
-     * @param array $jsonResponse            
+     * @param array $jsonResponse
      * @return Response
      */
     public function __construct($jsonResponse = null)
@@ -69,16 +75,26 @@ class Response
     /**
      * Set Result Code
      *
-     * @param int $code            
+     * @param int $code
      * @return Response
      */
     public function setResultCode($code)
     {
         $this->_code = $code;
-        
+
         return $this;
     }
-    
+
+    /**
+     * Get purchases info
+     *
+     * @return array
+     */
+    public function getPurchases()
+    {
+        return $this->_purchases;
+    }
+
     /**
      * Get receipt info
      *
@@ -88,7 +104,7 @@ class Response
     {
         return $this->_receipt;
     }
-    
+
     /**
      * returns if the receipt is valid or not
      *
@@ -99,14 +115,14 @@ class Response
         if ($this->_code == self::RESULT_OK) {
             return true;
         }
-        
+
         return false;
     }
 
     /**
      * Parse JSON Response
      *
-     * @param string $jsonResponse            
+     * @param string $jsonResponse
      * @return Message
      */
     public function parseJsonResponse($jsonResponse)
@@ -114,13 +130,25 @@ class Response
         if (!is_array($jsonResponse)) {
             throw new RuntimeException('Response must be a scalar value');
         }
-        
-        $this->_code = $jsonResponse['status'];
-        
-        if (array_key_exists('receipt', $jsonResponse)) {
+
+        // ios > 7 receipt validation
+        if (array_key_exists('receipt', $jsonResponse) && is_array($jsonResponse['receipt']) && array_key_exists('in_app', $jsonResponse['receipt']) && is_array($jsonResponse['receipt']['in_app']) > 0) {
+            $this->_code = $jsonResponse['status'];
             $this->_receipt = $jsonResponse['receipt'];
+            $this->_purchases = $jsonResponse['receipt']['in_app'];
+
+        } elseif (array_key_exists('receipt', $jsonResponse)) {
+
+            // ios <= 6.0 validation
+            $this->_code = $jsonResponse['status'];
+
+            if (array_key_exists('receipt', $jsonResponse)) {
+                $this->_receipt = $jsonResponse['receipt'];
+                $this->_purchases = [$jsonResponse['receipt']];
+            }
+        } else {
+            $this->_code = self::RESULT_DATA_MALFORMED;
         }
-        
         return $this;
     }
 }

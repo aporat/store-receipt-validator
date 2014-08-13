@@ -14,22 +14,22 @@ class Validator
 
     /**
      * endpoint url
-     * 
+     *
      * @var string
      */
     protected $_endpoint;
 
     /**
      * itunes receipt data, in base64 format
-     * 
+     *
      * @var string
      */
     protected $_receiptData;
-    
-    
+
+
     /**
      * Guzzle http client
-     * 
+     *
      * @var \Guzzle\Http\Client
      */
     protected $_client = null;
@@ -39,7 +39,7 @@ class Validator
         if ($endpoint != self::ENDPOINT_PRODUCTION && $endpoint != self::ENDPOINT_SANDBOX) {
             throw new RunTimeException("Invalid endpoint '{$endpoint}'");
         }
-        
+
         $this->_endpoint = $endpoint;
     }
 
@@ -56,7 +56,7 @@ class Validator
     /**
      * set receipt data, either in base64, or in json
      *
-     * @param string $receiptData            
+     * @param string $receiptData
      * @return \ReceiptValidator\iTunes\Validator;
      */
     function setReceiptData($receiptData)
@@ -66,7 +66,7 @@ class Validator
         } else {
             $this->_receiptData = $receiptData;
         }
-        
+
         return $this;
     }
 
@@ -83,13 +83,13 @@ class Validator
     /**
      * set endpoint
      *
-     * @param string $endpoint            
+     * @param string $endpoint
      * @return\ReceiptValidator\iTunes\Validator;
      */
     function setEndpoint($endpoint)
     {
         $this->_endpoint = $endpoint;
-        
+
         return $this;
     }
 
@@ -103,7 +103,7 @@ class Validator
         if ($this->_client == null) {
             $this->_client = new GuzzleClient($this->_endpoint);
         }
-        
+
         return $this->_client;
     }
 
@@ -118,43 +118,43 @@ class Validator
             'receipt-data' => $this->getReceiptData()
         ));
     }
-    
+
     /**
      * validate the receipt data
-     * 
+     *
      * @param string $receiptData
-     * 
+     *
      * @return Response
      */
     public function validate($receiptData = null)
     {
-    	
-        if ($receiptData!=null) {
+
+        if ($receiptData != null) {
             $this->setReceiptData($receiptData);
         }
-        
-        $httpResponse = $this->getClient()->post(null, null, $this->encodeRequest(), array('verify'=> false))->send();
-        
-        if ($httpResponse->getStatusCode()!=200) {
+
+        $httpResponse = $this->getClient()->post(null, null, $this->encodeRequest(), array('verify' => false))->send();
+
+        if ($httpResponse->getStatusCode() != 200) {
             throw new RunTimeException('Unable to get response from itunes server');
         }
-        
-        $response = new Response($httpResponse->json());
-        
-        // on a 21007 error retry the request in the sandbox environment (if the current environment is Production)
-        // these are receipts from apple review team 
-        if ($this->_endpoint == self::ENDPOINT_PRODUCTION && $response->getResultCode()==Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
-            $client = new GuzzleClient(self::ENDPOINT_SANDBOX);
-            
-            $httpResponse = $client->post(null, null, $this->encodeRequest(), array('verify'=> false))->send();
 
-            if ($httpResponse->getStatusCode()!=200) {
+        $response = new Response($httpResponse->json());
+
+        // on a 21007 error retry the request in the sandbox environment (if the current environment is Production)
+        // these are receipts from apple review team
+        if ($this->_endpoint == self::ENDPOINT_PRODUCTION && $response->getResultCode() == Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
+            $client = new GuzzleClient(self::ENDPOINT_SANDBOX);
+
+            $httpResponse = $client->post(null, null, $this->encodeRequest(), array('verify' => false))->send();
+
+            if ($httpResponse->getStatusCode() != 200) {
                 throw new RunTimeException('Unable to get response from itunes server');
             }
-                        
+
             $response = new Response($httpResponse->json());
         }
-        
+
         return $response;
     }
 }

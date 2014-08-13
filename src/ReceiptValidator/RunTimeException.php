@@ -1,6 +1,7 @@
-<?php 
+<?php
 namespace ReceiptValidator;
 
-class RunTimeException extends \Exception {
-    
+class RunTimeException extends \Exception
+{
+
 }

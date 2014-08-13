@@ -17,3 +17,5 @@ extras/documentation
 /.buildpath
 
 /.settings/
+
+/.idea/

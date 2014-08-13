@@ -7,7 +7,7 @@ class Validator
 {
     /**
      * google client
-     * 
+     *
      * @var Google_Client
      */
     protected $_client = null;
@@ -31,7 +31,7 @@ class Validator
      * @var string
      */
     protected $_product_id = null;
-    
+
     public function __construct(array $options = [])
     {
         $this->_client = new \Google_Client();
@@ -46,7 +46,7 @@ class Validator
         } catch (\Exception $e) {
             // skip exceptions when the access token is not valid
         }
-        
+
         try {
             if ($this->_client->isAccessTokenExpired()) {
                 $this->_client->refreshToken($options['refresh_token']);
@@ -57,51 +57,51 @@ class Validator
         }
 
         $this->_androidPublisherService = new \Google_Service_AndroidPublisher($this->_client);
-        
+
     }
 
-    
+
     /**
-     * 
+     *
      * @param string $package_name
      * @return \ReceiptValidator\GooglePlay\Validator
      */
     public function setPackageName($package_name)
     {
         $this->_package_name = $package_name;
-        
+
         return $this;
     }
-    
+
     /**
-     * 
+     *
      * @param string $purchase_token
      * @return \ReceiptValidator\GooglePlay\Validator
      */
     public function setPurchaseToken($purchase_token)
     {
         $this->_purchase_token = $purchase_token;
-        
+
         return $this;
     }
-    
+
     /**
-     * 
+     *
      * @param string $product_id
      * @return \ReceiptValidator\GooglePlay\Validator
      */
     public function setProductId($product_id)
     {
         $this->_product_id = $product_id;
-        
+
         return $this;
     }
-    
+
 
     public function validate()
     {
         $response = $this->_androidPublisherService->inapppurchases->get($this->_package_name, $this->_product_id, $this->_purchase_token);
 
-       return $response;
+        return $response;
     }
 }
