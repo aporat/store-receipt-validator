@@ -132,7 +132,7 @@ class Response
         }
 
         // ios > 7 receipt validation
-        if (array_key_exists('receipt', $jsonResponse) && is_array($jsonResponse['receipt']) && array_key_exists('in_app', $jsonResponse['receipt']) && is_array($jsonResponse['receipt']['in_app']) > 0) {
+        if (array_key_exists('receipt', $jsonResponse) && is_array($jsonResponse['receipt']) && array_key_exists('in_app', $jsonResponse['receipt']) && is_array($jsonResponse['receipt']['in_app'])) {
             $this->_code = $jsonResponse['status'];
             $this->_receipt = $jsonResponse['receipt'];
             $this->_purchases = $jsonResponse['receipt']['in_app'];
