@@ -28,6 +28,13 @@ class Validator
 
 
     /**
+     * itunes shared secret ie. password
+     *
+     * @var string
+     */
+    protected $_iStoreSharedSecret = null;
+
+    /**
      * Guzzle http client
      *
      * @var \Guzzle\Http\Client
@@ -68,6 +75,21 @@ class Validator
         }
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIStoreSharedSecret()
+    {
+        return $this->_iStoreSharedSecret;
+    }
+    /**
+     * @param string $iStoreSharedSecret
+     */
+    public function setIStoreSharedSecret($iStoreSharedSecret)
+    {
+        $this->_iStoreSharedSecret = $iStoreSharedSecret;
     }
 
     /**
@@ -114,9 +136,13 @@ class Validator
      */
     private function encodeRequest()
     {
-        return json_encode(array(
-            'receipt-data' => $this->getReceiptData()
-        ));
+        $request = array('receipt-data' => $this->getReceiptData());
+
+        if( !is_null( $this->getIStoreSharedSecret() ) ) {
+            $request['password'] = $this->getIStoreSharedSecret();
+        }
+
+        return json_encode( $request );
     }
 
     /**
@@ -126,11 +152,15 @@ class Validator
      *
      * @return Response
      */
-    public function validate($receiptData = null)
+    public function validate($receiptData = null, $iStoreSharedSecret = null)
     {
 
         if ($receiptData != null) {
             $this->setReceiptData($receiptData);
+        }
+
+        if ($iStoreSharedSecret != null) {
+            $this->setIStoreSharedSecret($receiptData);
         }
 
         $httpResponse = $this->getClient()->post(null, null, $this->encodeRequest(), array('verify' => false))->send();
