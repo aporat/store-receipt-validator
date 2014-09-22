@@ -40,7 +40,13 @@ class ValidatorTest extends PHPUnit_Framework_TestCase
     
         $this->assertEquals('test-data', $this->validator->getReceiptData());
     }
-    
+
+    public function testsetIStoreSharedSecret()
+    {
+        $this->validator->setIStoreSharedSecret('test-shared-secret');
+
+        $this->assertEquals('test-shared-secret', $this->validator->getIStoreSharedSecret());
+    }
     
     public function testValidateWithInvalidReceipt()
     {
