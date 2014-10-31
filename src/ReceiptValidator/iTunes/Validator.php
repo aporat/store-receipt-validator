@@ -149,6 +149,7 @@ class Validator
      * validate the receipt data
      *
      * @param string $receiptData
+     * @param string $iStoreSharedSecret
      *
      * @return Response
      */
