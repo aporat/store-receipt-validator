@@ -38,6 +38,13 @@ class Response
     protected $_code;
 
     /**
+     * bundle_id (app) belongs to the receipt
+     *
+     * @var string
+     */
+    protected $_bundle_id = null;
+
+    /**
      * receipt info
      * @var array
      */
@@ -106,6 +113,16 @@ class Response
     }
 
     /**
+     * Get the bundle id assoicated with the receipt
+     *
+     * @return array
+     */
+    public function getBundleId()
+    {
+        return $this->_bundle_id;
+    }
+
+    /**
      * returns if the receipt is valid or not
      *
      * @return boolean
@@ -136,6 +153,7 @@ class Response
             $this->_code = $jsonResponse['status'];
             $this->_receipt = $jsonResponse['receipt'];
             $this->_purchases = $jsonResponse['receipt']['in_app'];
+            $this->_bundle_id = $jsonResponse['receipt']['bundle_id'];
 
         } elseif (array_key_exists('receipt', $jsonResponse)) {
 
@@ -145,6 +163,7 @@ class Response
             if (array_key_exists('receipt', $jsonResponse)) {
                 $this->_receipt = $jsonResponse['receipt'];
                 $this->_purchases = [$jsonResponse['receipt']];
+                $this->_bundle_id = $jsonResponse['receipt']['bid'];
             }
         } else {
             $this->_code = self::RESULT_DATA_MALFORMED;
