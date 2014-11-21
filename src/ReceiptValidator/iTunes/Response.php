@@ -163,7 +163,10 @@ class Response
             $this->_code = $jsonResponse['status'];
             $this->_receipt = $jsonResponse['receipt'];
             $this->_purchases = $jsonResponse['receipt']['in_app'];
-            $this->_bundle_id = $jsonResponse['receipt']['bundle_id'];
+
+            if (array_key_exists('bundle_id', $jsonResponse['receipt'])) {
+                $this->_bundle_id = $jsonResponse['receipt']['bundle_id'];
+            }
 
         } elseif (array_key_exists('receipt', $jsonResponse)) {
 
@@ -173,7 +176,10 @@ class Response
             if (array_key_exists('receipt', $jsonResponse)) {
                 $this->_receipt = $jsonResponse['receipt'];
                 $this->_purchases = [$jsonResponse['receipt']];
-                $this->_bundle_id = $jsonResponse['receipt']['bid'];
+
+                if (array_key_exists('bid', $jsonResponse['receipt'])) {
+                    $this->_bundle_id = $jsonResponse['receipt']['bid'];
+                }
             }
         } else {
             $this->_code = self::RESULT_DATA_MALFORMED;
