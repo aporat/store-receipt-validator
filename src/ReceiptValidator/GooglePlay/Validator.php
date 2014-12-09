@@ -38,11 +38,13 @@ class Validator
         $this->_client->setClientId($options['client_id']);
         $this->_client->setClientSecret($options['client_secret']);
 
-        touch(sys_get_temp_dir() . '/googleplay_access_token.txt');
-        chmod(sys_get_temp_dir() . '/googleplay_access_token.txt', 0777);
+        $cached_access_token_path = sys_get_temp_dir() . '/' . 'googleplay_access_token_' . md5($options['client_id']) . '.txt';
+
+        touch($cached_access_token_path);
+        chmod($cached_access_token_path, 0777);
 
         try {
-            $this->_client->setAccessToken(file_get_contents(sys_get_temp_dir() . '/googleplay_access_token.txt'));
+            $this->_client->setAccessToken(file_get_contents($cached_access_token_path));
         } catch (\Exception $e) {
             // skip exceptions when the access token is not valid
         }
@@ -50,7 +52,7 @@ class Validator
         try {
             if ($this->_client->isAccessTokenExpired()) {
                 $this->_client->refreshToken($options['refresh_token']);
-                file_put_contents(sys_get_temp_dir() . '/googleplay_access_token.txt', $this->_client->getAccessToken());
+                file_put_contents($cached_access_token_path, $this->_client->getAccessToken());
             }
         } catch (\Exception $e) {
             throw new RuntimeException('Failed refreshing access token - ' . $e->getMessage());
