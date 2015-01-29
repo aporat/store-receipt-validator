@@ -21,7 +21,7 @@
 	],
 	"require" : {
 		"php" : ">=5.4",
-		"guzzle/guzzle" : "3.8.*",
+		"guzzle/guzzle" : "~3.8",
 		"google/apiclient": "1.0.4-beta"
 	},
 	"require-dev" : {
