@@ -161,7 +161,7 @@ class Validator
         }
 
         if ($iStoreSharedSecret != null) {
-            $this->setIStoreSharedSecret($receiptData);
+            $this->setIStoreSharedSecret($iStoreSharedSecret);
         }
 
         $httpResponse = $this->getClient()->post(null, null, $this->encodeRequest(), array('verify' => false))->send();
