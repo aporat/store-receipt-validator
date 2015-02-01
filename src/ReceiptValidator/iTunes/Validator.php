@@ -41,7 +41,7 @@ class Validator
      */
     protected $_client = null;
 
-    public function __construct($endpoint = ENDPOINT_PRODUCTION)
+    public function __construct($endpoint = self::ENDPOINT_PRODUCTION)
     {
         if ($endpoint != self::ENDPOINT_PRODUCTION && $endpoint != self::ENDPOINT_SANDBOX) {
             throw new RunTimeException("Invalid endpoint '{$endpoint}'");
