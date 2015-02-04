@@ -40,6 +40,7 @@ If you're not familiar with Composer, please see <http://getcomposer.org/>.
 
 ## Quick Example ##
 
+### iTunes ###
 
 ```php
 
@@ -63,3 +64,29 @@ if ($response->isValid()) {
     echo 'Receipt result code = ' . $response->getResultCode() . PHP_EOL;
 }
 ```
+
+### Play Store ###
+
+Get the refresh token from [OAuth2 flow](https://developers.google.com/android-publisher/authorization).
+
+```php
+use ReceiptValidator\GooglePlay\Validator as PlayValidator;
+$validator = new PlayValidator([
+    'client_id' => '...',
+    'client_secret' => '...',
+    'refresh_token' => '...'
+]);
+
+try{
+    $response = $validator->setPackageName('com.example')
+        ->setProductId('com.example.coins100')
+        ->setPurchaseToken('....')
+        ->validate();
+}catch(Exception $e){
+    var_dump($e->getMessage());
+    // example message: Error calling GET ....: (404) Product not found for this application.
+}
+// success
+```
+
+Attributes contained in response are as [documented in Purchases.product](https://developers.google.com/android-publisher/api-ref/purchases/products#resource)

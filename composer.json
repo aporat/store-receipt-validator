@@ -22,7 +22,7 @@
 	"require" : {
 		"php" : ">=5.4",
 		"guzzle/guzzle" : "~3.8",
-		"google/apiclient": "1.0.4-beta"
+		"google/apiclient": "~1.1"
 	},
 	"require-dev" : {
 		"phpunit/phpunit" : "3.7.*@stable",
