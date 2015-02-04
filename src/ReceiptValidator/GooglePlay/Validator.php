@@ -41,7 +41,7 @@ class Validator
         $cached_access_token_path = sys_get_temp_dir() . '/' . 'googleplay_access_token_' . md5($options['client_id']) . '.txt';
 
         touch($cached_access_token_path);
-        chmod($cached_access_token_path, 0777);
+        chmod($cached_access_token_path, 0770);
 
         try {
             $this->_client->setAccessToken(file_get_contents($cached_access_token_path));
@@ -102,7 +102,10 @@ class Validator
 
     public function validate()
     {
-        $response = $this->_androidPublisherService->inapppurchases->get($this->_package_name, $this->_product_id, $this->_purchase_token);
+        $response = $this->_androidPublisherService
+            ->purchases_products->get(
+                $this->_package_name, $this->_product_id, $this->_purchase_token
+            );
 
         return $response;
     }
