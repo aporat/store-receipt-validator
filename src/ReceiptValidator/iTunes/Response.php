@@ -56,9 +56,24 @@ class Response
 
     /**
      * receipt info
+     *
      * @var array
      */
     protected $_receipt = [];
+
+    /**
+     * latest receipt (needs for auto-renewable subscriptions)
+     *
+     * @var array
+     */
+    protected $_latest_receipt = [];
+
+    /**
+     * latest receipt info (needs for auto-renewable subscriptions)
+     *
+     * @var string
+     */
+    protected $_latest_receipt_info = null;
 
     /**
      * purhcases info
@@ -123,6 +138,26 @@ class Response
     }
 
     /**
+     * Get latest receipt info
+     *
+     * @return array
+     */
+    public function getLatestReceiptInfo()
+    {
+        return $this->_latest_receipt_info;
+    }
+
+    /**
+     * Get latest receipt
+     *
+     * @return string
+     */
+    public function getLatestReceipt()
+    {
+        return $this->_latest_receipt;
+    }
+
+    /**
      * Get the bundle id assoicated with the receipt
      *
      * @return array
@@ -168,6 +203,13 @@ class Response
                 $this->_bundle_id = $jsonResponse['receipt']['bundle_id'];
             }
 
+            if (array_key_exists('latest_receipt_info', $jsonResponse)) {
+                $this->_latest_receipt_info = $jsonResponse['latest_receipt_info'];
+            }
+
+            if (array_key_exists('latest_receipt', $jsonResponse)) {
+                $this->_latest_receipt = $jsonResponse['latest_receipt'];
+            }
         } elseif (array_key_exists('receipt', $jsonResponse)) {
 
             // ios <= 6.0 validation
