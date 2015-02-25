@@ -5,6 +5,9 @@ use ReceiptValidator\RunTimeException as RunTimeException;
 
 class Validator
 {
+    const TYPE_PURCHASE = 1;
+    const TYPE_SUBSCRIPTION = 2;
+
     /**
      * google client
      *
@@ -26,6 +29,11 @@ class Validator
      * @var string
      */
     protected $_purchase_token = null;
+
+    /**
+     * @var int
+     */
+    protected $_purchase_type = self::TYPE_PURCHASE;
 
     /**
      * @var string
@@ -89,6 +97,18 @@ class Validator
 
     /**
      *
+     * @param int $purchase_type
+     * @return \ReceiptValidator\GooglePlay\Validator
+     */
+    public function setPurchaseType($purchase_type)
+    {
+        $this->_purchase_type = $purchase_type;
+
+        return $this;
+    }
+
+    /**
+     *
      * @param string $product_id
      * @return \ReceiptValidator\GooglePlay\Validator
      */
@@ -102,10 +122,17 @@ class Validator
 
     public function validate()
     {
-        $response = $this->_androidPublisherService
-            ->purchases_products->get(
-                $this->_package_name, $this->_product_id, $this->_purchase_token
-            );
+        switch ($this->_purchase_type) {
+            case self::TYPE_SUBSCRIPTION:
+                $request = $this->_androidPublisherService->purchases_subscriptions;
+                break;
+            default:
+                $request = $this->_androidPublisherService->purchases_products;
+        }
+
+        $response = $request->get(
+            $this->_package_name, $this->_product_id, $this->_purchase_token
+        );
 
         return $response;
     }
