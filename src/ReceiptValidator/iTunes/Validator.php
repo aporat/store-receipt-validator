@@ -84,12 +84,15 @@ class Validator
     {
         return $this->_iStoreSharedSecret;
     }
+
     /**
      * @param string $iStoreSharedSecret
      */
     public function setIStoreSharedSecret($iStoreSharedSecret)
     {
         $this->_iStoreSharedSecret = $iStoreSharedSecret;
+    
+        return $this;
     }
 
     /**
