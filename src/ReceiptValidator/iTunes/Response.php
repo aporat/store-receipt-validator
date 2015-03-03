@@ -223,6 +223,8 @@ class Response
                     $this->_bundle_id = $jsonResponse['receipt']['bid'];
                 }
             }
+        } elseif (array_key_exists('status', $jsonResponse)) {
+            $this->_code = $jsonResponse['status'];
         } else {
             $this->_code = self::RESULT_DATA_MALFORMED;
         }
