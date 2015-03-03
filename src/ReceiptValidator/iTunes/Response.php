@@ -224,7 +224,7 @@ class Response
                 }
             }
         } else {
-            $this->_code = self::RESULT_DATA_MALFORMED;
+            $this->_code = (array_key_exists('status', $jsonResponse) ? $jsonResponse['status'] : self::RESULT_DATA_MALFORMED);
         }
         return $this;
     }
