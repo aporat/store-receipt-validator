@@ -59,14 +59,14 @@ class Response
      *
      * @var array
      */
-    protected $_receipt = [];
+    protected $_receipt = array();
 
     /**
      * latest receipt (needs for auto-renewable subscriptions)
      *
      * @var array
      */
-    protected $_latest_receipt = [];
+    protected $_latest_receipt =  array();
 
     /**
      * latest receipt info (needs for auto-renewable subscriptions)
@@ -79,7 +79,7 @@ class Response
      * purhcases info
      * @var array
      */
-    protected $_purchases = [];
+    protected $_purchases =  array();
 
     /**
      * Constructor
