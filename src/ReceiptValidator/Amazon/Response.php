@@ -39,7 +39,7 @@ class Response
      *
      * @var array
      */
-    protected $_receipt = [];
+    protected $_receipt = array();
 
 
 
