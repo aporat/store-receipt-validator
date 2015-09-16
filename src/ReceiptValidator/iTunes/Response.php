@@ -217,7 +217,7 @@ class Response
 
             if (array_key_exists('receipt', $jsonResponse)) {
                 $this->_receipt = $jsonResponse['receipt'];
-                $this->_purchases = [$jsonResponse['receipt']];
+                $this->_purchases = array($jsonResponse['receipt']);
 
                 if (array_key_exists('bid', $jsonResponse['receipt'])) {
                     $this->_bundle_id = $jsonResponse['receipt']['bid'];
