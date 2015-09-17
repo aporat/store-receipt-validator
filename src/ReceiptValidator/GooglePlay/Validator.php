@@ -40,7 +40,7 @@ class Validator
      */
     protected $_product_id = null;
 
-    public function __construct(array $options = [])
+    public function __construct(array $options = array())
     {
         $this->_client = new \Google_Client();
         $this->_client->setClientId($options['client_id']);

@@ -16,7 +16,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase
     
     public function testInvalidReceipt()
     {
-        $response = new Response(array('status' => 21002, 'receipt' => []));
+        $response = new Response(array('status' => 21002, 'receipt' => array()));
         
         $this->assertFalse($response->isValid(), 'receipt must be invalid');
         $this->assertEquals(21002, $response->getResultCode(), 'receipt result code must match');
@@ -32,7 +32,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase
 
     public function testValidReceipt()
     {
-        $response = new Response(array('status' => 0, 'receipt' => []));
+        $response = new Response(array('status' => 0, 'receipt' => array()));
     
         $this->assertTrue($response->isValid(), 'receipt must be valid');
         $this->assertEquals(0, $response->getResultCode(), 'receipt result code must match');
