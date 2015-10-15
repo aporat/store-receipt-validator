@@ -13,6 +13,13 @@ class Validator
     {
     }
 
+    /**
+     * Validate the given receipt.
+     *
+     * @param  string $receipt
+     * @return bool
+     * @throws RunTimeException
+     */
     public function validate($receipt)
     {
         // Load the receipt that needs to verified as an XML document.
@@ -63,7 +70,7 @@ class Validator
      * certificate provided.
      *
      * @param  DOMDocument $dom
-     * @param  resource         $certificate
+     * @param  resource    $certificate
      * @return bool
      */
     protected function validateXml(DOMDocument $dom, $certificate)
