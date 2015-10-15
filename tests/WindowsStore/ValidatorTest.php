@@ -1,5 +1,6 @@
 <?php
 
+use ReceiptValidator\WindowsStore\CacheInterface;
 use ReceiptValidator\WindowsStore\Validator;
 
 /**
@@ -13,6 +14,15 @@ class WindowsValidatorTest extends PHPUnit_Framework_TestCase
     public function testValidate($receipt)
     {
         $validator = new Validator;
+        $this->assertTrue($validator->validate($receipt), 'Receipt should validate successfully');
+    }
+
+    /**
+     * @dataProvider receiptProvider
+     */
+    public function testValidateWithCache($receipt)
+    {
+        $validator = new Validator(new DummyCache);
         $this->assertTrue($validator->validate($receipt), 'Receipt should validate successfully');
     }
 
@@ -89,5 +99,20 @@ class WindowsValidatorTest extends PHPUnit_Framework_TestCase
                 '</Receipt>'
             ),
         );
+    }
+}
+
+class DummyCache implements CacheInterface
+{
+    protected $cache = array();
+
+    public function get($key)
+    {
+        return isset($this->cache[$key]) ? $this->cache[$key] : null;
+    }
+
+    public function put($key, $value, $minutes)
+    {
+        $this->cache[$key] = $value;
     }
 }

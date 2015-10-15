@@ -9,8 +9,11 @@ use RobRichards\XMLSecLibs\XMLSecurityDSig;
 
 class Validator
 {
-    public function __construct()
+    protected $cache;
+
+    public function __construct(CacheInterface $cache = null)
     {
+        $this->cache = $cache;
     }
 
     /**
@@ -48,21 +51,32 @@ class Validator
      */
     protected function retrieveCertificate($certificateId)
     {
-        $maxCertificateSize = 10000;
+        // Retrieve from cache if a cache handler has been set.
+        $cacheKey = 'store-receipt-validate.windowsstore.'.$certificateId;
+        $certificate = $this->cache !== null ? $this->cache->get($cacheKey) : null;
 
-        // We are attempting to retrieve the following url. The getAppReceiptAsync website at
-        // http://msdn.microsoft.com/en-us/library/windows/apps/windows.applicationmodel.store.currentapp.getappreceiptasync.aspx
-        // lists the following format for the certificate url.
-        $certificateUrl = 'https://go.microsoft.com/fwlink/?LinkId=246509&cid=' . $certificateId;
+        if ($certificate === null) {
+            $maxCertificateSize = 10000;
 
-        // Make an HTTP GET request for the certificate.
-        $client = new GuzzleClient($certificateUrl);
-        $response = $client->get()->send();
+            // We are attempting to retrieve the following url. The getAppReceiptAsync website at
+            // http://msdn.microsoft.com/en-us/library/windows/apps/windows.applicationmodel.store.currentapp.getappreceiptasync.aspx
+            // lists the following format for the certificate url.
+            $certificateUrl = 'https://go.microsoft.com/fwlink/?LinkId=246509&cid=' . $certificateId;
 
-        // Retrieve the certificate out of the response.
-        $body = $response->getBody(true);
+            // Make an HTTP GET request for the certificate.
+            $client = new GuzzleClient($certificateUrl);
+            $response = $client->get()->send();
 
-        return openssl_x509_read($body);
+            // Retrieve the certificate out of the response.
+            $certificate = $response->getBody(true);
+
+            // Write back to cache.
+            if ($this->cache !== null) {
+                $this->cache->put($cacheKey, $certificate, 3600);
+            }
+        }
+
+        return openssl_x509_read($certificate);
     }
 
     /**
