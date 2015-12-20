@@ -134,6 +134,6 @@ class Validator
       }
     }
 
-    return new Response(self::RESULT_INVALID_RECEIPT);
+    return new Response(Response::RESULT_INVALID_RECEIPT);
   }
 }
