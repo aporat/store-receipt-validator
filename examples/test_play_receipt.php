@@ -27,9 +27,9 @@ $purchase_token = 'xxxxxx';
 $validator = new PlayValidator(['client_id' => $client_id, 'client_secret' => $client_secret, 'refresh_token' => $refresh_token]);
 
 try {
-    $response = $validator->setPackageName($package_name)->setProductId($product_id)->setPurchaseToken($purchase_token)->validate();
+  $response = $validator->setPackageName($package_name)->setProductId($product_id)->setPurchaseToken($purchase_token)->validate();
 } catch (Exception $e) {
-    echo 'got error = ' . $e->getMessage() . PHP_EOL;
+  echo 'got error = ' . $e->getMessage() . PHP_EOL;
 }
 
 print_R($response);
