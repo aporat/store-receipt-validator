@@ -126,12 +126,14 @@ class Validator
   {
     try {
       $httpResponse = $this->getClient()->request('GET', sprintf("developer/%s/user/%s/receiptId/%s", $this->_developerSecret, $this->_userId, $this->_receiptId));
+
+      return new Response($httpResponse->getStatusCode(), json_decode($httpResponse->getBody(), true));
     } catch (RequestException $e) {
       if ($e->hasResponse()) {
         return new Response($e->getResponse()->getStatusCode(), json_decode($e->getResponse()->getBody(), true));
       }
     }
 
-    return new Response($httpResponse->getStatusCode(), json_decode($httpResponse->getBody(), true));
+    return new Response(self::RESULT_INVALID_RECEIPT);
   }
 }
