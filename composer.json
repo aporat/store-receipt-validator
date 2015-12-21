@@ -3,10 +3,10 @@
 	"description" : "PHP library that can be used to validate base64 encoded iTunes in app purchase receipts.",
 	"type" : "library",
 	"authors" : [{
-			"name" : "Adar Porat",
-			"email" : "adar.porat@gmail.com",
-			"homepage" : "http://github.com/aporat"
-		}
+		"name" : "Adar Porat",
+		"email" : "adar.porat@gmail.com",
+		"homepage" : "http://github.com/aporat"
+	}
 	],
 	"keywords" : [
 		"itunes",
@@ -25,12 +25,12 @@
 		"google/apiclient": "~1.1",
 		"robrichards/xmlseclibs": "^2.0"
 	},
-	"require-dev" : {
-		"phpunit/phpunit" : "~4.8"
+	"require-dev": {
+		"phpunit/phpunit": "^4.0"
 	},
-	"autoload" : {
-		"psr-0" : {
-			"ReceiptValidator" : "src/"
+	"autoload": {
+		"psr-4": {
+			"ReceiptValidator\\": "src/"
 		}
 	},
 	"support" : {
