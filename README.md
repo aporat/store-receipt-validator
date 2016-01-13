@@ -91,6 +91,29 @@ try {
 // success
 ```
 
+Or [Using a service account](https://developers.google.com/android-publisher/getting_started#using_a_service_account)
+
+Create service account [Service Account flow](https://developers.google.com/identity/protocols/OAuth2ServiceAccount)
+
+```php
+use ReceiptValidator\GooglePlay\ServiceAccountValidator as PlayValidator;
+$validator = new PlayValidator([
+    'client_email' => 'xxxxxx@developer.gserviceaccount.com',
+    'p12_key_path' => 'MyProject.p12',
+]);
+
+try {
+  $response = $validator->setPackageName('PACKAGE_NAME')
+    ->setProductId('PRODUCT_ID')
+    ->setPurchaseToken('PURCHASE_TOKEN')
+    ->validate();
+} catch (Exception $e){
+  var_dump($e->getMessage());
+  // example message: Error calling GET ....: (404) Product not found for this application.
+}
+// success
+```
+
 
 ### Amazon App Store ###
 
