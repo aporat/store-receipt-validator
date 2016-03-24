@@ -52,7 +52,7 @@ class Response
    *
    * @var string
    */
-  protected $_bundle_id = null;
+  protected $_bundle_id;
 
   /**
    * receipt info
@@ -64,16 +64,16 @@ class Response
   /**
    * latest receipt (needs for auto-renewable subscriptions)
    *
-   * @var array
+   * @var string
    */
-  protected $_latest_receipt =  array();
+  protected $_latest_receipt;
 
   /**
    * latest receipt info (needs for auto-renewable subscriptions)
    *
-   * @var string
+   * @var array
    */
-  protected $_latest_receipt_info = null;
+  protected $_latest_receipt_info;
 
   /**
    * purhcases info
@@ -160,7 +160,7 @@ class Response
   /**
    * Get the bundle id assoicated with the receipt
    *
-   * @return array
+   * @return string
    */
   public function getBundleId()
   {
@@ -185,7 +185,9 @@ class Response
    * Parse JSON Response
    *
    * @param string $jsonResponse
-   * @return Message
+   *
+   * @return Response
+   * @throws RunTimeException
    */
   public function parseJsonResponse($jsonResponse)
   {
