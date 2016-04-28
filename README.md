@@ -99,7 +99,7 @@ Create service account [Service Account flow](https://developers.google.com/iden
 use ReceiptValidator\GooglePlay\ServiceAccountValidator as PlayValidator;
 $validator = new PlayValidator([
     'client_email' => 'xxxxxx@developer.gserviceaccount.com',
-    'p12_key_path' => 'MyProject.p12',
+    'p12_key_path' => file_get_contents('MyProject.p12'),
 ]);
 
 try {
