@@ -9,7 +9,7 @@ class ServiceAccountValidator extends AbstractValidator
         $credentials = new \Google_Auth_AssertionCredentials(
             $options['client_email'],
             [\Google_Service_AndroidPublisher::ANDROIDPUBLISHER],
-            $options['p12_key_path']
+            file_get_contents($options['p12_key_path'])
         );
         $this->_client = new \Google_Client();
         $this->_client->setAssertionCredentials($credentials);
