@@ -1,40 +1,46 @@
 {
-	"name" : "aporat/store-receipt-validator",
-	"description" : "PHP library that can be used to validate base64 encoded iTunes in app purchase receipts.",
-	"type" : "library",
-	"authors" : [{
-		"name" : "Adar Porat",
-		"email" : "adar.porat@gmail.com",
-		"homepage" : "http://github.com/aporat"
-	}
-	],
-	"keywords" : [
-		"itunes",
-		"apple",
-		"in app",
-		"purchase",
-		"receipt"
-	],
-	"homepage" : "https://github.com/aporat/store-receipt-validator",
-	"license" : [
-		"Apache-2.0"
-	],
-	"require" : {
-		"php" : ">=5.5",
-		"guzzlehttp/guzzle" : "~6.1",
-		"google/apiclient": "~1.1",
-		"robrichards/xmlseclibs": "^2.0"
-	},
-	"require-dev": {
-		"phpunit/phpunit": "^4.0"
-	},
-	"autoload": {
-		"psr-4": {
-			"ReceiptValidator\\": "src/"
-		}
-	},
-	"support" : {
-		"email" : "adar.porat@gmail.com",
-		"issues" : "https://github.com/aporat/store-receipt-validator/issues"
-	}
+  "name": "aporat/store-receipt-validator",
+  "description": "PHP library that can be used to validate base64 encoded iTunes in app purchase receipts.",
+  "type": "library",
+  "authors": [
+    {
+      "name": "Adar Porat",
+      "email": "adar.porat@gmail.com",
+      "homepage": "https://github.com/aporat"
+    },
+    {
+      "name": "Stanimir Kukudov",
+      "email": "stanimir.kukudov@gmail.com",
+      "homepage": "https://github.com/stanimir-kukudov"
+    }
+  ],
+  "keywords": [
+    "itunes",
+    "apple",
+    "in app",
+    "purchase",
+    "receipt"
+  ],
+  "homepage": "https://github.com/stanimir-kukudov/store-receipt-validator",
+  "license": [
+    "Apache-2.0"
+  ],
+  "require": {
+    "php": ">=5.5",
+    "guzzlehttp/guzzle": "~6.1",
+    "google/apiclient": "~2.0",
+    "robrichards/xmlseclibs": "^2.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "ReceiptValidator\\": "src/"
+    }
+  },
+  "support": {
+    "email": "stanimir.kukudov@gmail.com",
+    "issues": "https://github.com/stanimir-kukudov/store-receipt-validator/issues"
+  }
 }

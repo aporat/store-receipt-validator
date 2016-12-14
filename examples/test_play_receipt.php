@@ -14,22 +14,24 @@ require_once $root . '/vendor/autoload.php';
 use ReceiptValidator\GooglePlay\Validator as PlayValidator;
 
 // google authencation 
-$client_id = 'xxxxxxx';
-$client_secret = 'xxxx';
-$refresh_token = 'xxxx';
-
+$applicationName = 'xxxxxx';
+$scope = ['https://www.googleapis.com/auth/androidpublisher'];
+$configLocation = 'googleapi.json';
 
 // receipt data
-$package_name = 'com.example';
-$product_id = 'coins_10000';
-$purchase_token = 'xxxxxx';
+$packageName = 'xxxxx';
+$productId = 'xxxxx';
+$purchaseToken = 'xxxxx';
 
-$validator = new PlayValidator(['client_id' => $client_id, 'client_secret' => $client_secret, 'refresh_token' => $refresh_token]);
+$client = new \Google_Client();
+$client->setApplicationName($applicationName);
+$client->setAuthConfig($configLocation);
+$client->setScopes($scope);
+
+$validator = new PlayValidator(new \Google_Service_AndroidPublisher($client));
 
 try {
-  $response = $validator->setPackageName($package_name)->setProductId($product_id)->setPurchaseToken($purchase_token)->validate();
+    $response = $validator->setPackageName($packageName)->setProductId($productId)->setPurchaseToken($purchaseToken)->validatePurchase();
 } catch (Exception $e) {
   echo 'got error = ' . $e->getMessage() . PHP_EOL;
 }
-
-print_R($response);

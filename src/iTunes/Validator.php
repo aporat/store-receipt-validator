@@ -87,6 +87,7 @@ class Validator
 
   /**
    * @param string $sharedSecret
+   * @return $this
    */
   public function setSharedSecret($sharedSecret)
   {
@@ -109,7 +110,7 @@ class Validator
    * set endpoint
    *
    * @param string $endpoint
-   * @return\ReceiptValidator\iTunes\Validator;
+   * @return $this
    */
   function setEndpoint($endpoint)
   {

@@ -1,34 +1,95 @@
 <?php
+
 namespace ReceiptValidator\GooglePlay;
 
-use ReceiptValidator\RunTimeException as RunTimeException;
-
-class Validator extends AbstractValidator
+/**
+ * Class Validator
+ * @package ReceiptValidator\GooglePlay
+ */
+class Validator
 {
-    protected function initClient($options = [])
+    /**
+     * @var \Google_Service_AndroidPublisher
+     */
+    protected $_androidPublisherService = null;
+
+    /**
+     * @var string
+     */
+    protected $_package_name = null;
+
+    /**
+     * @var string
+     */
+    protected $_purchase_token = null;
+
+    /**
+     * @var string
+     */
+    protected $_product_id = null;
+
+    /**
+     * Validator constructor.
+     * @param \Google_Service_AndroidPublisher $googleServiceAndroidPublisher
+     */
+    public function __construct(\Google_Service_AndroidPublisher $googleServiceAndroidPublisher)
     {
-        $this->_client = new \Google_Client();
-        $this->_client->setClientId($options['client_id']);
-        $this->_client->setClientSecret($options['client_secret']);
+        $this->_androidPublisherService = $googleServiceAndroidPublisher;
+    }
 
-        $cached_access_token_path = sys_get_temp_dir() . '/' . 'googleplay_access_token_' . md5($options['client_id']) . '.txt';
+    /**
+     *
+     * @param string $package_name
+     * @return $this
+     */
+    public function setPackageName($package_name)
+    {
+        $this->_package_name = $package_name;
 
-        touch($cached_access_token_path);
-        chmod($cached_access_token_path, 0770);
+        return $this;
+    }
 
-        try {
-            $this->_client->setAccessToken(file_get_contents($cached_access_token_path));
-        } catch (\Exception $e) {
-          // skip exceptions when the access token is not valid
-        }
+    /**
+     *
+     * @param string $purchase_token
+     * @return $this
+     */
+    public function setPurchaseToken($purchase_token)
+    {
+        $this->_purchase_token = $purchase_token;
 
-        try {
-            if ($this->_client->isAccessTokenExpired()) {
-                $this->_client->refreshToken($options['refresh_token']);
-                file_put_contents($cached_access_token_path, $this->_client->getAccessToken());
-            }
-        } catch (\Exception $e) {
-            throw new RuntimeException('Failed refreshing access token - ' . $e->getMessage());
-        }
+        return $this;
+    }
+
+    /**
+     *
+     * @param string $product_id
+     * @return $this
+     */
+    public function setProductId($product_id)
+    {
+        $this->_product_id = $product_id;
+
+        return $this;
+    }
+
+    /**
+     * @return SubscriptionResponse
+     */
+    public function validateSubscription()
+    {
+        return new SubscriptionResponse($this->_androidPublisherService->purchases_subscriptions->get(
+            $this->_package_name, $this->_product_id, $this->_purchase_token
+        ));
+    }
+
+    /**
+     * @return PurchaseResponse
+     */
+    public function validatePurchase()
+    {
+        return new PurchaseResponse($this->_androidPublisherService->purchases_products->get(
+            $this->_package_name, $this->_product_id, $this->_purchase_token
+        ));
     }
 }

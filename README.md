@@ -73,17 +73,19 @@ Get the refresh token from [OAuth2 flow](https://developers.google.com/android-p
 
 ```php
 use ReceiptValidator\GooglePlay\Validator as PlayValidator;
-$validator = new PlayValidator([
-    'client_id' => '...',
-    'client_secret' => '...',
-    'refresh_token' => '...'
-]);
+
+$client = new \Google_Client();
+$client->setApplicationName('...');
+$client->setAuthConfig('...');
+$client->setScopes('...');
+
+$validator = new PlayValidator(new \Google_Service_AndroidPublisher($client));
 
 try {
   $response = $validator->setPackageName('PACKAGE_NAME')
     ->setProductId('PRODUCT_ID')
     ->setPurchaseToken('PURCHASE_TOKEN')
-    ->validate();
+    ->validatePurchase();
 } catch (Exception $e){
   var_dump($e->getMessage());
   // example message: Error calling GET ....: (404) Product not found for this application.
