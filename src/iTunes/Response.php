@@ -157,7 +157,7 @@ class Response
   }
 
   /**
-   * Get the bundle id assoicated with the receipt
+   * Get the bundle id associated with the receipt
    *
    * @return string
    */
