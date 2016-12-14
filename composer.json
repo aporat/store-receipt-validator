@@ -1,5 +1,5 @@
 {
-  "name": "stanimir-kukudov/store-receipt-validator",
+  "name": "aporat/store-receipt-validator",
   "description": "PHP library that can be used to validate base64 encoded iTunes in app purchase receipts.",
   "type": "library",
   "authors": [
