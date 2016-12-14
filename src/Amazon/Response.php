@@ -96,7 +96,9 @@ class Response
    * Parse JSON Response
    *
    * @param string $jsonResponse
-   * @return Message
+   *
+   * @throws RunTimeException
+   * @return $this
    */
   public function parseJsonResponse($jsonResponse = null)
   {

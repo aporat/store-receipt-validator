@@ -84,6 +84,8 @@ class Validator
    *
    * @param  DOMDocument $dom
    * @param  resource    $certificate
+   *
+   * @throws RunTimeException
    * @return bool
    */
   protected function validateXml(DOMDocument $dom, $certificate)

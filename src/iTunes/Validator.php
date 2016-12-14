@@ -1,8 +1,8 @@
 <?php
 namespace ReceiptValidator\iTunes;
 
-use ReceiptValidator\iTunes\Response;
 use ReceiptValidator\RunTimeException;
+use \GuzzleHttp\Client as HttpClient;
 
 class Validator
 {
@@ -156,6 +156,7 @@ class Validator
    * @param string $receiptData
    * @param string $sharedSecret
    *
+   * @throws RunTimeException
    * @return Response
    */
   public function validate($receiptData = null, $sharedSecret = null)
@@ -180,7 +181,7 @@ class Validator
     // on a 21007 error retry the request in the sandbox environment (if the current environment is Production)
     // these are receipts from apple review team
     if ($this->_endpoint == self::ENDPOINT_PRODUCTION && $response->getResultCode() == Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
-      $client = new \GuzzleHttp\Client(['base_uri' => self::ENDPOINT_SANDBOX]);
+      $client = new HttpClient(['base_uri' => self::ENDPOINT_SANDBOX]);
 
       $httpResponse = $client->request('POST', null, ['body' => $this->encodeRequest()]);
 

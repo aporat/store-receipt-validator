@@ -76,7 +76,7 @@ class Response
   protected $_latest_receipt_info;
 
   /**
-   * purhcases info
+   * purchases info
    * @var array
    */
   protected $_purchases =  array();
@@ -85,7 +85,6 @@ class Response
    * Constructor
    *
    * @param array $jsonResponse
-   * @return Response
    */
   public function __construct($jsonResponse = null)
   {
