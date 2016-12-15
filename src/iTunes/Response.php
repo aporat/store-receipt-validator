@@ -81,17 +81,22 @@ class Response
    */
   protected $_purchases =  array();
 
+    /**
+     * @var array
+     */
+    protected $response;
+
   /**
    * Constructor
    *
    * @param array $jsonResponse
-   * @return Response
    */
   public function __construct($jsonResponse = null)
   {
-    if ($jsonResponse !== null) {
-      $this->parseJsonResponse($jsonResponse);
-    }
+      $this->response = $jsonResponse;
+      if ($this->response !== null) {
+          $this->parseJsonResponse();
+      }
   }
 
   /**
@@ -184,13 +189,12 @@ class Response
   /**
    * Parse JSON Response
    *
-   * @param string $jsonResponse
-   *
    * @return Response
    * @throws RunTimeException
    */
-  public function parseJsonResponse($jsonResponse)
+  public function parseJsonResponse()
   {
+      $jsonResponse = $this->response;
     if (!is_array($jsonResponse)) {
       throw new RuntimeException('Response must be a scalar value');
     }
@@ -232,4 +236,12 @@ class Response
     }
     return $this;
   }
+
+    /**
+     * @return array
+     */
+    public function getRawResponse()
+    {
+        return $this->response;
+    }
 }

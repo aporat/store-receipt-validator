@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1481807103">
-  <project timestamp="1481807103">
+<coverage generated="1481817562">
+  <project timestamp="1481817562">
     <package name="ReceiptValidator\Amazon">
       <file name="/var/local/lecturio/sources/receipt-validator/src/Amazon/Response.php">
         <class name="Response" namespace="ReceiptValidator\Amazon">
@@ -95,7 +95,7 @@
       </file>
       <file name="/var/local/lecturio/sources/receipt-validator/src/GooglePlay/SubscriptionResponse.php">
         <class name="SubscriptionResponse" namespace="ReceiptValidator\GooglePlay" fullPackage="ReceiptValidator" package="ReceiptValidator">
-          <metrics methods="6" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="6" coveredstatements="6" elements="12" coveredelements="12"/>
+          <metrics methods="7" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="6" elements="14" coveredelements="12"/>
         </class>
         <line num="19" type="method" name="getAutoRenewing" crap="1" count="1"/>
         <line num="21" type="stmt" count="1"/>
@@ -109,7 +109,9 @@
         <line num="53" type="stmt" count="1"/>
         <line num="59" type="method" name="getStartTimeMillis" crap="1" count="1"/>
         <line num="61" type="stmt" count="1"/>
-        <metrics loc="63" ncloc="38" classes="1" methods="6" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="6" coveredstatements="6" elements="12" coveredelements="12"/>
+        <line num="67" type="method" name="getExpiryTimeMillis" crap="2" count="0"/>
+        <line num="69" type="stmt" count="0"/>
+        <metrics loc="71" ncloc="43" classes="1" methods="7" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="6" elements="14" coveredelements="12"/>
       </file>
       <file name="/var/local/lecturio/sources/receipt-validator/src/GooglePlay/Validator.php">
         <class name="Validator" namespace="ReceiptValidator\GooglePlay" fullPackage="ReceiptValidator" package="ReceiptValidator">
@@ -211,39 +213,38 @@
     <package name="ReceiptValidator\iTunes">
       <file name="/var/local/lecturio/sources/receipt-validator/src/iTunes/Response.php">
         <class name="Response" namespace="ReceiptValidator\iTunes">
-          <metrics methods="10" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="44" coveredstatements="37" elements="54" coveredelements="43"/>
+          <metrics methods="11" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="47" coveredstatements="40" elements="58" coveredelements="47"/>
         </class>
-        <line num="90" type="method" name="__construct" crap="2" count="6"/>
-        <line num="92" type="stmt" count="6"/>
-        <line num="93" type="stmt" count="6"/>
-        <line num="94" type="stmt" count="5"/>
-        <line num="95" type="stmt" count="5"/>
-        <line num="102" type="method" name="getResultCode" crap="1" count="4"/>
-        <line num="104" type="stmt" count="4"/>
-        <line num="113" type="method" name="setResultCode" crap="2" count="0"/>
-        <line num="115" type="stmt" count="0"/>
-        <line num="117" type="stmt" count="0"/>
-        <line num="125" type="method" name="getPurchases" crap="2" count="0"/>
-        <line num="127" type="stmt" count="0"/>
-        <line num="135" type="method" name="getReceipt" crap="2" count="0"/>
-        <line num="137" type="stmt" count="0"/>
-        <line num="145" type="method" name="getLatestReceiptInfo" crap="1" count="1"/>
-        <line num="147" type="stmt" count="1"/>
-        <line num="155" type="method" name="getLatestReceipt" crap="1" count="1"/>
-        <line num="157" type="stmt" count="1"/>
-        <line num="165" type="method" name="getBundleId" crap="1" count="1"/>
-        <line num="167" type="stmt" count="1"/>
-        <line num="175" type="method" name="isValid" crap="2" count="4"/>
-        <line num="177" type="stmt" count="4"/>
-        <line num="178" type="stmt" count="1"/>
-        <line num="181" type="stmt" count="3"/>
-        <line num="192" type="method" name="parseJsonResponse" crap="13.19" count="6"/>
-        <line num="194" type="stmt" count="6"/>
-        <line num="195" type="stmt" count="1"/>
-        <line num="199" type="stmt" count="5"/>
-        <line num="200" type="stmt" count="1"/>
-        <line num="201" type="stmt" count="1"/>
-        <line num="202" type="stmt" count="1"/>
+        <line num="94" type="method" name="__construct" crap="2" count="6"/>
+        <line num="96" type="stmt" count="6"/>
+        <line num="97" type="stmt" count="6"/>
+        <line num="98" type="stmt" count="6"/>
+        <line num="99" type="stmt" count="5"/>
+        <line num="100" type="stmt" count="5"/>
+        <line num="107" type="method" name="getResultCode" crap="1" count="4"/>
+        <line num="109" type="stmt" count="4"/>
+        <line num="118" type="method" name="setResultCode" crap="2" count="0"/>
+        <line num="120" type="stmt" count="0"/>
+        <line num="122" type="stmt" count="0"/>
+        <line num="130" type="method" name="getPurchases" crap="2" count="0"/>
+        <line num="132" type="stmt" count="0"/>
+        <line num="140" type="method" name="getReceipt" crap="2" count="0"/>
+        <line num="142" type="stmt" count="0"/>
+        <line num="150" type="method" name="getLatestReceiptInfo" crap="1" count="1"/>
+        <line num="152" type="stmt" count="1"/>
+        <line num="160" type="method" name="getLatestReceipt" crap="1" count="1"/>
+        <line num="162" type="stmt" count="1"/>
+        <line num="170" type="method" name="getBundleId" crap="1" count="1"/>
+        <line num="172" type="stmt" count="1"/>
+        <line num="180" type="method" name="isValid" crap="2" count="4"/>
+        <line num="182" type="stmt" count="4"/>
+        <line num="183" type="stmt" count="1"/>
+        <line num="186" type="stmt" count="3"/>
+        <line num="195" type="method" name="parseJsonResponse" crap="13.17" count="6"/>
+        <line num="197" type="stmt" count="6"/>
+        <line num="198" type="stmt" count="6"/>
+        <line num="199" type="stmt" count="1"/>
+        <line num="203" type="stmt" count="5"/>
         <line num="204" type="stmt" count="1"/>
         <line num="205" type="stmt" count="1"/>
         <line num="206" type="stmt" count="1"/>
@@ -253,21 +254,26 @@
         <line num="212" type="stmt" count="1"/>
         <line num="213" type="stmt" count="1"/>
         <line num="214" type="stmt" count="1"/>
-        <line num="215" type="stmt" count="5"/>
-        <line num="218" type="stmt" count="2"/>
-        <line num="220" type="stmt" count="2"/>
-        <line num="221" type="stmt" count="2"/>
+        <line num="216" type="stmt" count="1"/>
+        <line num="217" type="stmt" count="1"/>
+        <line num="218" type="stmt" count="1"/>
+        <line num="219" type="stmt" count="5"/>
         <line num="222" type="stmt" count="2"/>
         <line num="224" type="stmt" count="2"/>
-        <line num="225" type="stmt" count="0"/>
-        <line num="226" type="stmt" count="0"/>
-        <line num="227" type="stmt" count="2"/>
-        <line num="228" type="stmt" count="4"/>
-        <line num="229" type="stmt" count="2"/>
-        <line num="230" type="stmt" count="2"/>
-        <line num="231" type="stmt" count="0"/>
-        <line num="233" type="stmt" count="5"/>
-        <metrics loc="235" ncloc="120" classes="1" methods="10" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="44" coveredstatements="37" elements="54" coveredelements="43"/>
+        <line num="225" type="stmt" count="2"/>
+        <line num="226" type="stmt" count="2"/>
+        <line num="228" type="stmt" count="2"/>
+        <line num="229" type="stmt" count="0"/>
+        <line num="230" type="stmt" count="0"/>
+        <line num="231" type="stmt" count="2"/>
+        <line num="232" type="stmt" count="4"/>
+        <line num="233" type="stmt" count="2"/>
+        <line num="234" type="stmt" count="2"/>
+        <line num="235" type="stmt" count="0"/>
+        <line num="237" type="stmt" count="5"/>
+        <line num="243" type="method" name="getRawResponse" crap="1" count="1"/>
+        <line num="245" type="stmt" count="1"/>
+        <metrics loc="247" ncloc="129" classes="1" methods="11" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="47" coveredstatements="40" elements="58" coveredelements="47"/>
       </file>
       <file name="/var/local/lecturio/sources/receipt-validator/src/iTunes/Validator.php">
         <class name="Validator" namespace="ReceiptValidator\iTunes">
@@ -329,6 +335,6 @@
         <metrics loc="196" ncloc="123" classes="1" methods="10" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="43" coveredstatements="28" elements="53" coveredelements="35"/>
       </file>
     </package>
-    <metrics files="11" loc="1126" ncloc="655" classes="10" methods="58" coveredmethods="42" conditionals="0" coveredconditionals="0" statements="197" coveredstatements="163" elements="255" coveredelements="205"/>
+    <metrics files="11" loc="1146" ncloc="669" classes="10" methods="60" coveredmethods="43" conditionals="0" coveredconditionals="0" statements="201" coveredstatements="166" elements="261" coveredelements="209"/>
   </project>
 </coverage>

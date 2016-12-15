@@ -53,5 +53,6 @@ class iTunesResponseTest extends PHPUnit_Framework_TestCase
 
     $this->assertInternalType(PHPUnit_Framework_Constraint_IsType::TYPE_STRING, $response->getBundleId());
     $this->assertEquals($jsonResponseArray['receipt']['bundle_id'], $response->getBundleId(), 'receipt bundle id must match');
+    $this->assertEquals($jsonResponseArray, $response->getRawResponse(), 'original receipt');
   }
 }
