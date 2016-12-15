@@ -39,5 +39,6 @@ class GooglePlayPurchaseResponseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('', $productResponse->getDeveloperPayloadElement('invalid'));
         // test own methods
         $this->assertEquals($purchaseTimeMillis, $productResponse->getPurchaseTimeMillis());
+        $this->assertEquals($productPurchaseMock, $productResponse->getRawResponse());
     }
 }

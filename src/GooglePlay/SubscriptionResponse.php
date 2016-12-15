@@ -11,7 +11,7 @@ class SubscriptionResponse extends AbstractResponse
     /**
      * @var \Google_Service_AndroidPublisher_SubscriptionPurchase
      */
-    public $response;
+    protected $response;
 
     /**
      * @return string

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1481806145">
-  <project timestamp="1481806145">
+<coverage generated="1481807103">
+  <project timestamp="1481807103">
     <package name="ReceiptValidator\Amazon">
       <file name="/var/local/lecturio/sources/receipt-validator/src/Amazon/Response.php">
         <class name="Response" namespace="ReceiptValidator\Amazon">
@@ -65,7 +65,7 @@
     <package name="ReceiptValidator\GooglePlay">
       <file name="/var/local/lecturio/sources/receipt-validator/src/GooglePlay/AbstractResponse.php">
         <class name="AbstractResponse" namespace="ReceiptValidator\GooglePlay" fullPackage="ReceiptValidator" package="ReceiptValidator">
-          <metrics methods="6" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="8" elements="14" coveredelements="14"/>
+          <metrics methods="7" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="9" elements="16" coveredelements="16"/>
         </class>
         <line num="31" type="method" name="__construct" crap="1" count="3"/>
         <line num="33" type="stmt" count="3"/>
@@ -81,7 +81,9 @@
         <line num="67" type="stmt" count="1"/>
         <line num="73" type="method" name="getPurchaseState" crap="1" count="1"/>
         <line num="75" type="stmt" count="1"/>
-        <metrics loc="77" ncloc="46" classes="1" methods="6" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="8" elements="14" coveredelements="14"/>
+        <line num="81" type="method" name="getRawResponse" crap="1" count="2"/>
+        <line num="83" type="stmt" count="2"/>
+        <metrics loc="85" ncloc="51" classes="1" methods="7" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="9" elements="16" coveredelements="16"/>
       </file>
       <file name="/var/local/lecturio/sources/receipt-validator/src/GooglePlay/PurchaseResponse.php">
         <class name="PurchaseResponse" namespace="ReceiptValidator\GooglePlay" fullPackage="ReceiptValidator" package="ReceiptValidator">
@@ -327,6 +329,6 @@
         <metrics loc="196" ncloc="123" classes="1" methods="10" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="43" coveredstatements="28" elements="53" coveredelements="35"/>
       </file>
     </package>
-    <metrics files="11" loc="1118" ncloc="650" classes="10" methods="57" coveredmethods="41" conditionals="0" coveredconditionals="0" statements="196" coveredstatements="162" elements="253" coveredelements="203"/>
+    <metrics files="11" loc="1126" ncloc="655" classes="10" methods="58" coveredmethods="42" conditionals="0" coveredconditionals="0" statements="197" coveredstatements="163" elements="255" coveredelements="205"/>
   </project>
 </coverage>

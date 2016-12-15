@@ -58,7 +58,7 @@
        </div>
 </td>
       <td class="success small"><div align="right">100.00%</div></td>
-      <td class="success small"><div align="right">6&nbsp;/&nbsp;6</div></td>
+      <td class="success small"><div align="right">7&nbsp;/&nbsp;7</div></td>
       <td class="success small"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></td>
       <td class="success big">       <div class="progress">
          <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100.00" aria-valuemin="0" aria-valuemax="100" style="width: 100.00%">
@@ -67,7 +67,7 @@
        </div>
 </td>
       <td class="success small"><div align="right">100.00%</div></td>
-      <td class="success small"><div align="right">8&nbsp;/&nbsp;8</div></td>
+      <td class="success small"><div align="right">9&nbsp;/&nbsp;9</div></td>
      </tr>
 
      <tr>
@@ -87,8 +87,8 @@
        </div>
 </td>
       <td class="success small"><div align="right">100.00%</div></td>
-      <td class="success small"><div align="right">6&nbsp;/&nbsp;6</div></td>
-      <td class="success small">7</td>
+      <td class="success small"><div align="right">7&nbsp;/&nbsp;7</div></td>
+      <td class="success small">8</td>
       <td class="success big">       <div class="progress">
          <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100.00" aria-valuemin="0" aria-valuemax="100" style="width: 100.00%">
            <span class="sr-only">100.00% covered (success)</span>
@@ -96,7 +96,7 @@
        </div>
 </td>
       <td class="success small"><div align="right">100.00%</div></td>
-      <td class="success small"><div align="right">8&nbsp;/&nbsp;8</div></td>
+      <td class="success small"><div align="right">9&nbsp;/&nbsp;9</div></td>
      </tr>
 
      <tr>
@@ -225,6 +225,27 @@
       <td class="success small"><div align="right">1&nbsp;/&nbsp;1</div></td>
      </tr>
 
+     <tr>
+      <td class="success" colspan="4">&nbsp;<a href="#81"><abbr title="getRawResponse()">getRawResponse</abbr></a></td>
+      <td class="success big">       <div class="progress">
+         <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100.00" aria-valuemin="0" aria-valuemax="100" style="width: 100.00%">
+           <span class="sr-only">100.00% covered (success)</span>
+         </div>
+       </div>
+</td>
+      <td class="success small"><div align="right">100.00%</div></td>
+      <td class="success small"><div align="right">1&nbsp;/&nbsp;1</div></td>
+      <td class="success small">1</td>
+      <td class="success big">       <div class="progress">
+         <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100.00" aria-valuemin="0" aria-valuemax="100" style="width: 100.00%">
+           <span class="sr-only">100.00% covered (success)</span>
+         </div>
+       </div>
+</td>
+      <td class="success small"><div align="right">100.00%</div></td>
+      <td class="success small"><div align="right">1&nbsp;/&nbsp;1</div></td>
+     </tr>
+
 
     </tbody>
    </table>
@@ -248,7 +269,7 @@
      <tr><td><div align="right"><a name="16"></a><a href="#16">16</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="comment">/**</span></td></tr>
      <tr><td><div align="right"><a name="17"></a><a href="#17">17</a></div></td><td class="codeLine"><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@var&nbsp;\Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase</span></td></tr>
      <tr><td><div align="right"><a name="18"></a><a href="#18">18</a></div></td><td class="codeLine"><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/</span></td></tr>
-     <tr><td><div align="right"><a name="19"></a><a href="#19">19</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="keyword">public</span><span class="default">&nbsp;</span><span class="default">$response</span><span class="keyword">;</span></td></tr>
+     <tr><td><div align="right"><a name="19"></a><a href="#19">19</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="keyword">protected</span><span class="default">&nbsp;</span><span class="default">$response</span><span class="keyword">;</span></td></tr>
      <tr><td><div align="right"><a name="20"></a><a href="#20">20</a></div></td><td class="codeLine"></td></tr>
      <tr><td><div align="right"><a name="21"></a><a href="#21">21</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="comment">/**</span></td></tr>
      <tr><td><div align="right"><a name="22"></a><a href="#22">22</a></div></td><td class="codeLine"><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@var&nbsp;array</span></td></tr>
@@ -306,7 +327,15 @@
      <tr><td><div align="right"><a name="74"></a><a href="#74">74</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="keyword">{</span></td></tr>
      <tr class="covered-by-large-tests popin" data-title="1 test covers line 75" data-content="&lt;ul&gt;&lt;li class=&quot;covered-by-large-tests&quot;&gt;ReceiptValidator\GooglePlay\GooglePlayPurchaseResponseTest::testParsedResponse&lt;/li&gt;&lt;/ul&gt;" data-placement="bottom" data-html="true"><td><div align="right"><a name="75"></a><a href="#75">75</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="keyword">return</span><span class="default">&nbsp;</span><span class="default">$this</span><span class="default">-&gt;</span><span class="default">response</span><span class="default">-&gt;</span><span class="default">purchaseState</span><span class="keyword">;</span></td></tr>
      <tr class="warning"><td><div align="right"><a name="76"></a><a href="#76">76</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="keyword">}</span></td></tr>
-     <tr><td><div align="right"><a name="77"></a><a href="#77">77</a></div></td><td class="codeLine"><span class="keyword">}</span></td></tr>
+     <tr><td><div align="right"><a name="77"></a><a href="#77">77</a></div></td><td class="codeLine"></td></tr>
+     <tr><td><div align="right"><a name="78"></a><a href="#78">78</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="comment">/**</span></td></tr>
+     <tr><td><div align="right"><a name="79"></a><a href="#79">79</a></div></td><td class="codeLine"><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@return&nbsp;\Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase</span></td></tr>
+     <tr><td><div align="right"><a name="80"></a><a href="#80">80</a></div></td><td class="codeLine"><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/</span></td></tr>
+     <tr><td><div align="right"><a name="81"></a><a href="#81">81</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="keyword">public</span><span class="default">&nbsp;</span><span class="keyword">function</span><span class="default">&nbsp;</span><span class="default">getRawResponse</span><span class="keyword">(</span><span class="keyword">)</span></td></tr>
+     <tr><td><div align="right"><a name="82"></a><a href="#82">82</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="keyword">{</span></td></tr>
+     <tr class="covered-by-large-tests popin" data-title="2 tests cover line 83" data-content="&lt;ul&gt;&lt;li class=&quot;covered-by-large-tests&quot;&gt;ReceiptValidator\GooglePlay\GooglePlayPurchaseResponseTest::testParsedResponse&lt;/li&gt;&lt;li class=&quot;covered-by-large-tests&quot;&gt;ReceiptValidator\GooglePlay\GooglePlaySubscriptionResponseTest::testParsedResponse&lt;/li&gt;&lt;/ul&gt;" data-placement="bottom" data-html="true"><td><div align="right"><a name="83"></a><a href="#83">83</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="keyword">return</span><span class="default">&nbsp;</span><span class="default">$this</span><span class="default">-&gt;</span><span class="default">response</span><span class="keyword">;</span></td></tr>
+     <tr class="warning"><td><div align="right"><a name="84"></a><a href="#84">84</a></div></td><td class="codeLine"><span class="default">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="keyword">}</span></td></tr>
+     <tr><td><div align="right"><a name="85"></a><a href="#85">85</a></div></td><td class="codeLine"><span class="keyword">}</span></td></tr>
 
     </tbody>
    </table>
@@ -319,7 +348,7 @@
      <span class="warning"><strong>Dead Code</strong></span>
     </p>
     <p>
-     <small>Generated by <a href="http://github.com/sebastianbergmann/php-code-coverage" target="_top">PHP_CodeCoverage 2.2.4</a> using <a href="https://secure.php.net/" target="_top">PHP 5.5.9-1ubuntu4.20</a> and <a href="https://phpunit.de/">PHPUnit 4.8.31</a> at Thu Dec 15 12:49:05 UTC 2016.</small>
+     <small>Generated by <a href="http://github.com/sebastianbergmann/php-code-coverage" target="_top">PHP_CodeCoverage 2.2.4</a> using <a href="https://secure.php.net/" target="_top">PHP 5.5.9-1ubuntu4.20</a> and <a href="https://phpunit.de/">PHPUnit 4.8.31</a> at Thu Dec 15 13:05:03 UTC 2016.</small>
     </p>
     <a title="Back to the top" id="toplink" href="#"><span class="glyphicon glyphicon-arrow-up"></span></a>
    </footer>

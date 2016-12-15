@@ -39,5 +39,6 @@ class GooglePlaySubscriptionResponseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($priceAmountMicros, $subscriptionResponse->getPriceAmountMicros());
         $this->assertEquals($priceCurrencyCode, $subscriptionResponse->getPriceCurrencyCode());
         $this->assertEquals($startTimeMillis, $subscriptionResponse->getStartTimeMillis());
+        $this->assertEquals($subscriptionPurchaseMock, $subscriptionResponse->getRawResponse());
     }
 }

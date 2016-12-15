@@ -16,7 +16,7 @@ abstract class AbstractResponse
     /**
      * @var \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
      */
-    public $response;
+    protected $response;
 
     /**
      * @var array
@@ -73,5 +73,13 @@ abstract class AbstractResponse
     public function getPurchaseState()
     {
         return $this->response->purchaseState;
+    }
+
+    /**
+     * @return \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
+     */
+    public function getRawResponse()
+    {
+        return $this->response;
     }
 }

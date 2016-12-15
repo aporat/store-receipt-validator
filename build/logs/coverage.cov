@@ -215,6 +215,12 @@ $coverage->setData(array (
       0 => 'ReceiptValidator\\GooglePlay\\GooglePlayPurchaseResponseTest::testParsedResponse',
     ),
     76 => NULL,
+    83 => 
+    array (
+      0 => 'ReceiptValidator\\GooglePlay\\GooglePlayPurchaseResponseTest::testParsedResponse',
+      1 => 'ReceiptValidator\\GooglePlay\\GooglePlaySubscriptionResponseTest::testParsedResponse',
+    ),
+    84 => NULL,
   ),
   '/var/local/lecturio/sources/receipt-validator/src/GooglePlay/SubscriptionResponse.php' => 
   array (
