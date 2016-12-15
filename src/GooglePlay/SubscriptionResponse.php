@@ -60,4 +60,12 @@ class SubscriptionResponse extends AbstractResponse
     {
         return $this->response->startTimeMillis;
     }
+
+    /**
+     * @return string
+     */
+    public function getExpiryTimeMillis()
+    {
+        return $this->response->expiryTimeMillis;
+    }
 }
