@@ -11,7 +11,7 @@ class PurchaseResponse extends AbstractResponse
     /**
      * @var \Google_Service_AndroidPublisher_ProductPurchase
      */
-    protected $response;
+    public $response;
 
     /**
      * @return string

@@ -16,7 +16,7 @@ abstract class AbstractResponse
     /**
      * @var \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
      */
-    protected $response;
+    public $response;
 
     /**
      * @var array
