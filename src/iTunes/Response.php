@@ -5,7 +5,6 @@ use ReceiptValidator\RunTimeException;
 
 class Response
 {
-
   /**
    * Response Codes
    *
@@ -254,8 +253,8 @@ class Response
       $this->_app_item_id = $this->_receipt['app_item_id'];
       $this->_purchases = $jsonResponse['receipt']['in_app'];
       if (isset($this->_purchases[0])) {
-        $this->_transaction_id = $this->_purchases[0]['transaction_id'];
-        $this->_original_transaction_id = $this->_purchases[0]['original_transaction_id'];
+        $this->_transaction_id = end($this->_purchases)['transaction_id'];
+        $this->_original_transaction_id = end($this->_purchases)['original_transaction_id'];
       }
 
       if (array_key_exists('bundle_id', $jsonResponse['receipt'])) {
@@ -264,7 +263,7 @@ class Response
 
       if (array_key_exists('latest_receipt_info', $jsonResponse)) {
         $this->_latest_receipt_info = $jsonResponse['latest_receipt_info'];
-        $this->_transaction_id = isset($this->_latest_receipt_info[0]) ? $this->_latest_receipt_info[0]['transaction_id'] : null;
+        $this->_transaction_id = isset($this->_latest_receipt_info[0]) ? end($this->_latest_receipt_info)['transaction_id'] : null;
       }
 
       if (array_key_exists('latest_receipt', $jsonResponse)) {

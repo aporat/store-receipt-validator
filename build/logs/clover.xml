@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1481874402">
-  <project timestamp="1481874402">
+<coverage generated="1481875707">
+  <project timestamp="1481875707">
     <package name="ReceiptValidator\Amazon">
       <file name="/var/local/lecturio/sources/receipt-validator/src/Amazon/Response.php">
         <class name="Response" namespace="ReceiptValidator\Amazon">
