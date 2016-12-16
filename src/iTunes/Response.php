@@ -96,6 +96,11 @@ class Response
   protected $_original_transaction_id;
 
   /**
+   * @var string
+   */
+  protected $_product_id;
+
+  /**
    * @var array
    */
   protected $response;
@@ -220,6 +225,14 @@ class Response
   }
 
   /**
+   * @return string
+   */
+  public function getProductId()
+  {
+      return $this->_product_id;
+  }
+
+  /**
    * returns if the receipt is valid or not
    *
    * @return boolean
@@ -255,6 +268,7 @@ class Response
       if (isset($this->_purchases[0])) {
         $this->_transaction_id = end($this->_purchases)['transaction_id'];
         $this->_original_transaction_id = end($this->_purchases)['original_transaction_id'];
+        $this->_product_id = end($this->_purchases)['product_id'];
       }
 
       if (array_key_exists('bundle_id', $jsonResponse['receipt'])) {
@@ -263,7 +277,11 @@ class Response
 
       if (array_key_exists('latest_receipt_info', $jsonResponse)) {
         $this->_latest_receipt_info = $jsonResponse['latest_receipt_info'];
-        $this->_transaction_id = isset($this->_latest_receipt_info[0]) ? end($this->_latest_receipt_info)['transaction_id'] : null;
+        if (isset($this->_latest_receipt_info[0])) {
+          $this->_transaction_id = end($this->_latest_receipt_info)['transaction_id'];
+          $this->_original_transaction_id = end($this->_latest_receipt_info)['original_transaction_id'];
+          $this->_product_id = end($this->_latest_receipt_info)['product_id'];
+        }
       }
 
       if (array_key_exists('latest_receipt', $jsonResponse)) {

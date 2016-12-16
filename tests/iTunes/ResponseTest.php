@@ -55,7 +55,8 @@ class iTunesResponseTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($jsonResponseArray['receipt']['bundle_id'], $response->getBundleId(), 'receipt bundle id must match');
     $this->assertEquals($jsonResponseArray['receipt']['app_item_id'], $response->getAppItemId(), 'receipt app item id must match');
     $this->assertEquals(end($jsonResponseArray['latest_receipt_info'])['transaction_id'], $response->getTransactionId(), 'receipt transaction id must match');
-    $this->assertEquals(end($jsonResponseArray['receipt']['in_app'])['original_transaction_id'], $response->getOriginalTransactionId(), 'receipt original transaction id must match');
+    $this->assertEquals(end($jsonResponseArray['latest_receipt_info'])['original_transaction_id'], $response->getOriginalTransactionId(), 'receipt original transaction id must match');
+    $this->assertEquals(end($jsonResponseArray['latest_receipt_info'])['product_id'], $response->getProductId(), 'receipt product id must match');
     $this->assertEquals($jsonResponseArray, $response->getRawResponse(), 'original receipt');
   }
 }
