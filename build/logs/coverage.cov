@@ -621,7 +621,7 @@ $coverage->setData(array (
   ),
   '/var/local/lecturio/sources/receipt-validator/src/iTunes/Response.php' => 
   array (
-    96 => 
+    111 => 
     array (
       0 => 'iTunesResponseTest::testInvalidOptionsToConstructor',
       1 => 'iTunesResponseTest::testInvalidReceipt',
@@ -630,7 +630,7 @@ $coverage->setData(array (
       4 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
       5 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    97 => 
+    112 => 
     array (
       0 => 'iTunesResponseTest::testInvalidOptionsToConstructor',
       1 => 'iTunesResponseTest::testInvalidReceipt',
@@ -639,7 +639,7 @@ $coverage->setData(array (
       4 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
       5 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    98 => 
+    113 => 
     array (
       0 => 'iTunesResponseTest::testInvalidOptionsToConstructor',
       1 => 'iTunesResponseTest::testInvalidReceipt',
@@ -648,7 +648,7 @@ $coverage->setData(array (
       4 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
       5 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    99 => 
+    114 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
@@ -656,7 +656,7 @@ $coverage->setData(array (
       3 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
       4 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    100 => 
+    115 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
@@ -664,64 +664,84 @@ $coverage->setData(array (
       3 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
       4 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    109 => 
+    124 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
       2 => 'iTunesResponseTest::testValidReceipt',
       3 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    110 => NULL,
-    120 => 
+    125 => NULL,
+    135 => 
     array (
     ),
-    122 => 
+    137 => 
     array (
     ),
-    123 => NULL,
-    132 => 
+    138 => NULL,
+    147 => 
     array (
     ),
-    133 => NULL,
-    142 => 
+    148 => NULL,
+    157 => 
     array (
     ),
-    143 => NULL,
-    152 => 
-    array (
-      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
-    ),
-    153 => NULL,
-    162 => 
+    158 => NULL,
+    167 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    163 => NULL,
-    172 => 
+    168 => NULL,
+    177 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    173 => NULL,
-    182 => 
+    178 => NULL,
+    187 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    188 => NULL,
+    195 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    196 => NULL,
+    203 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    204 => NULL,
+    212 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    213 => NULL,
+    220 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    221 => NULL,
+    230 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
       2 => 'iTunesResponseTest::testValidReceipt',
       3 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    183 => 
+    231 => 
     array (
       0 => 'iTunesResponseTest::testValidReceipt',
     ),
-    184 => NULL,
-    186 => 
+    232 => NULL,
+    234 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
       2 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    187 => NULL,
-    197 => 
+    235 => NULL,
+    245 => 
     array (
       0 => 'iTunesResponseTest::testInvalidOptionsToConstructor',
       1 => 'iTunesResponseTest::testInvalidReceipt',
@@ -730,7 +750,7 @@ $coverage->setData(array (
       4 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
       5 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    198 => 
+    246 => 
     array (
       0 => 'iTunesResponseTest::testInvalidOptionsToConstructor',
       1 => 'iTunesResponseTest::testInvalidReceipt',
@@ -739,12 +759,12 @@ $coverage->setData(array (
       4 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
       5 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    199 => 
+    247 => 
     array (
       0 => 'iTunesResponseTest::testInvalidOptionsToConstructor',
     ),
-    200 => NULL,
-    203 => 
+    248 => NULL,
+    251 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
@@ -752,55 +772,79 @@ $coverage->setData(array (
       3 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
       4 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    204 => 
+    252 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    205 => 
+    253 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    206 => 
+    254 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    208 => 
+    255 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    209 => 
+    256 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    210 => 
+    257 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    212 => 
+    258 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    213 => 
+    259 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    214 => 
+    261 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    216 => 
+    262 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    217 => 
+    263 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    218 => 
+    265 => 
     array (
       0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
     ),
-    219 => 
+    266 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    267 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    268 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    270 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    271 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    272 => 
+    array (
+      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
+    ),
+    273 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
@@ -808,63 +852,63 @@ $coverage->setData(array (
       3 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
       4 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    222 => 
+    276 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testValidReceipt',
     ),
-    224 => 
+    278 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testValidReceipt',
     ),
-    225 => 
+    279 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testValidReceipt',
     ),
-    226 => 
+    280 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testValidReceipt',
     ),
-    228 => 
+    282 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testValidReceipt',
     ),
-    229 => 
+    283 => 
     array (
     ),
-    230 => 
+    284 => 
     array (
     ),
-    231 => 
+    285 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testValidReceipt',
     ),
-    232 => 
+    286 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
       2 => 'iTunesResponseTest::testValidReceipt',
       3 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    233 => 
+    287 => 
     array (
       0 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
       1 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    234 => 
+    288 => 
     array (
       0 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
       1 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    235 => 
+    289 => 
     array (
     ),
-    237 => 
+    291 => 
     array (
       0 => 'iTunesResponseTest::testInvalidReceipt',
       1 => 'iTunesResponseTest::testReceiptSentToWrongEndpoint',
@@ -872,12 +916,7 @@ $coverage->setData(array (
       3 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
       4 => 'iTunesValidatorTest::testValidateWithInvalidReceipt',
     ),
-    238 => NULL,
-    245 => 
-    array (
-      0 => 'iTunesResponseTest::testReceiptWithLatestReceiptInfo',
-    ),
-    246 => NULL,
+    292 => NULL,
   ),
   '/var/local/lecturio/sources/receipt-validator/src/iTunes/Validator.php' => 
   array (

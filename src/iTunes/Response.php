@@ -81,12 +81,27 @@ class Response
    */
   protected $_purchases =  array();
 
-    /**
-     * @var array
-     */
-    protected $response;
+  /**
+   * @var string
+   */
+  protected $_transaction_id;
 
   /**
+   * @var string
+   */
+  protected $_app_item_id;
+
+  /**
+   * @var string
+   */
+  protected $_original_transaction_id;
+
+  /**
+   * @var array
+   */
+  protected $response;
+
+    /**
    * Constructor
    *
    * @param array $jsonResponse
@@ -173,6 +188,39 @@ class Response
   }
 
   /**
+   * @return string
+   */
+  public function getTransactionId()
+  {
+    return $this->_transaction_id;
+  }
+
+  /**
+   * @return string
+   */
+  public function getAppItemId()
+  {
+    return $this->_app_item_id;
+  }
+
+
+  /**
+   * @return array
+   */
+  public function getRawResponse()
+  {
+    return $this->response;
+  }
+
+  /**
+   * @return string
+   */
+  public function getOriginalTransactionId()
+  {
+      return $this->_original_transaction_id;
+  }
+
+  /**
    * returns if the receipt is valid or not
    *
    * @return boolean
@@ -203,7 +251,12 @@ class Response
     if (array_key_exists('receipt', $jsonResponse) && is_array($jsonResponse['receipt']) && array_key_exists('in_app', $jsonResponse['receipt']) && is_array($jsonResponse['receipt']['in_app'])) {
       $this->_code = $jsonResponse['status'];
       $this->_receipt = $jsonResponse['receipt'];
+      $this->_app_item_id = $this->_receipt['app_item_id'];
       $this->_purchases = $jsonResponse['receipt']['in_app'];
+      if (isset($this->_purchases[0])) {
+        $this->_transaction_id = $this->_purchases[0]['transaction_id'];
+        $this->_original_transaction_id = $this->_purchases[0]['original_transaction_id'];
+      }
 
       if (array_key_exists('bundle_id', $jsonResponse['receipt'])) {
         $this->_bundle_id = $jsonResponse['receipt']['bundle_id'];
@@ -211,6 +264,7 @@ class Response
 
       if (array_key_exists('latest_receipt_info', $jsonResponse)) {
         $this->_latest_receipt_info = $jsonResponse['latest_receipt_info'];
+        $this->_transaction_id = isset($this->_latest_receipt_info[0]) ? $this->_latest_receipt_info[0]['transaction_id'] : null;
       }
 
       if (array_key_exists('latest_receipt', $jsonResponse)) {
@@ -236,12 +290,4 @@ class Response
     }
     return $this;
   }
-
-    /**
-     * @return array
-     */
-    public function getRawResponse()
-    {
-        return $this->response;
-    }
 }
