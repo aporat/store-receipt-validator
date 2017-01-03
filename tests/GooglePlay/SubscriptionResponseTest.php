@@ -18,6 +18,7 @@ class GooglePlaySubscriptionResponseTest extends \PHPUnit_Framework_TestCase
         $priceAmountMicros = 'testPriceAmountMicros';
         $priceCurrencyCode = 'testPriceCurrencyCode';
         $startTimeMillis = 'testStartTimeMillis';
+        $expiryTimeMillis = 'testExpiryTimeMillis';
 
         // mock objects
         $subscriptionPurchaseMock = $this->getMockBuilder('\Google_Service_AndroidPublisher_SubscriptionPurchase')
@@ -29,15 +30,19 @@ class GooglePlaySubscriptionResponseTest extends \PHPUnit_Framework_TestCase
         $subscriptionPurchaseMock->priceAmountMicros = $priceAmountMicros;
         $subscriptionPurchaseMock->priceCurrencyCode = $priceCurrencyCode;
         $subscriptionPurchaseMock->startTimeMillis = $startTimeMillis;
+        $subscriptionPurchaseMock->expiryTimeMillis = $expiryTimeMillis;
 
         $subscriptionResponse = new SubscriptionResponse($subscriptionPurchaseMock);
 
         $this->assertInstanceOf('ReceiptValidator\GooglePlay\AbstractResponse', $subscriptionResponse);
+        $this->assertInstanceOf('ReceiptValidator\SubscriptionInterface', $subscriptionResponse);
         $this->assertEquals($autoRenewing, $subscriptionResponse->getAutoRenewing());
         $this->assertEquals($cancelReason, $subscriptionResponse->getCancelReason());
         $this->assertEquals($countryCode, $subscriptionResponse->getCountryCode());
         $this->assertEquals($priceAmountMicros, $subscriptionResponse->getPriceAmountMicros());
         $this->assertEquals($priceCurrencyCode, $subscriptionResponse->getPriceCurrencyCode());
         $this->assertEquals($startTimeMillis, $subscriptionResponse->getStartTimeMillis());
+        $this->assertEquals($expiryTimeMillis, $subscriptionResponse->getExpiresDate());
+        $this->assertEquals($subscriptionPurchaseMock, $subscriptionResponse->getRawResponse());
     }
 }

@@ -2,11 +2,13 @@
 
 namespace ReceiptValidator\GooglePlay;
 
+use ReceiptValidator\SubscriptionInterface;
+
 /**
  * Class SubscriptionResponse
  * @package ReceiptValidator\GooglePlay
  */
-class SubscriptionResponse extends AbstractResponse
+class SubscriptionResponse extends AbstractResponse implements SubscriptionInterface
 {
     /**
      * @var \Google_Service_AndroidPublisher_SubscriptionPurchase
@@ -59,5 +61,13 @@ class SubscriptionResponse extends AbstractResponse
     public function getStartTimeMillis()
     {
         return $this->response->startTimeMillis;
+    }
+
+    /**
+     * @return string
+     */
+    public function getExpiresDate()
+    {
+        return $this->response->expiryTimeMillis;
     }
 }

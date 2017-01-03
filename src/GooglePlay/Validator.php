@@ -14,6 +14,11 @@ class Validator
     protected $_androidPublisherService = null;
 
     /**
+     * @var bool
+     */
+    private $validationModePurchase = true;
+
+    /**
      * @var string
      */
     protected $_package_name = null;
@@ -31,10 +36,12 @@ class Validator
     /**
      * Validator constructor.
      * @param \Google_Service_AndroidPublisher $googleServiceAndroidPublisher
+     * @param boolean $validationModePurchase
      */
-    public function __construct(\Google_Service_AndroidPublisher $googleServiceAndroidPublisher)
+    public function __construct(\Google_Service_AndroidPublisher $googleServiceAndroidPublisher, $validationModePurchase = true)
     {
         $this->_androidPublisherService = $googleServiceAndroidPublisher;
+        $this->validationModePurchase = $validationModePurchase;
     }
 
     /**
@@ -71,6 +78,25 @@ class Validator
         $this->_product_id = $product_id;
 
         return $this;
+    }
+
+    /**
+     * @param bool $validationModePurchase
+     * @return Validator
+     */
+    public function setValidationModePurchase($validationModePurchase)
+    {
+        $this->validationModePurchase = $validationModePurchase;
+
+        return $this;
+    }
+
+    /**
+     * @return PurchaseResponse|SubscriptionResponse
+     */
+    public function validate()
+    {
+        return ($this->validationModePurchase) ? $this->validatePurchase() : $this->validateSubscription();
     }
 
     /**

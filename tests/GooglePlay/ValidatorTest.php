@@ -44,6 +44,8 @@ class GooglePlayValidatorTest extends \PHPUnit_Framework_TestCase
             ->setPurchaseToken($purchaseToken);
 
         $this->assertEquals(new PurchaseResponse($productResponseMock), $googlePlayValidator->validatePurchase());
-        $this->assertEquals(new SubscriptionResponse($subscriptionResponseMock), $googlePlayValidator->validateSubscription());
+        $this->assertEquals(new SubscriptionResponse($subscriptionResponseMock), $googlePlayValidator
+            ->setValidationModePurchase(false)->validateSubscription()
+        );
     }
 }

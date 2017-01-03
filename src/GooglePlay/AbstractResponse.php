@@ -74,4 +74,12 @@ abstract class AbstractResponse
     {
         return $this->response->purchaseState;
     }
+
+    /**
+     * @return \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
+     */
+    public function getRawResponse()
+    {
+        return $this->response;
+    }
 }
