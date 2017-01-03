@@ -2,8 +2,9 @@
 namespace ReceiptValidator\iTunes;
 
 use ReceiptValidator\RunTimeException;
+use ReceiptValidator\SubscriptionInterface;
 
-class Response
+class Response implements SubscriptionInterface
 {
   /**
    * Response Codes
@@ -104,6 +105,11 @@ class Response
    * @var array
    */
   protected $response;
+
+  /**
+   * @var int
+   */
+  protected $_expires_date = 0;
 
     /**
    * Constructor
@@ -233,6 +239,14 @@ class Response
   }
 
   /**
+   * @return int
+   */
+  public function getExpiresDate()
+  {
+      return $this->_expires_date;
+  }
+
+  /**
    * returns if the receipt is valid or not
    *
    * @return boolean
@@ -277,6 +291,7 @@ class Response
           $this->_transaction_id = end($this->_latest_receipt_info)['transaction_id'];
           $this->_original_transaction_id = end($this->_latest_receipt_info)['original_transaction_id'];
           $this->_product_id = end($this->_latest_receipt_info)['product_id'];
+          $this->_expires_date = end($this->_latest_receipt_info)['expires_date_ms'];
         }
       }
 

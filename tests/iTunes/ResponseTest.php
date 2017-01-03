@@ -18,6 +18,7 @@ class iTunesResponseTest extends PHPUnit_Framework_TestCase
   {
     $response = new Response(array('status' => Response::RESULT_DATA_MALFORMED, 'receipt' => array()));
 
+    $this->assertInstanceOf('ReceiptValidator\SubscriptionInterface', $response);
     $this->assertFalse($response->isValid(), 'receipt must be invalid');
     $this->assertEquals(Response::RESULT_DATA_MALFORMED, $response->getResultCode(), 'receipt result code must match');
 
@@ -61,6 +62,7 @@ class iTunesResponseTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(end($jsonResponseArray['latest_receipt_info'])['transaction_id'], $response->getTransactionId(), 'receipt transaction id must match');
     $this->assertEquals(end($jsonResponseArray['latest_receipt_info'])['original_transaction_id'], $response->getOriginalTransactionId(), 'receipt original transaction id must match');
     $this->assertEquals(end($jsonResponseArray['latest_receipt_info'])['product_id'], $response->getProductId(), 'receipt product id must match');
+    $this->assertEquals(end($jsonResponseArray['latest_receipt_info'])['expires_date_ms'], $response->getExpiresDate(), 'receipt expires date must match');
     $this->assertEquals($jsonResponseArray, $response->getRawResponse(), 'original receipt');
   }
 }
