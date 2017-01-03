@@ -16,26 +16,30 @@ class iTunesResponseTest extends PHPUnit_Framework_TestCase
 
   public function testInvalidReceipt()
   {
-    $response = new Response(array('status' => 21002, 'receipt' => array()));
+    $response = new Response(array('status' => Response::RESULT_DATA_MALFORMED, 'receipt' => array()));
 
     $this->assertFalse($response->isValid(), 'receipt must be invalid');
-    $this->assertEquals(21002, $response->getResultCode(), 'receipt result code must match');
+    $this->assertEquals(Response::RESULT_DATA_MALFORMED, $response->getResultCode(), 'receipt result code must match');
+
+      $response = new Response(array('status' => Response::RESULT_OK));
+
+      $this->assertFalse($response->isValid(), 'receipt must be invalid');
   }
 
   public function testReceiptSentToWrongEndpoint()
   {
-    $response = new Response(array('status' => 21007));
+    $response = new Response(array('status' => Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION));
 
     $this->assertFalse($response->isValid(), 'receipt must be invalid');
-    $this->assertEquals(21007, $response->getResultCode(), 'receipt result code must match');
+    $this->assertEquals(Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION, $response->getResultCode(), 'receipt result code must match');
   }
 
   public function testValidReceipt()
   {
-    $response = new Response(array('status' => 0, 'receipt' => array()));
+    $response = new Response(array('status' => Response::RESULT_OK, 'receipt' => array('testValue')));
 
     $this->assertTrue($response->isValid(), 'receipt must be valid');
-    $this->assertEquals(0, $response->getResultCode(), 'receipt result code must match');
+    $this->assertEquals(Response::RESULT_OK, $response->getResultCode(), 'receipt result code must match');
   }
 
   public function testReceiptWithLatestReceiptInfo()

@@ -239,11 +239,7 @@ class Response
    */
   public function isValid()
   {
-    if ($this->_code == self::RESULT_OK) {
-      return true;
-    }
-
-    return false;
+    return ($this->_code == self::RESULT_OK && !empty($this->getReceipt()) && count($this->getPurchases()) > 0);
   }
 
   /**
