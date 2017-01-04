@@ -1,6 +1,6 @@
 {
   "name": "aporat/store-receipt-validator",
-  "description": "PHP library that can be used to validate base64 encoded iTunes in app purchase receipts.",
+  "description": "PHP receipt validator for Apple iTunes, Google Play and Amazon App Store Edit",
   "type": "library",
   "authors": [
     {
@@ -21,7 +21,7 @@
     "purchase",
     "receipt"
   ],
-  "homepage": "https://github.com/stanimir-kukudov/store-receipt-validator",
+  "homepage": "https://github.com/aporat/store-receipt-validator",
   "license": [
     "Apache-2.0"
   ],
@@ -40,7 +40,6 @@
     }
   },
   "support": {
-    "email": "stanimir.kukudov@gmail.com",
-    "issues": "https://github.com/stanimir-kukudov/store-receipt-validator/issues"
+    "issues": "https://github.com/aporat/store-receipt-validator/issues"
   }
 }

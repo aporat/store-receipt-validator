@@ -38,7 +38,7 @@ class Response
    *
    * @var array
    */
-  protected $_receipt = array();
+  protected $_receipt = [];
 
 
 
@@ -47,7 +47,6 @@ class Response
    *
    * @param int $httpStatusCode
    * @param array $jsonResponse
-   * @return Response
    */
   public function __construct($httpStatusCode = 200, $jsonResponse = null)
   {

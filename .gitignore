@@ -21,3 +21,4 @@ extras/documentation
 /.settings/
 
 /.idea/
+composer-setup.php

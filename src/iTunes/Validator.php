@@ -140,7 +140,7 @@ class Validator
    */
   private function encodeRequest()
   {
-    $request = array('receipt-data' => $this->getReceiptData());
+    $request = ['receipt-data' => $this->getReceiptData()];
 
     if (!is_null($this->_sharedSecret)) {
 

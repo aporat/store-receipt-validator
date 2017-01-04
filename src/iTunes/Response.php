@@ -59,7 +59,7 @@ class Response implements SubscriptionInterface
    *
    * @var array
    */
-  protected $_receipt = array();
+  protected $_receipt = [];
 
   /**
    * latest receipt (needs for auto-renewable subscriptions)
@@ -79,7 +79,7 @@ class Response implements SubscriptionInterface
    * purchases info
    * @var array
    */
-  protected $_purchases =  array();
+  protected $_purchases = [];
 
   /**
    * @var string
@@ -111,17 +111,17 @@ class Response implements SubscriptionInterface
    */
   protected $_expires_date = 0;
 
-    /**
+  /**
    * Constructor
    *
    * @param array $jsonResponse
    */
   public function __construct($jsonResponse = null)
   {
-      $this->response = $jsonResponse;
-      if ($this->response !== null) {
-          $this->parseJsonResponse();
-      }
+    $this->response = $jsonResponse;
+    if ($this->response !== null) {
+      $this->parseJsonResponse();
+    }
   }
 
   /**
@@ -227,7 +227,7 @@ class Response implements SubscriptionInterface
    */
   public function getOriginalTransactionId()
   {
-      return $this->_original_transaction_id;
+    return $this->_original_transaction_id;
   }
 
   /**
@@ -235,7 +235,7 @@ class Response implements SubscriptionInterface
    */
   public function getProductId()
   {
-      return $this->_product_id;
+    return $this->_product_id;
   }
 
   /**
@@ -243,7 +243,7 @@ class Response implements SubscriptionInterface
    */
   public function getExpiresDate()
   {
-      return $this->_expires_date;
+    return $this->_expires_date;
   }
 
   /**
@@ -264,7 +264,7 @@ class Response implements SubscriptionInterface
    */
   public function parseJsonResponse()
   {
-      $jsonResponse = $this->response;
+    $jsonResponse = $this->response;
     if (!is_array($jsonResponse)) {
       throw new RuntimeException('Response must be a scalar value');
     }
@@ -305,7 +305,7 @@ class Response implements SubscriptionInterface
 
       if (array_key_exists('receipt', $jsonResponse)) {
         $this->_receipt = $jsonResponse['receipt'];
-        $this->_purchases = array($jsonResponse['receipt']);
+        $this->_purchases = [$jsonResponse['receipt']];
 
         if (array_key_exists('bid', $jsonResponse['receipt'])) {
           $this->_bundle_id = $jsonResponse['receipt']['bid'];
