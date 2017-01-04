@@ -2,13 +2,11 @@
 
 namespace ReceiptValidator\GooglePlay;
 
-use ReceiptValidator\SubscriptionInterface;
-
 /**
  * Class SubscriptionResponse
  * @package ReceiptValidator\GooglePlay
  */
-class SubscriptionResponse extends AbstractResponse implements SubscriptionInterface
+class SubscriptionResponse extends AbstractResponse
 {
   /**
    * @var \Google_Service_AndroidPublisher_SubscriptionPurchase

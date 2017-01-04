@@ -2,9 +2,8 @@
 namespace ReceiptValidator\iTunes;
 
 use ReceiptValidator\RunTimeException;
-use ReceiptValidator\SubscriptionInterface;
 
-class Response implements SubscriptionInterface
+class Response
 {
   /**
    * Response Codes
@@ -80,36 +79,6 @@ class Response implements SubscriptionInterface
    * @var array
    */
   protected $_purchases = [];
-
-  /**
-   * @var string
-   */
-  protected $_transaction_id;
-
-  /**
-   * @var string
-   */
-  protected $_app_item_id;
-
-  /**
-   * @var string
-   */
-  protected $_original_transaction_id;
-
-  /**
-   * @var string
-   */
-  protected $_product_id;
-
-  /**
-   * @var array
-   */
-  protected $response;
-
-  /**
-   * @var int
-   */
-  protected $_expires_date = 0;
 
   /**
    * Constructor
@@ -198,55 +167,6 @@ class Response implements SubscriptionInterface
   }
 
   /**
-   * @return string
-   */
-  public function getTransactionId()
-  {
-    return $this->_transaction_id;
-  }
-
-  /**
-   * @return string
-   */
-  public function getAppItemId()
-  {
-    return $this->_app_item_id;
-  }
-
-
-  /**
-   * @return array
-   */
-  public function getRawResponse()
-  {
-    return $this->response;
-  }
-
-  /**
-   * @return string
-   */
-  public function getOriginalTransactionId()
-  {
-    return $this->_original_transaction_id;
-  }
-
-  /**
-   * @return string
-   */
-  public function getProductId()
-  {
-    return $this->_product_id;
-  }
-
-  /**
-   * @return int
-   */
-  public function getExpiresDate()
-  {
-    return $this->_expires_date;
-  }
-
-  /**
    * returns if the receipt is valid or not
    *
    * @return boolean
@@ -275,11 +195,6 @@ class Response implements SubscriptionInterface
       $this->_receipt = $jsonResponse['receipt'];
       $this->_app_item_id = $this->_receipt['app_item_id'];
       $this->_purchases = $jsonResponse['receipt']['in_app'];
-      if (isset($this->_purchases[0])) {
-        $this->_transaction_id = end($this->_purchases)['transaction_id'];
-        $this->_original_transaction_id = end($this->_purchases)['original_transaction_id'];
-        $this->_product_id = end($this->_purchases)['product_id'];
-      }
 
       if (array_key_exists('bundle_id', $jsonResponse['receipt'])) {
         $this->_bundle_id = $jsonResponse['receipt']['bundle_id'];
@@ -287,12 +202,6 @@ class Response implements SubscriptionInterface
 
       if (array_key_exists('latest_receipt_info', $jsonResponse)) {
         $this->_latest_receipt_info = $jsonResponse['latest_receipt_info'];
-        if (isset($this->_latest_receipt_info[0])) {
-          $this->_transaction_id = end($this->_latest_receipt_info)['transaction_id'];
-          $this->_original_transaction_id = end($this->_latest_receipt_info)['original_transaction_id'];
-          $this->_product_id = end($this->_latest_receipt_info)['product_id'];
-          $this->_expires_date = end($this->_latest_receipt_info)['expires_date_ms'];
-        }
       }
 
       if (array_key_exists('latest_receipt', $jsonResponse)) {

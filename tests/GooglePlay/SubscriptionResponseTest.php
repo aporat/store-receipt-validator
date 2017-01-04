@@ -35,7 +35,6 @@ class GooglePlaySubscriptionResponseTest extends \PHPUnit_Framework_TestCase
         $subscriptionResponse = new SubscriptionResponse($subscriptionPurchaseMock);
 
         $this->assertInstanceOf('ReceiptValidator\GooglePlay\AbstractResponse', $subscriptionResponse);
-        $this->assertInstanceOf('ReceiptValidator\SubscriptionInterface', $subscriptionResponse);
         $this->assertEquals($autoRenewing, $subscriptionResponse->getAutoRenewing());
         $this->assertEquals($cancelReason, $subscriptionResponse->getCancelReason());
         $this->assertEquals($countryCode, $subscriptionResponse->getCountryCode());
