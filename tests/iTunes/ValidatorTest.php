@@ -51,11 +51,4 @@ class iTunesValidatorTest extends PHPUnit_Framework_TestCase
     $this->assertEquals('test-shared-secret', $this->validator->getSharedSecret());
   }
 
-  public function testValidateWithInvalidReceipt()
-  {
-    $response = $this->validator->setReceiptData($this->testInvaildReceiptData)->validate();
-
-    $this->assertEquals(Response::RESULT_DATA_MALFORMED, $response->getResultCode());
-    $this->assertFalse($response->isValid(), 'receipt must be invalid');
-  }
 }
