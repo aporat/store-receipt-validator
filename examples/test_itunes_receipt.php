@@ -21,13 +21,24 @@ $receiptBase64Data = 'ewoJInNpZ25hdHVyZSIgPSAiQXBNVUJDODZBbHpOaWtWNVl0clpBTWlKUW
 $response = null;
 try {
   $response = $validator->setReceiptData($receiptBase64Data)->validate();
+
 } catch (Exception $e) {
   echo 'got error = ' . $e->getMessage() . PHP_EOL;
 }
 
 if ($response instanceof ValidatorResponse && $response->isValid()) {
   echo 'Receipt is valid.' . PHP_EOL;
-  echo print_r($response->getReceipt(), true) . PHP_EOL;
+
+  echo 'getBundleId: ' . $response->getBundleId() . PHP_EOL;
+
+  foreach ($response->getPurchases() as $purchase) {
+    echo 'getProductId: ' . $purchase->getProductId() . PHP_EOL;
+    echo 'getTransactionId: ' . $purchase->getTransactionId() . PHP_EOL;
+
+    if ($purchase->getPurchaseDate() != null) {
+      echo 'getPurchaseDate: ' . $purchase->getPurchaseDate()->toIso8601String() . PHP_EOL;
+    }
+  }
 } else {
   echo 'Receipt is not valid.' . PHP_EOL;
   echo 'Receipt result code = ' . $response->getResultCode() . PHP_EOL;

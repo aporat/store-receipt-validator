@@ -76,7 +76,7 @@ class Response
 
   /**
    * purchases info
-   * @var array
+   * @var PurchaseItem[]
    */
   protected $_purchases = [];
 
@@ -119,7 +119,7 @@ class Response
   /**
    * Get purchases info
    *
-   * @return array
+   * @return PurchaseItem[]
    */
   public function getPurchases()
   {
@@ -194,7 +194,11 @@ class Response
       $this->_code = $jsonResponse['status'];
       $this->_receipt = $jsonResponse['receipt'];
       $this->_app_item_id = $this->_receipt['app_item_id'];
-      $this->_purchases = $jsonResponse['receipt']['in_app'];
+      $this->_purchases = [];
+
+      foreach ($jsonResponse['receipt']['in_app'] as $purchase_item_data) {
+        $this->_purchases[] = new PurchaseItem($purchase_item_data);
+      }
 
       if (array_key_exists('bundle_id', $jsonResponse['receipt'])) {
         $this->_bundle_id = $jsonResponse['receipt']['bundle_id'];
@@ -214,7 +218,8 @@ class Response
 
       if (array_key_exists('receipt', $jsonResponse)) {
         $this->_receipt = $jsonResponse['receipt'];
-        $this->_purchases = [$jsonResponse['receipt']];
+        $this->_purchases = [];
+        $this->_purchases[] = new PurchaseItem($jsonResponse['receipt']);
 
         if (array_key_exists('bid', $jsonResponse['receipt'])) {
           $this->_bundle_id = $jsonResponse['receipt']['bid'];
