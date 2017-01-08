@@ -80,9 +80,9 @@ class PurchaseItem
   /**
    * @return array
    */
-  public function getData()
+  public function getRawResponse()
   {
-    return $this->_data;
+    return $this->_response;
   }
 
   /**
