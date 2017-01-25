@@ -29,6 +29,13 @@ class PurchaseItem
   protected $_product_id;
 
   /**
+   * transaction_id
+   *
+   * @var string
+   */
+  protected $_transaction_id;
+
+  /**
    * purchase_date
    *
    * @var Carbon
@@ -64,6 +71,14 @@ class PurchaseItem
   public function getProductId()
   {
     return $this->_product_id;
+  }
+
+  /**
+   * @return string
+   */
+  public function getTransactionId()
+  {
+    return $this->_transaction_id;
   }
 
   /**
