@@ -40,7 +40,11 @@ class Response
    */
   protected $_receipt = [];
 
-
+  /**
+   * purchases info
+   * @var PurchaseItem[]
+   */
+  protected $_purchases = [];
 
   /**
    * Constructor
@@ -78,6 +82,16 @@ class Response
   }
 
   /**
+   * Get purchases info
+   *
+   * @return PurchaseItem[]
+   */
+  public function getPurchases()
+  {
+    return $this->_purchases;
+  }
+
+  /**
    * returns if the receipt is valid or not
    *
    * @return boolean
@@ -102,11 +116,12 @@ class Response
   public function parseJsonResponse($jsonResponse = null)
   {
     if (!is_array($jsonResponse)) {
-
       throw new RuntimeException('Response must be a scalar value');
     }
 
     $this->_receipt = $jsonResponse;
+    $this->_purchases = [];
+    $this->_purchases[] = new PurchaseItem($jsonResponse);
 
     return $this;
   }

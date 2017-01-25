@@ -20,10 +20,6 @@ class iTunesResponseTest extends PHPUnit_Framework_TestCase
 
     $this->assertFalse($response->isValid(), 'receipt must be invalid');
     $this->assertEquals(Response::RESULT_DATA_MALFORMED, $response->getResultCode(), 'receipt result code must match');
-
-      $response = new Response(array('status' => Response::RESULT_OK));
-
-      $this->assertFalse($response->isValid(), 'receipt must be invalid');
   }
 
   public function testReceiptSentToWrongEndpoint()

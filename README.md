@@ -120,21 +120,34 @@ try {
 ### Amazon App Store ###
 
 ```php
-use ReceiptValidator\GooglePlay\Validator as AmazonValidator;
+use ReceiptValidator\Amazon\Validator as AmazonValidator;
+use ReceiptValidator\Amazon\Response as ValidatorResponse;
 
-$validator = new AmazonValidator();
+$validator = new AmazonValidator;
+
+$response = null;
 try {
-  $receiptResponse = $validator->setDeveloperSecret('DEVELOPER_SECRET')
-    ->setReceiptId('ORDER_ID')
-    ->setUserId('AMAZON_USER_ID')
-    ->validate();
-  } catch (\Exception $e) {
-    var_dump($e->getMessage());
-  }
+  $response = $validator->setDeveloperSecret("DEVELOPER_SECRET")->setReceiptId("RECEIPT_ID")->setUserId("USER_ID")->validate();
 
-  if ($receiptResponse->isValid()) {
-    $product_id = $receiptResponse->getReceipt()['productId'];
-  } else {
-    // Not valid receipt
+} catch (Exception $e) {
+  echo 'got error = ' . $e->getMessage() . PHP_EOL;
+}
+
+if ($response instanceof ValidatorResponse && $response->isValid()) {
+
+  echo 'Receipt is valid.' . PHP_EOL;
+
+
+  foreach ($response->getPurchases() as $purchase) {
+    echo 'getProductId: ' . $purchase->getProductId() . PHP_EOL;
+
+    if ($purchase->getPurchaseDate() != null) {
+      echo 'getPurchaseDate: ' . $purchase->getPurchaseDate()->toIso8601String() . PHP_EOL;
+    }
   }
+} else {
+  echo 'Receipt is not valid.' . PHP_EOL;
+  echo 'Receipt result code = ' . $response->getResultCode() . PHP_EOL;
+}
+
 ```
