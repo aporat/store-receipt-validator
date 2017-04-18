@@ -92,4 +92,12 @@ class Validator
             $this->_package_name, $this->_product_id, $this->_purchase_token
         ));
     }
+
+    /**
+     * @return \Google_Service_AndroidPublisher
+     */
+    public function getPublisherService()
+    {
+        return $this->_androidPublisherService;
+    }
 }
