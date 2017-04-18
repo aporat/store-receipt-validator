@@ -8,7 +8,7 @@ namespace ReceiptValidator\GooglePlay;
 class GooglePlayPurchaseResponseTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     *
+     * @link https://developers.google.com/android-publisher/api-ref/purchases/products
      */
     public function testParsedResponse()
     {

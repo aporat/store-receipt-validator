@@ -19,11 +19,6 @@ abstract class AbstractResponse
     protected $response;
 
     /**
-     * @var array
-     */
-    protected $developerPayload = array();
-
-    /**
      * Constructor
      *
      * @param \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase $response
@@ -31,32 +26,14 @@ abstract class AbstractResponse
     public function __construct($response)
     {
         $this->response = $response;
-        $this->developerPayload = json_decode($this->response->developerPayload, true);
     }
 
     /**
-     * @return int
-     */
-    public function getConsumptionState()
-    {
-        return $this->response->consumptionState;
-    }
-
-    /**
-     * @return array
+     * @return array|string
      */
     public function getDeveloperPayload()
     {
-        return $this->developerPayload;
-    }
-
-    /**
-     * @param string $key
-     * @return string
-     */
-    public function getDeveloperPayloadElement($key)
-    {
-        return (isset($this->developerPayload[$key])) ? $this->developerPayload[$key] : '';
+        return $this->response->getDeveloperPayload();
     }
 
     /**
@@ -65,13 +42,5 @@ abstract class AbstractResponse
     public function getKind()
     {
         return $this->response->kind;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPurchaseState()
-    {
-        return $this->response->purchaseState;
     }
 }
