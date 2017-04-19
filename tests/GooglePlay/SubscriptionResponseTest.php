@@ -23,7 +23,6 @@ class GooglePlaySubscriptionResponseTest extends \PHPUnit_Framework_TestCase
         $userCancellationTimeMillis = $startTimeMillis + 3600 * 24 * 1000;
         $developerPayload = 'subs:developerPayload';
         $paymentState = 1;
-        $expiryTimeMillis = 'testExpiryTimeMillis';
 
         $data = [
             'autoRenewing' => $autoRenewing,
@@ -40,7 +39,6 @@ class GooglePlaySubscriptionResponseTest extends \PHPUnit_Framework_TestCase
 
         $subscriptionPurchase = new \Google_Service_AndroidPublisher_SubscriptionPurchase($data);
         $subscriptionResponse = new SubscriptionResponse($subscriptionPurchase);
-        $subscriptionPurchaseMock->expiryTimeMillis = $expiryTimeMillis;
 
         $this->assertInstanceOf(AbstractResponse::class, $subscriptionResponse);
         $this->assertEquals($autoRenewing, $subscriptionResponse->getAutoRenewing());
