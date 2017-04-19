@@ -4,6 +4,7 @@ namespace ReceiptValidator\GooglePlay;
 
 /**
  * @group library
+ * @link https://developers.google.com/android-publisher/api-ref/purchases/subscriptions
  */
 class GooglePlaySubscriptionResponseTest extends \PHPUnit_Framework_TestCase
 {
@@ -12,36 +13,43 @@ class GooglePlaySubscriptionResponseTest extends \PHPUnit_Framework_TestCase
      */
     public function testParsedResponse()
     {
-        $autoRenewing = 'testAutoRenewing';
-        $cancelReason = 'testCancelReason';
+        $autoRenewing = true;
+        $cancelReason = 0;
         $countryCode = 'testCountryCode';
         $priceAmountMicros = 'testPriceAmountMicros';
         $priceCurrencyCode = 'testPriceCurrencyCode';
-        $startTimeMillis = 'testStartTimeMillis';
-        $expiryTimeMillis = 'testExpiryTimeMillis';
+        $startTimeMillis =  time() * 1000;
+        $expiryTimeMillis =  $startTimeMillis + 3600 * 24 * 7 * 1000;
+        $userCancellationTimeMillis = $startTimeMillis + 3600 * 24 * 1000;
+        $developerPayload = 'subs:developerPayload';
+        $paymentState = 1;
 
-        // mock objects
-        $subscriptionPurchaseMock = $this->getMockBuilder('\Google_Service_AndroidPublisher_SubscriptionPurchase')
-            ->disableOriginalConstructor()->getMock();
+        $data = [
+            'autoRenewing' => $autoRenewing,
+            'cancelReason' => $cancelReason,
+            'countryCode' => $countryCode,
+            'priceAmountMicros' => $priceAmountMicros,
+            'priceCurrencyCode' => $priceCurrencyCode,
+            'startTimeMillis' => $startTimeMillis,
+            'expiryTimeMillis' => $expiryTimeMillis,
+            'userCancellationTimeMillis' => $userCancellationTimeMillis,
+            'developerPayload' => $developerPayload,
+            'paymentState' => $paymentState,
+        ];
 
-        $subscriptionPurchaseMock->autoRenewing = $autoRenewing;
-        $subscriptionPurchaseMock->cancelReason = $cancelReason;
-        $subscriptionPurchaseMock->countryCode = $countryCode;
-        $subscriptionPurchaseMock->priceAmountMicros = $priceAmountMicros;
-        $subscriptionPurchaseMock->priceCurrencyCode = $priceCurrencyCode;
-        $subscriptionPurchaseMock->startTimeMillis = $startTimeMillis;
-        $subscriptionPurchaseMock->expiryTimeMillis = $expiryTimeMillis;
+        $subscriptionPurchase = new \Google_Service_AndroidPublisher_SubscriptionPurchase($data);
+        $subscriptionResponse = new SubscriptionResponse($subscriptionPurchase);
 
-        $subscriptionResponse = new SubscriptionResponse($subscriptionPurchaseMock);
-
-        $this->assertInstanceOf('ReceiptValidator\GooglePlay\AbstractResponse', $subscriptionResponse);
+        $this->assertInstanceOf(AbstractResponse::class, $subscriptionResponse);
         $this->assertEquals($autoRenewing, $subscriptionResponse->getAutoRenewing());
         $this->assertEquals($cancelReason, $subscriptionResponse->getCancelReason());
         $this->assertEquals($countryCode, $subscriptionResponse->getCountryCode());
         $this->assertEquals($priceAmountMicros, $subscriptionResponse->getPriceAmountMicros());
         $this->assertEquals($priceCurrencyCode, $subscriptionResponse->getPriceCurrencyCode());
         $this->assertEquals($startTimeMillis, $subscriptionResponse->getStartTimeMillis());
-        $this->assertEquals($expiryTimeMillis, $subscriptionResponse->getExpiresDate());
-        $this->assertEquals($subscriptionPurchaseMock, $subscriptionResponse->getRawResponse());
+        $this->assertEquals($expiryTimeMillis, $subscriptionResponse->getExpiryTimeMillis());
+        $this->assertEquals($userCancellationTimeMillis, $subscriptionResponse->getUserCancellationTimeMillis());
+        $this->assertEquals($developerPayload, $subscriptionResponse->getDeveloperPayload());
+        $this->assertEquals($paymentState, $subscriptionResponse->getPaymentState());
     }
 }
