@@ -8,15 +8,15 @@ namespace ReceiptValidator\GooglePlay;
  */
 abstract class AbstractResponse
 {
-  const CONSUMPTION_STATE_YET_TO_BE_CONSUMED = 0;
-  const CONSUMPTION_STATE_CONSUMED = 1;
-  const PURCHASE_STATE_PURCHASED = 0;
-  const PURCHASE_STATE_CANCELED = 1;
+    const CONSUMPTION_STATE_YET_TO_BE_CONSUMED = 0;
+    const CONSUMPTION_STATE_CONSUMED = 1;
+    const PURCHASE_STATE_PURCHASED = 0;
+    const PURCHASE_STATE_CANCELED = 1;
 
-  /**
-   * @var \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
-   */
-  protected $response;
+    /**
+     * @var \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
+     */
+    protected $response;
 
     /**
      * Constructor
@@ -29,7 +29,6 @@ abstract class AbstractResponse
     }
 
     /**
-
      * @return array|string
      */
     public function getDeveloperPayload()
@@ -46,8 +45,8 @@ abstract class AbstractResponse
     }
 
     /**
-    * @return \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
-    */
+     * @return \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
+     */
     public function getRawResponse()
     {
         return $this->response;

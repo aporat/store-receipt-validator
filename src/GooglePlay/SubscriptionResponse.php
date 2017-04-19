@@ -8,57 +8,57 @@ namespace ReceiptValidator\GooglePlay;
  */
 class SubscriptionResponse extends AbstractResponse
 {
-  /**
-   * @var \Google_Service_AndroidPublisher_SubscriptionPurchase
-   */
-  protected $response;
+    /**
+     * @var \Google_Service_AndroidPublisher_SubscriptionPurchase
+     */
+    protected $response;
 
-  /**
-   * @return bool
-   */
-  public function getAutoRenewing()
-  {
-    return (bool)$this->response->getAutoRenewing();
-  }
+    /**
+     * @return bool
+     */
+    public function getAutoRenewing()
+    {
+        return (bool)$this->response->getAutoRenewing();
+    }
 
-  /**
-   * @return integer|null
-   */
-  public function getCancelReason()
-  {
-    return $this->response->getCancelReason();
-  }
+    /**
+     * @return integer|null
+     */
+    public function getCancelReason()
+    {
+        return $this->response->getCancelReason();
+    }
 
-  /**
-   * @return string
-   */
-  public function getCountryCode()
-  {
-    return $this->response->getCountryCode();
-  }
+    /**
+     * @return string
+     */
+    public function getCountryCode()
+    {
+        return $this->response->getCountryCode();
+    }
 
-  /**
-   * @return integer
-   */
-  public function getPriceAmountMicros()
-  {
-    return $this->response->getPriceAmountMicros();
-  }
+    /**
+     * @return integer
+     */
+    public function getPriceAmountMicros()
+    {
+        return $this->response->getPriceAmountMicros();
+    }
 
-  /**
-   * @return string
-   */
-  public function getPriceCurrencyCode()
-  {
-    return $this->response->getPriceCurrencyCode();
-  }
+    /**
+     * @return string
+     */
+    public function getPriceCurrencyCode()
+    {
+        return $this->response->getPriceCurrencyCode();
+    }
 
-  /**
-   * @return string
-   */
-  public function getStartTimeMillis()
-  {
-    return $this->response->getStartTimeMillis();
+    /**
+     * @return string
+     */
+    public function getStartTimeMillis()
+    {
+        return $this->response->getStartTimeMillis();
     }
 
     /**
@@ -83,13 +83,13 @@ class SubscriptionResponse extends AbstractResponse
     public function getPaymentState()
     {
         return $this->response->getPaymentState();
-  }
+    }
 
-  /**
-   * @return string
-   */
-  public function getExpiresDate()
-  {
-    return $this->response->expiryTimeMillis;
-  }
+    /**
+     * @return string
+     */
+    public function getExpiresDate()
+    {
+        return $this->response->expiryTimeMillis;
+    }
 }

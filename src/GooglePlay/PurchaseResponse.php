@@ -8,12 +8,12 @@ namespace ReceiptValidator\GooglePlay;
  */
 class PurchaseResponse extends AbstractResponse
 {
-  /**
-   * @var \Google_Service_AndroidPublisher_ProductPurchase
-   */
-  protected $response;
+    /**
+     * @var \Google_Service_AndroidPublisher_ProductPurchase
+     */
+    protected $response;
 
-    protected $developerPayload = array();
+    protected $developerPayload = [];
 
     public function __construct($response)
     {
@@ -27,13 +27,17 @@ class PurchaseResponse extends AbstractResponse
     public function getConsumptionState()
     {
         return $this->response->consumptionState;
-    }/**
+    }
+
+    /**
      * @return string
      */
     public function getPurchaseTimeMillis()
     {
         return $this->response->purchaseTimeMillis;
-    }public function getDeveloperPayload()
+    }
+
+    public function getDeveloperPayload()
     {
         return $this->developerPayload;
     }
