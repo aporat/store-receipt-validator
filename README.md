@@ -98,18 +98,20 @@ Or [Using a service account](https://developers.google.com/android-publisher/get
 Create service account [Service Account flow](https://developers.google.com/identity/protocols/OAuth2ServiceAccount)
 
 ```php
-use ReceiptValidator\GooglePlay\ServiceAccountValidator as PlayValidator;
-$validator = new PlayValidator([
-    'client_email' => 'xxxxxx@developer.gserviceaccount.com',
-    'p12_key_path' => 'MyProject.p12',
-]);
+$googleClient = new \Google_Client();
+$googleClient->setScopes([\Google_Service_AndroidPublisher::ANDROIDPUBLISHER]);
+$googleClient->setApplicationName('Your_Purchase_Validator_Name');
+$googleClient->setAuthConfig($pathToServiceAccountJsonFile);
+
+$googleAndroidPublisher = new \Google_Service_AndroidPublisher($googleClient);
+$validator = new \ReceiptValidator\GooglePlay\Validator($googleAndroidPublisher);
 
 try {
   $response = $validator->setPackageName('PACKAGE_NAME')
-    ->setProductId('PRODUCT_ID')
-    ->setPurchaseToken('PURCHASE_TOKEN')
-    ->validate();
-} catch (Exception $e){
+      ->setProductId('PRODUCT_ID')
+      ->setPurchaseToken('PURCHASE_TOKEN')
+      ->validateSubscription();
+} catch (\Exception $e){
   var_dump($e->getMessage());
   // example message: Error calling GET ....: (404) Product not found for this application.
 }

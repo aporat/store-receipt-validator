@@ -18,68 +18,38 @@ abstract class AbstractResponse
    */
   protected $response;
 
-  /**
-   * @var array
-   */
-  protected $developerPayload = [];
+    /**
+     * Constructor
+     *
+     * @param \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase $response
+     */
+    public function __construct($response)
+    {
+        $this->response = $response;
+    }
 
-  /**
-   * Constructor
-   *
-   * @param \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase $response
-   */
-  public function __construct($response)
-  {
-    $this->response = $response;
-    $this->developerPayload = json_decode($this->response->developerPayload, true);
-  }
+    /**
 
-  /**
-   * @return int
-   */
-  public function getConsumptionState()
-  {
-    return $this->response->consumptionState;
-  }
+     * @return array|string
+     */
+    public function getDeveloperPayload()
+    {
+        return $this->response->getDeveloperPayload();
+    }
 
-  /**
-   * @return array
-   */
-  public function getDeveloperPayload()
-  {
-    return $this->developerPayload;
-  }
+    /**
+     * @return string
+     */
+    public function getKind()
+    {
+        return $this->response->kind;
+    }
 
-  /**
-   * @param string $key
-   * @return string
-   */
-  public function getDeveloperPayloadElement($key)
-  {
-    return (isset($this->developerPayload[$key])) ? $this->developerPayload[$key] : '';
-  }
-
-  /**
-   * @return string
-   */
-  public function getKind()
-  {
-    return $this->response->kind;
-  }
-
-  /**
-   * @return string
-   */
-  public function getPurchaseState()
-  {
-    return $this->response->purchaseState;
-  }
-
-  /**
-   * @return \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
-   */
-  public function getRawResponse()
-  {
-    return $this->response;
-  }
+    /**
+    * @return \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
+    */
+    public function getRawResponse()
+    {
+        return $this->response;
+    }
 }

@@ -14,19 +14,19 @@ class SubscriptionResponse extends AbstractResponse
   protected $response;
 
   /**
-   * @return string
+   * @return bool
    */
   public function getAutoRenewing()
   {
-    return $this->response->autoRenewing;
+    return (bool)$this->response->getAutoRenewing();
   }
 
   /**
-   * @return string
+   * @return integer|null
    */
   public function getCancelReason()
   {
-    return $this->response->cancelReason;
+    return $this->response->getCancelReason();
   }
 
   /**
@@ -34,15 +34,15 @@ class SubscriptionResponse extends AbstractResponse
    */
   public function getCountryCode()
   {
-    return $this->response->countryCode;
+    return $this->response->getCountryCode();
   }
 
   /**
-   * @return string
+   * @return integer
    */
   public function getPriceAmountMicros()
   {
-    return $this->response->priceAmountMicros;
+    return $this->response->getPriceAmountMicros();
   }
 
   /**
@@ -50,7 +50,7 @@ class SubscriptionResponse extends AbstractResponse
    */
   public function getPriceCurrencyCode()
   {
-    return $this->response->priceCurrencyCode;
+    return $this->response->getPriceCurrencyCode();
   }
 
   /**
@@ -58,7 +58,31 @@ class SubscriptionResponse extends AbstractResponse
    */
   public function getStartTimeMillis()
   {
-    return $this->response->startTimeMillis;
+    return $this->response->getStartTimeMillis();
+    }
+
+    /**
+     * @return integer
+     */
+    public function getExpiryTimeMillis()
+    {
+        return $this->response->getExpiryTimeMillis();
+    }
+
+    /**
+     * @return integer|null
+     */
+    public function getUserCancellationTimeMillis()
+    {
+        return $this->response->getUserCancellationTimeMillis();
+    }
+
+    /**
+     * @return integer
+     */
+    public function getPaymentState()
+    {
+        return $this->response->getPaymentState();
   }
 
   /**
