@@ -81,6 +81,12 @@ class Response
   protected $_purchases = [];
 
   /**
+   * pending renewal info
+   * @var string
+   */
+  protected $_pending_renewal_info;
+
+  /**
    * Constructor
    *
    * @param array $jsonResponse
@@ -167,6 +173,16 @@ class Response
   }
 
   /**
+   * Get the pending renewal info
+   *
+   * @return string
+   */
+  public function getPendingRenewalInfo()
+  {
+    return $this->_pending_renewal_info;
+  }
+
+  /**
    * returns if the receipt is valid or not
    *
    * @return boolean
@@ -210,6 +226,10 @@ class Response
 
       if (array_key_exists('latest_receipt', $jsonResponse)) {
         $this->_latest_receipt = $jsonResponse['latest_receipt'];
+      }
+
+      if (array_key_exists('pending_renewal_info', $jsonResponse)) {
+        $this->_pending_renewal_info = $jsonResponse['pending_renewal_info'];
       }
     } elseif (array_key_exists('receipt', $jsonResponse)) {
 

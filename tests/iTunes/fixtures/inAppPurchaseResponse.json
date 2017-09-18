@@ -80,5 +80,12 @@
     "request_date_pst": "2015-05-24 09:31:18 America\/Los_Angeles",
     "version_external_identifier": 0
   },
-  "status": 0
+  "status": 0,
+  "pending_renewal_info": [
+      {
+          "auto_renew_product_id": "Test_Subscription",
+          "product_id": "Test_Subscription",
+          "auto_renew_status": "1"
+      }
+  ]
 }
