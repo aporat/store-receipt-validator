@@ -213,6 +213,8 @@ class PurchaseItem
 
     if (array_key_exists('expires_date_ms', $jsonResponse)) {
       $this->_expires_date = Carbon::createFromTimestampUTC(round($jsonResponse['expires_date_ms'] / 1000));
+    } elseif (array_key_exists('expires_date', $jsonResponse) && is_numeric($jsonResponse['expires_date'])) {
+      $this->_expires_date = Carbon::createFromTimestampUTC(round((int)$jsonResponse['expires_date'] / 1000));
     }
 
     if (array_key_exists('cancellation_date_ms', $jsonResponse)) {
