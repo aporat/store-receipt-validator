@@ -239,6 +239,12 @@ class Response
       } elseif ($iOS6less) {
         $this->_purchases[] = new PurchaseItem($jsonResponse['receipt']);
 
+        if (array_key_exists('latest_receipt_info', $jsonResponse)
+            && $jsonResponse['latest_receipt_info']['transaction_id'] != $jsonResponse['receipt']['transaction_id']
+        ) {
+          $this->_purchases[] = new PurchaseItem($jsonResponse['latest_receipt_info']);
+        }
+
         if (array_key_exists('bid', $jsonResponse['receipt'])) {
           $this->_bundle_id = $jsonResponse['receipt']['bid'];
         }
