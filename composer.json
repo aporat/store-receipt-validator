@@ -30,7 +30,7 @@
     "guzzlehttp/guzzle": "~6.2",
     "nesbot/carbon": "~1",
     "google/apiclient": "~2.0",
-    "robrichards/xmlseclibs": "^2.0"
+    "robrichards/xmlseclibs": "^2.0|^3.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^4.8||^5.7"
