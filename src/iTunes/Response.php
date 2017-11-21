@@ -205,20 +205,11 @@ class Response
       throw new RuntimeException('Response must be a scalar value');
     }
 
-    // ios > 7 receipt validation
-    if (array_key_exists('receipt', $jsonResponse) && is_array($jsonResponse['receipt']) && array_key_exists('in_app', $jsonResponse['receipt']) && is_array($jsonResponse['receipt']['in_app'])) {
-      $this->_code = $jsonResponse['status'];
+    $iOS7plus = array_key_exists('receipt', $jsonResponse) && is_array($jsonResponse['receipt']) && array_key_exists('in_app', $jsonResponse['receipt']) && is_array($jsonResponse['receipt']['in_app']);
+    $iOS6less = array_key_exists('receipt', $jsonResponse) && !$iOS7plus;
+
+    if ($iOS7plus || $iOS6less) {
       $this->_receipt = $jsonResponse['receipt'];
-      $this->_app_item_id = $this->_receipt['app_item_id'];
-      $this->_purchases = [];
-
-      foreach ($jsonResponse['receipt']['in_app'] as $purchase_item_data) {
-        $this->_purchases[] = new PurchaseItem($purchase_item_data);
-      }
-
-      if (array_key_exists('bundle_id', $jsonResponse['receipt'])) {
-        $this->_bundle_id = $jsonResponse['receipt']['bundle_id'];
-      }
 
       if (array_key_exists('latest_receipt_info', $jsonResponse)) {
         $this->_latest_receipt_info = $jsonResponse['latest_receipt_info'];
@@ -228,24 +219,39 @@ class Response
         $this->_latest_receipt = $jsonResponse['latest_receipt'];
       }
 
-      if (array_key_exists('pending_renewal_info', $jsonResponse)) {
-        $this->_pending_renewal_info = $jsonResponse['pending_renewal_info'];
-      }
-    } elseif (array_key_exists('receipt', $jsonResponse)) {
+      // ios > 7 receipt validation
+      if ($iOS7plus) {
+        $this->_app_item_id = $this->_receipt['app_item_id'];
 
-      // ios <= 6.0 validation
-      $this->_code = $jsonResponse['status'];
+        foreach ($jsonResponse['receipt']['in_app'] as $purchase_item_data) {
+          $this->_purchases[] = new PurchaseItem($purchase_item_data);
+        }
 
-      if (array_key_exists('receipt', $jsonResponse)) {
-        $this->_receipt = $jsonResponse['receipt'];
-        $this->_purchases = [];
+        if (array_key_exists('bundle_id', $jsonResponse['receipt'])) {
+          $this->_bundle_id = $jsonResponse['receipt']['bundle_id'];
+        }
+
+        if (array_key_exists('pending_renewal_info', $jsonResponse)) {
+          $this->_pending_renewal_info = $jsonResponse['pending_renewal_info'];
+        }
+        
+      // ios <= 6 receipt validation
+      } elseif ($iOS6less) {
         $this->_purchases[] = new PurchaseItem($jsonResponse['receipt']);
+
+        if (array_key_exists('latest_receipt_info', $jsonResponse)
+            && $jsonResponse['latest_receipt_info']['transaction_id'] != $jsonResponse['receipt']['transaction_id']
+        ) {
+          $this->_purchases[] = new PurchaseItem($jsonResponse['latest_receipt_info']);
+        }
 
         if (array_key_exists('bid', $jsonResponse['receipt'])) {
           $this->_bundle_id = $jsonResponse['receipt']['bid'];
         }
       }
-    } elseif (array_key_exists('status', $jsonResponse)) {
+    }
+
+    if (array_key_exists('status', $jsonResponse)) {
       $this->_code = $jsonResponse['status'];
     } else {
       $this->_code = self::RESULT_DATA_MALFORMED;
