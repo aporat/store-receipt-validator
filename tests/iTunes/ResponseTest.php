@@ -1,15 +1,19 @@
 <?php
+
 use ReceiptValidator\iTunes\Response;
+use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Constraint\IsType;
 
 /**
  * @group library
  */
-class iTunesResponseTest extends PHPUnit_Framework_TestCase
+class iTunesResponseTest extends TestCase
 {
 
   public function testInvalidOptionsToConstructor()
   {
-    $this->setExpectedException("ReceiptValidator\\RuntimeException", "Response must be a scalar value");
+    $this->expectException("ReceiptValidator\\RuntimeException");
+    $this->expectExceptionMessage("Response must be a scalar value");
 
     new Response('invalid');
   }
@@ -45,16 +49,16 @@ class iTunesResponseTest extends PHPUnit_Framework_TestCase
 
     $response = new Response($jsonResponseArray);
 
-    $this->assertInternalType(PHPUnit_Framework_Constraint_IsType::TYPE_ARRAY, $response->getLatestReceiptInfo());
+    $this->assertInternalType(IsType::TYPE_ARRAY, $response->getLatestReceiptInfo());
     $this->assertEquals($jsonResponseArray['latest_receipt_info'], $response->getLatestReceiptInfo(), 'latest receipt info must match');
 
-    $this->assertInternalType(PHPUnit_Framework_Constraint_IsType::TYPE_STRING, $response->getLatestReceipt());
+    $this->assertInternalType(IsType::TYPE_STRING, $response->getLatestReceipt());
     $this->assertEquals($jsonResponseArray['latest_receipt'], $response->getLatestReceipt(), 'latest receipt must match');
 
-    $this->assertInternalType(PHPUnit_Framework_Constraint_IsType::TYPE_STRING, $response->getBundleId());
+    $this->assertInternalType(IsType::TYPE_STRING, $response->getBundleId());
     $this->assertEquals($jsonResponseArray['receipt']['bundle_id'], $response->getBundleId(), 'receipt bundle id must match');
 
-    $this->assertInternalType(PHPUnit_Framework_Constraint_IsType::TYPE_ARRAY, $response->getPendingRenewalInfo());
+    $this->assertInternalType(IsType::TYPE_ARRAY, $response->getPendingRenewalInfo());
     $this->assertEquals($jsonResponseArray['pending_renewal_info'], $response->getPendingRenewalInfo(), 'pending renewal info must match');
   }
 }

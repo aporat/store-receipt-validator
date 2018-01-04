@@ -1,11 +1,13 @@
 <?php
 
-namespace ReceiptValidator\GooglePlay;
+use ReceiptValidator\GooglePlay\PurchaseResponse;
+use PHPUnit\Framework\TestCase;
+
 
 /**
  * @group library
  */
-class GooglePlayPurchaseResponseTest extends \PHPUnit_Framework_TestCase
+class GooglePlayPurchaseResponseTest extends TestCase
 {
     /**
      * @link https://developers.google.com/android-publisher/api-ref/purchases/products

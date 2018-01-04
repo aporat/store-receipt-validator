@@ -1,15 +1,18 @@
 <?php
+
 use ReceiptValidator\Amazon\Response;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group library
  */
-class AmazonResponseTest extends PHPUnit_Framework_TestCase
+class AmazonResponseTest extends TestCase
 {
 
   public function testInvalidOptionsToConstructor()
   {
-    $this->setExpectedException("ReceiptValidator\\RuntimeException", "Response must be a scalar value");
+    $this->expectException("ReceiptValidator\\RuntimeException");
+    $this->expectExceptionMessage("Response must be a scalar value");
 
     new Response(Response::RESULT_OK, 'invalid');
   }

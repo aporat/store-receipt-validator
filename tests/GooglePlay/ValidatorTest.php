@@ -1,11 +1,14 @@
 <?php
 
-namespace ReceiptValidator\GooglePlay;
+use ReceiptValidator\GooglePlay\Validator;
+use ReceiptValidator\GooglePlay\PurchaseResponse;
+use ReceiptValidator\GooglePlay\SubscriptionResponse;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group library
  */
-class GooglePlayValidatorTest extends \PHPUnit_Framework_TestCase
+class GooglePlayValidatorTest extends TestCase
 {
     /**
      *

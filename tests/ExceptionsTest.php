@@ -1,9 +1,11 @@
 <?php
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * @group library
  */
-class ExceptionsTest extends \PHPUnit_Framework_TestCase
+class ExceptionsTest extends TestCase
 {
 
   public function testRunTimeException()

@@ -1,11 +1,12 @@
 <?php
+
 use ReceiptValidator\Amazon\Validator as AmazonValidator;
-use ReceiptValidator\Amazon\Response;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group library
  */
-class AmazonValidatorTest extends PHPUnit_Framework_TestCase
+class AmazonValidatorTest extends TestCase
 {
 
   /**

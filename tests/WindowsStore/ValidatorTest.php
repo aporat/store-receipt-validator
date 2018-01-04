@@ -2,11 +2,12 @@
 
 use ReceiptValidator\WindowsStore\CacheInterface;
 use ReceiptValidator\WindowsStore\Validator;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group library
  */
-class WindowsValidatorTest extends PHPUnit_Framework_TestCase
+class WindowsValidatorTest extends TestCase
 {
   /**
    * @dataProvider receiptProvider
@@ -28,7 +29,8 @@ class WindowsValidatorTest extends PHPUnit_Framework_TestCase
 
   public function testValidateFails()
   {
-    $this->setExpectedException('ReceiptValidator\RunTimeException', 'Invalid XML');
+    $this->expectException('ReceiptValidator\RunTimeException');
+    $this->expectExceptionMessage('Invalid XML');
 
     $validator = new Validator;
     $validator->validate('foo bar');
