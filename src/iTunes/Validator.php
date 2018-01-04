@@ -24,6 +24,11 @@ class Validator
    */
   protected $_receiptData;
 
+  /**
+   * sandbox
+   * @var boolean
+   */
+  protected $_isSandbox = false;
 
   /**
    * The shared secret is a unique code to receive your In-App Purchase receipts.
@@ -66,7 +71,7 @@ class Validator
    * @param string $receiptData
    * @return \ReceiptValidator\iTunes\Validator;
    */
-  function setReceiptData($receiptData)
+  public function setReceiptData($receiptData)
   {
     if (strpos($receiptData, '{') !== false) {
       $this->_receiptData = base64_encode($receiptData);
@@ -112,11 +117,39 @@ class Validator
    * @param string $endpoint
    * @return $this
    */
-  function setEndpoint($endpoint)
+  public function setEndpoint($endpoint)
   {
     $this->_endpoint = $endpoint;
 
     return $this;
+  }
+
+  /**
+   * get isSandbox
+   *
+   * @return bool
+   */
+  public function getSandBox()
+  {
+    return $this->_isSandbox;
+  }
+
+  /**
+   * set isSandbox
+   *
+   * @param boolean $isSandBox
+   * @return $this
+   */
+  public function setSandBox($isSandBox)
+  {
+    $this->_isSandbox = $isSandBox;
+    if ($this->_isSandbox === true) {
+        $this->setEndpoint(self::ENDPOINT_SANDBOX);
+    } else {
+        $this->setEndpoint(self::ENDPOINT_PRODUCTION);
+    }
+
+      return $this;
   }
 
   /**
@@ -127,7 +160,7 @@ class Validator
   protected function getClient()
   {
     if ($this->_client == null) {
-      $this->_client = new \GuzzleHttp\Client(['base_uri' => $this->_endpoint]);
+      $this->_client = new HttpClient(['base_uri' => $this->_endpoint]);
     }
 
     return $this->_client;
@@ -181,7 +214,8 @@ class Validator
     // on a 21007 error retry the request in the sandbox environment (if the current environment is Production)
     // these are receipts from apple review team
     if ($this->_endpoint == self::ENDPOINT_PRODUCTION && $response->getResultCode() == Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
-      $client = new HttpClient(['base_uri' => self::ENDPOINT_SANDBOX]);
+      $this->setSandBox(true);
+      $client = new HttpClient(['base_uri' => $this->_endpoint]);
 
       $httpResponse = $client->request('POST', null, ['body' => $this->encodeRequest()]);
 
