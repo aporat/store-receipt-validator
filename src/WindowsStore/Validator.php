@@ -101,7 +101,7 @@ class Validator
     $secDsig->canonicalizeSignedInfo();
     $secDsig->idKeys = ['wsu:Id'];
     $secDsig->idNS = [
-        'wsu' => 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
+      'wsu' => 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
     ];
 
     if (!$secDsig->validateReference()) {

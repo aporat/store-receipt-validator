@@ -87,9 +87,9 @@ class Response
   protected $_pending_renewal_info;
 
   /**
-   * Constructor
-   *
-   * @param array $jsonResponse
+   * Response constructor.
+   * @param array|null $jsonResponse
+   * @throws RunTimeException
    */
   public function __construct($jsonResponse = null)
   {
@@ -113,7 +113,7 @@ class Response
    * Set Result Code
    *
    * @param int $code
-   * @return Response
+   * @return self
    */
   public function setResultCode($code)
   {
@@ -187,7 +187,7 @@ class Response
    *
    * @return boolean
    */
-  public function isValid()
+  public function isValid() : bool
   {
     return ($this->_code == self::RESULT_OK);
   }
@@ -195,10 +195,10 @@ class Response
   /**
    * Parse JSON Response
    *
-   * @return Response
+   * @return self
    * @throws RunTimeException
    */
-  public function parseJsonResponse()
+  public function parseJsonResponse() : self
   {
     $jsonResponse = $this->response;
     if (!is_array($jsonResponse)) {
@@ -250,6 +250,7 @@ class Response
     } else {
       $this->_code = self::RESULT_DATA_MALFORMED;
     }
+
     return $this;
   }
 }

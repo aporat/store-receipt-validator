@@ -2,7 +2,7 @@
 namespace ReceiptValidator\iTunes;
 
 use ReceiptValidator\RunTimeException;
-use \GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Client as HttpClient;
 
 class Validator
 {
@@ -20,7 +20,7 @@ class Validator
   /**
    * itunes receipt data, in base64 format
    *
-   * @var string
+   * @var string|null
    */
   protected $_receiptData;
 
@@ -30,7 +30,7 @@ class Validator
    * Without a shared secret, you will not be able to test or offer your automatically
    * renewable In-App Purchase subscriptions.
    *
-   * @var string
+   * @var string|null
    */
   protected $_sharedSecret = null;
 
@@ -41,7 +41,7 @@ class Validator
    */
   protected $_client = null;
 
-  public function __construct($endpoint = self::ENDPOINT_PRODUCTION)
+  public function __construct(string $endpoint = self::ENDPOINT_PRODUCTION)
   {
     if ($endpoint != self::ENDPOINT_PRODUCTION && $endpoint != self::ENDPOINT_SANDBOX) {
       throw new RunTimeException("Invalid endpoint '{$endpoint}'");
@@ -53,7 +53,7 @@ class Validator
   /**
    * get receipt data
    *
-   * @return string
+   * @return string|null
    */
   public function getReceiptData()
   {
@@ -63,10 +63,10 @@ class Validator
   /**
    * set receipt data, either in base64, or in json
    *
-   * @param string $receiptData
-   * @return \ReceiptValidator\iTunes\Validator;
+   * @param string|null $receiptData
+   * @return $this
    */
-  function setReceiptData($receiptData)
+  function setReceiptData($receiptData) : self
   {
     if (strpos($receiptData, '{') !== false) {
       $this->_receiptData = base64_encode($receiptData);
@@ -78,7 +78,7 @@ class Validator
   }
 
   /**
-   * @return string
+   * @return string|null
    */
   public function getSharedSecret()
   {
@@ -86,10 +86,10 @@ class Validator
   }
 
   /**
-   * @param string $sharedSecret
+   * @param string|null $sharedSecret
    * @return $this
    */
-  public function setSharedSecret($sharedSecret)
+  public function setSharedSecret($sharedSecret = null) : self
   {
     $this->_sharedSecret = $sharedSecret;
 
@@ -101,7 +101,7 @@ class Validator
    *
    * @return string
    */
-  public function getEndpoint()
+  public function getEndpoint() : string
   {
     return $this->_endpoint;
   }
@@ -112,7 +112,7 @@ class Validator
    * @param string $endpoint
    * @return $this
    */
-  function setEndpoint($endpoint)
+  function setEndpoint(string $endpoint) : self
   {
     $this->_endpoint = $endpoint;
 
@@ -122,12 +122,12 @@ class Validator
   /**
    * returns the Guzzle client
    *
-   * @return \GuzzleHttp\Client
+   * @return HttpClient
    */
-  protected function getClient()
+  protected function getClient() : HttpClient
   {
     if ($this->_client == null) {
-      $this->_client = new \GuzzleHttp\Client(['base_uri' => $this->_endpoint]);
+      $this->_client = new HttpClient(['base_uri' => $this->_endpoint]);
     }
 
     return $this->_client;
@@ -153,8 +153,8 @@ class Validator
   /**
    * validate the receipt data
    *
-   * @param string $receiptData
-   * @param string $sharedSecret
+   * @param string|null $receiptData
+   * @param string|null $sharedSecret
    *
    * @throws RunTimeException
    * @return Response

@@ -157,10 +157,11 @@ class PurchaseItem
     return $this->_cancellation_date;
   }
 
+
   /**
-   * Constructor
-   *
-   * @param array $jsonResponse
+   * PurchaseItem constructor.
+   * @param array|null $jsonResponse
+   * @throws RunTimeException
    */
   public function __construct($jsonResponse = null)
   {
@@ -173,12 +174,13 @@ class PurchaseItem
   /**
    * Parse JSON Response
    *
-   * @return PurchaseItem
+   * @return self
    * @throws RunTimeException
    */
-  public function parseJsonResponse()
+  public function parseJsonResponse() : self
   {
     $jsonResponse = $this->_response;
+
     if (!is_array($jsonResponse)) {
       throw new RuntimeException('Response must be a scalar value');
     }

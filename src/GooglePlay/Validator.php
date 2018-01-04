@@ -119,11 +119,11 @@ class Validator
     ));
   }
 
-    /**
-     * @return \Google_Service_AndroidPublisher
-     */
-    public function getPublisherService()
-    {
-        return $this->_androidPublisherService;
-    }
+  /**
+   * @return \Google_Service_AndroidPublisher
+   */
+  public function getPublisherService()
+  {
+    return $this->_androidPublisherService;
+  }
 }

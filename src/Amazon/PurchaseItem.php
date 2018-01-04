@@ -97,10 +97,12 @@ class PurchaseItem
     return $this->_cancellation_date;
   }
 
+
   /**
-   * Constructor
+   * PurchaseItem constructor.
    *
-   * @param array $jsonResponse
+   * @param array|null $jsonResponse
+   * @throws RunTimeException
    */
   public function __construct($jsonResponse = null)
   {
@@ -116,7 +118,7 @@ class PurchaseItem
    * @return PurchaseItem
    * @throws RunTimeException
    */
-  public function parseJsonResponse()
+  public function parseJsonResponse() : self
   {
     $jsonResponse = $this->_response;
     if (!is_array($jsonResponse)) {

@@ -46,11 +46,12 @@ class Response
    */
   protected $_purchases = [];
 
+
   /**
-   * Constructor
-   *
+   * Response constructor.
    * @param int $httpStatusCode
-   * @param array $jsonResponse
+   * @param array|null $jsonResponse
+   * @throws RunTimeException
    */
   public function __construct($httpStatusCode = 200, $jsonResponse = null)
   {
@@ -66,7 +67,7 @@ class Response
    *
    * @return int
    */
-  public function getResultCode()
+  public function getResultCode() : int
   {
     return $this->_code;
   }
@@ -96,7 +97,7 @@ class Response
    *
    * @return boolean
    */
-  public function isValid()
+  public function isValid() : bool
   {
     if ($this->_code == self::RESULT_OK) {
       return true;

@@ -3,6 +3,7 @@ namespace ReceiptValidator\Amazon;
 
 use ReceiptValidator\RunTimeException as RunTimeException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Client as HttpClient;
 
 class Validator
 {
@@ -45,7 +46,13 @@ class Validator
    */
   protected $_product_id = null;
 
-  public function __construct($endpoint = self::ENDPOINT_PRODUCTION)
+  /**
+   * Validator constructor.
+   *
+   * @param string $endpoint
+   * @throws RunTimeException
+   */
+  public function __construct(string $endpoint = self::ENDPOINT_PRODUCTION)
   {
     if ($endpoint != self::ENDPOINT_PRODUCTION && $endpoint != self::ENDPOINT_SANDBOX) {
       throw new RunTimeException("Invalid endpoint '{$endpoint}'");
@@ -58,9 +65,9 @@ class Validator
   /**
    *
    * @param string $userId
-   * @return \ReceiptValidator\Amazon\Validator
+   * @return self
    */
-  public function setUserId($userId)
+  public function setUserId($userId) : self
   {
     $this->_userId = $userId;
 
@@ -70,9 +77,9 @@ class Validator
   /**
    *
    * @param string $receiptId
-   * @return \ReceiptValidator\Amazon\Validator
+   * @return self
    */
-  public function setReceiptId($receiptId)
+  public function setReceiptId($receiptId) : self
   {
     $this->_receiptId = $receiptId;
 
@@ -93,9 +100,9 @@ class Validator
   /**
    *
    * @param int $developerSecret
-   * @return \ReceiptValidator\Amazon\Validator
+   * @return self
    */
-  public function setDeveloperSecret($developerSecret)
+  public function setDeveloperSecret($developerSecret) : self
   {
     $this->_developerSecret = $developerSecret;
 
@@ -106,12 +113,12 @@ class Validator
   /**
    * returns the Guzzle client
    *
-   * @return \GuzzleHttp\Client
+   * @return HttpClient
    */
-  protected function getClient()
+  protected function getClient() : HttpClient
   {
     if ($this->_client == null) {
-      $this->_client = new \GuzzleHttp\Client(['base_uri' => $this->_endpoint]);
+      $this->_client = new HttpClient(['base_uri' => $this->_endpoint]);
     }
 
     return $this->_client;
