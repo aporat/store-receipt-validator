@@ -59,6 +59,6 @@ class iTunesResponseTest extends TestCase
     $this->assertEquals($jsonResponseArray['receipt']['bundle_id'], $response->getBundleId(), 'receipt bundle id must match');
 
     $this->assertInternalType(IsType::TYPE_ARRAY, $response->getPendingRenewalInfo());
-    $this->assertEquals($jsonResponseArray['pending_renewal_info'], $response->getPendingRenewalInfo(), 'pending renewal info must match');
+    $this->assertContainsOnly('ReceiptValidator\iTunes\PendingRenewalInfo', $response->getPendingRenewalInfo());
   }
 }
