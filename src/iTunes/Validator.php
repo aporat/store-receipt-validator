@@ -18,6 +18,13 @@ class Validator
   protected $_endpoint;
 
   /**
+   * Whether to exclude old transactions
+   *
+   * @var bool
+   */
+  protected $_exclude_old_transactions = false;
+
+  /**
    * itunes receipt data, in base64 format
    *
    * @var string|null
@@ -120,6 +127,29 @@ class Validator
   }
 
   /**
+   * get exclude old transactions
+   *
+   * @return bool
+   */
+  public function getExcludeOldTransactions() : bool
+  {
+    return $this->_exclude_old_transactions;
+  }
+
+  /**
+   * set exclude old transactions
+   *
+   * @param bool $exclude
+   * @return Validator
+   */
+  public function setExcludeOldTransactions(bool $exclude) : self
+  {
+    $this->_exclude_old_transactions = $exclude;
+
+    return $this;
+  }
+
+  /**
    * returns the Guzzle client
    *
    * @return HttpClient
@@ -140,7 +170,10 @@ class Validator
    */
   private function encodeRequest()
   {
-    $request = ['receipt-data' => $this->getReceiptData()];
+    $request = [
+        'receipt-data' => $this->getReceiptData(),
+        'exclude-old-transactions' => $this->getExcludeOldTransactions()
+    ];
 
     if (!is_null($this->_sharedSecret)) {
 
