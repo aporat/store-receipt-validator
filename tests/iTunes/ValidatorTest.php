@@ -52,4 +52,11 @@ class iTunesValidatorTest extends TestCase
     $this->assertEquals('test-shared-secret', $this->validator->getSharedSecret());
   }
 
+  public function testSetExcludeOldTransactions()
+  {
+    $this->validator->setExcludeOldTransactions(true);
+
+    $this->assertEquals(true, $this->validator->getExcludeOldTransactions());
+  }
+
 }
