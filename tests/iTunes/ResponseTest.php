@@ -1,5 +1,6 @@
 <?php
 
+use PHPUnit\Framework\Error\Notice;
 use ReceiptValidator\iTunes\Response;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Constraint\IsType;
@@ -50,7 +51,12 @@ class iTunesResponseTest extends TestCase
     $response = new Response($jsonResponseArray);
 
     $this->assertInternalType(IsType::TYPE_ARRAY, $response->getLatestReceiptInfo());
-    $this->assertEquals($jsonResponseArray['latest_receipt_info'], $response->getLatestReceiptInfo(), 'latest receipt info must match');
+    $this->assertContainsOnly('ReceiptValidator\iTunes\PurchaseItem', $response->getLatestReceiptInfo());
+
+    // Check sorting correctly
+    $this->assertEquals(2, count($response->getLatestReceiptInfo()));
+    $firstItem = $response->getLatestReceiptInfo()[0];
+    $this->assertEquals(1000000093384828, $firstItem->getTransactionId());
 
     $this->assertInternalType(IsType::TYPE_STRING, $response->getLatestReceipt());
     $this->assertEquals($jsonResponseArray['latest_receipt'], $response->getLatestReceipt(), 'latest receipt must match');
@@ -60,5 +66,43 @@ class iTunesResponseTest extends TestCase
 
     $this->assertInternalType(IsType::TYPE_ARRAY, $response->getPendingRenewalInfo());
     $this->assertEquals($jsonResponseArray['pending_renewal_info'], $response->getPendingRenewalInfo(), 'pending renewal info must match');
+  }
+
+  // For backwards compatability
+  public function testPurchaseItemBehavesLikeArray()
+  {
+    $jsonResponseString = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseResponse.json');
+    $jsonResponseArray = json_decode($jsonResponseString, true);
+    $response = new Response($jsonResponseArray);
+    $firstItem = $response->getLatestReceiptInfo()[0];
+    $this->assertNotNull($firstItem);
+
+    // Get existing
+    $this->assertEquals(1396071456569, $firstItem['purchase_date_ms']);
+    $this->assertEquals('2014-03-29 05:37:36 Etc/GMT', $firstItem['purchase_date']);
+
+    // Get non-existing
+    $this->expectException(Notice::class);
+    $temp = $firstItem['undefined_value'];
+
+    // Set existing
+    $firstItem['transaction_id'] = 999;
+    $this->assertEquals(999, $firstItem['transaction_id']);
+    $this->assertEquals(999, $firstItem->getTransactionId());
+
+    // Set new
+    $firstItem['undefined_value'] = 'test';
+    $this->assertEquals('test', $firstItem['undefined_value']);
+
+    // Exists
+    $this->assertEquals(true, $firstItem['transaction_id']);
+    $this->assertEquals(false, $firstItem['another_undefined_value']);
+
+    // Unset
+    $firstItem['unset_test'] = 'tmp';
+    $this->assertEquals('tmp', $firstItem['unset_test']);
+    unset($firstItem['unset_test']);
+    $this->expectException(Notice::class);
+    $firstItem['unset_test'];
   }
 }

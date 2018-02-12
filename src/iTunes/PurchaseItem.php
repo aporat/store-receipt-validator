@@ -3,8 +3,9 @@ namespace ReceiptValidator\iTunes;
 
 use ReceiptValidator\RunTimeException;
 use Carbon\Carbon;
+use ArrayAccess;
 
-class PurchaseItem
+class PurchaseItem implements ArrayAccess
 {
 
   /**
@@ -224,5 +225,51 @@ class PurchaseItem
     }
 
     return $this;
+  }
+
+  /**
+   * Update a response key and reprocess object properties
+   *
+   * @param $key
+   * @param $value
+   *
+   * @throws RunTimeException
+   */
+  public function offsetSet($key, $value)
+  {
+    $this->_response[$key] = $value;
+    $this->parseJsonResponse();
+  }
+
+  /**
+   * Get a response key
+   *
+   * @param $key
+   * @return mixed
+   */
+  public function offsetGet($key)
+  {
+    return $this->_response[$key];
+  }
+
+  /**
+   * Unset a response key
+   *
+   * @param $key
+   */
+  public function offsetUnset($key)
+  {
+    unset($this->_response[$key]);
+  }
+
+  /**
+   * Check if response key exists
+   *
+   * @param $key
+   * @return bool
+   */
+  public function offsetExists($key)
+  {
+    return isset($this->_response[$key]);
   }
 }
