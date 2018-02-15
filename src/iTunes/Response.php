@@ -70,7 +70,7 @@ class Response
   /**
    * latest receipt info (needs for auto-renewable subscriptions)
    *
-   * @var array
+   * @var PurchaseItem[]
    */
   protected $_latest_receipt_info;
 
@@ -145,7 +145,7 @@ class Response
   /**
    * Get latest receipt info
    *
-   * @return array
+   * @return PurchaseItem[]
    */
   public function getLatestReceiptInfo()
   {
@@ -221,7 +221,14 @@ class Response
       }
 
       if (array_key_exists('latest_receipt_info', $jsonResponse)) {
-        $this->_latest_receipt_info = $jsonResponse['latest_receipt_info'];
+
+        $this->_latest_receipt_info = array_map(function ($data) {
+          return new PurchaseItem($data);
+        }, $jsonResponse['latest_receipt_info']);
+
+        usort($this->_latest_receipt_info, function (PurchaseItem $a, PurchaseItem $b) {
+          return $b->getPurchaseDate()->timestamp - $a->getPurchaseDate()->timestamp;
+        });
       }
 
       if (array_key_exists('latest_receipt', $jsonResponse)) {
