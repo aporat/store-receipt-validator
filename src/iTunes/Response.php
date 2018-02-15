@@ -82,7 +82,7 @@ class Response
 
   /**
    * pending renewal info
-   * @var string
+   * @var PendingRenewalInfo[]
    */
   protected $_pending_renewal_info;
 
@@ -175,7 +175,7 @@ class Response
   /**
    * Get the pending renewal info
    *
-   * @return string
+   * @return PendingRenewalInfo[]
    */
   public function getPendingRenewalInfo()
   {
@@ -236,7 +236,9 @@ class Response
       }
 
       if (array_key_exists('pending_renewal_info', $jsonResponse)) {
-        $this->_pending_renewal_info = $jsonResponse['pending_renewal_info'];
+        $this->_pending_renewal_info = array_map(function ($data) {
+            return new PendingRenewalInfo($data);
+        }, $jsonResponse['pending_renewal_info']);
       }
     } elseif (array_key_exists('receipt', $jsonResponse)) {
 
