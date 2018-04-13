@@ -11,7 +11,7 @@ class PurchaseItem implements ArrayAccess
   /**
    * purchase item info
    *
-   * @var array
+   * @var array|null
    */
   protected $_response;
 
@@ -207,21 +207,21 @@ class PurchaseItem implements ArrayAccess
     }
 
     if (array_key_exists('purchase_date_ms', $jsonResponse)) {
-      $this->_purchase_date = Carbon::createFromTimestampUTC(round($jsonResponse['purchase_date_ms'] / 1000));
+      $this->_purchase_date = Carbon::createFromTimestampUTC(intval(round($jsonResponse['purchase_date_ms'] / 1000)));
     }
 
     if (array_key_exists('original_purchase_date_ms', $jsonResponse)) {
-      $this->_original_purchase_date = Carbon::createFromTimestampUTC(round($jsonResponse['original_purchase_date_ms'] / 1000));
+      $this->_original_purchase_date = Carbon::createFromTimestampUTC(intval(round($jsonResponse['original_purchase_date_ms'] / 1000)));
     }
 
     if (array_key_exists('expires_date_ms', $jsonResponse)) {
-      $this->_expires_date = Carbon::createFromTimestampUTC(round($jsonResponse['expires_date_ms'] / 1000));
+      $this->_expires_date = Carbon::createFromTimestampUTC(intval(round($jsonResponse['expires_date_ms'] / 1000)));
     } elseif (array_key_exists('expires_date', $jsonResponse) && is_numeric($jsonResponse['expires_date'])) {
-      $this->_expires_date = Carbon::createFromTimestampUTC(round((int)$jsonResponse['expires_date'] / 1000));
+      $this->_expires_date = Carbon::createFromTimestampUTC(intval(round((int)$jsonResponse['expires_date'] / 1000)));
     }
 
     if (array_key_exists('cancellation_date_ms', $jsonResponse)) {
-      $this->_cancellation_date = Carbon::createFromTimestampUTC(round($jsonResponse['cancellation_date_ms'] / 1000));
+      $this->_cancellation_date = Carbon::createFromTimestampUTC(intval(round($jsonResponse['cancellation_date_ms'] / 1000)));
     }
 
     return $this;
