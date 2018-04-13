@@ -12,26 +12,22 @@ class Validator
    * @var \Google_Service_AndroidPublisher
    */
   protected $_androidPublisherService = null;
-
-  /**
-   * @var bool
-   */
-  private $validationModePurchase = true;
-
   /**
    * @var string
    */
   protected $_package_name = null;
-
   /**
    * @var string
    */
   protected $_purchase_token = null;
-
   /**
    * @var string
    */
   protected $_product_id = null;
+  /**
+   * @var bool
+   */
+  private $validationModePurchase = true;
 
   /**
    * Validator constructor.
@@ -100,21 +96,21 @@ class Validator
   }
 
   /**
-   * @return SubscriptionResponse
-   */
-  public function validateSubscription()
-  {
-    return new SubscriptionResponse($this->_androidPublisherService->purchases_subscriptions->get(
-      $this->_package_name, $this->_product_id, $this->_purchase_token
-    ));
-  }
-
-  /**
    * @return PurchaseResponse
    */
   public function validatePurchase()
   {
     return new PurchaseResponse($this->_androidPublisherService->purchases_products->get(
+      $this->_package_name, $this->_product_id, $this->_purchase_token
+    ));
+  }
+
+  /**
+   * @return SubscriptionResponse
+   */
+  public function validateSubscription()
+  {
+    return new SubscriptionResponse($this->_androidPublisherService->purchases_subscriptions->get(
       $this->_package_name, $this->_product_id, $this->_purchase_token
     ));
   }

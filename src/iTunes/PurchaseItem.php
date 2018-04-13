@@ -1,4 +1,5 @@
 <?php
+
 namespace ReceiptValidator\iTunes;
 
 use ReceiptValidator\RunTimeException;
@@ -178,7 +179,7 @@ class PurchaseItem implements ArrayAccess
    * @return self
    * @throws RunTimeException
    */
-  public function parseJsonResponse() : self
+  public function parseJsonResponse(): self
   {
     $jsonResponse = $this->_response;
 

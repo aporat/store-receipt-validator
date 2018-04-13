@@ -1,4 +1,5 @@
 <?php
+
 namespace ReceiptValidator\iTunes;
 
 use ReceiptValidator\RunTimeException;
@@ -73,7 +74,7 @@ class Validator
    * @param string|null $receiptData
    * @return $this
    */
-  function setReceiptData($receiptData) : self
+  function setReceiptData($receiptData): self
   {
     if (strpos($receiptData, '{') !== false) {
       $this->_receiptData = base64_encode($receiptData);
@@ -96,7 +97,7 @@ class Validator
    * @param string|null $sharedSecret
    * @return $this
    */
-  public function setSharedSecret($sharedSecret = null) : self
+  public function setSharedSecret($sharedSecret = null): self
   {
     $this->_sharedSecret = $sharedSecret;
 
@@ -108,7 +109,7 @@ class Validator
    *
    * @return string
    */
-  public function getEndpoint() : string
+  public function getEndpoint(): string
   {
     return $this->_endpoint;
   }
@@ -119,7 +120,7 @@ class Validator
    * @param string $endpoint
    * @return $this
    */
-  function setEndpoint(string $endpoint) : self
+  function setEndpoint(string $endpoint): self
   {
     $this->_endpoint = $endpoint;
 
@@ -131,7 +132,7 @@ class Validator
    *
    * @return bool
    */
-  public function getExcludeOldTransactions() : bool
+  public function getExcludeOldTransactions(): bool
   {
     return $this->_exclude_old_transactions;
   }
@@ -142,7 +143,7 @@ class Validator
    * @param bool $exclude
    * @return Validator
    */
-  public function setExcludeOldTransactions(bool $exclude) : self
+  public function setExcludeOldTransactions(bool $exclude): self
   {
     $this->_exclude_old_transactions = $exclude;
 
@@ -154,7 +155,7 @@ class Validator
    *
    * @return HttpClient
    */
-  protected function getClient() : HttpClient
+  protected function getClient(): HttpClient
   {
     if ($this->_client == null) {
       $this->_client = new HttpClient(['base_uri' => $this->_endpoint]);
@@ -171,8 +172,8 @@ class Validator
   private function encodeRequest()
   {
     $request = [
-        'receipt-data' => $this->getReceiptData(),
-        'exclude-old-transactions' => $this->getExcludeOldTransactions()
+      'receipt-data' => $this->getReceiptData(),
+      'exclude-old-transactions' => $this->getExcludeOldTransactions()
     ];
 
     if (!is_null($this->_sharedSecret)) {

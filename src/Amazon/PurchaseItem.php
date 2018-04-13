@@ -1,4 +1,5 @@
 <?php
+
 namespace ReceiptValidator\Amazon;
 
 use ReceiptValidator\RunTimeException;
@@ -10,7 +11,7 @@ class PurchaseItem
   /**
    * purchase item info
    *
-   * @var array
+   * @var array|null
    */
   protected $_response;
 
@@ -133,7 +134,7 @@ class PurchaseItem
    * @return PurchaseItem
    * @throws RunTimeException
    */
-  public function parseJsonResponse() : self
+  public function parseJsonResponse(): self
   {
     $jsonResponse = $this->_response;
     if (!is_array($jsonResponse)) {

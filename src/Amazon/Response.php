@@ -1,4 +1,5 @@
 <?php
+
 namespace ReceiptValidator\Amazon;
 
 use ReceiptValidator\RunTimeException;
@@ -24,14 +25,12 @@ class Response
   // Amazon RVS Error: Internal Server Error
   const RESULT_INTERNAL_ERROR = 500;
 
-
   /**
    * Result Code
    *
    * @var int
    */
   protected $_code;
-
 
   /**
    * receipt info
@@ -45,7 +44,6 @@ class Response
    * @var PurchaseItem[]
    */
   protected $_purchases = [];
-
 
   /**
    * Response constructor.
@@ -67,7 +65,7 @@ class Response
    *
    * @return int
    */
-  public function getResultCode() : int
+  public function getResultCode(): int
   {
     return $this->_code;
   }
@@ -97,7 +95,7 @@ class Response
    *
    * @return boolean
    */
-  public function isValid() : bool
+  public function isValid(): bool
   {
     if ($this->_code == self::RESULT_OK) {
       return true;
@@ -109,12 +107,12 @@ class Response
   /**
    * Parse JSON Response
    *
-   * @param string $jsonResponse
+   * @param array|null $jsonResponse
    *
    * @throws RunTimeException
    * @return $this
    */
-  public function parseJsonResponse($jsonResponse = null)
+  public function parseJsonResponse($jsonResponse = null): self
   {
     if (!is_array($jsonResponse)) {
       throw new RuntimeException('Response must be a scalar value');

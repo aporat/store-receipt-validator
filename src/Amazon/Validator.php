@@ -1,4 +1,5 @@
 <?php
+
 namespace ReceiptValidator\Amazon;
 
 use ReceiptValidator\RunTimeException as RunTimeException;
@@ -67,7 +68,7 @@ class Validator
    * @param string $userId
    * @return self
    */
-  public function setUserId($userId) : self
+  public function setUserId($userId): self
   {
     $this->_userId = $userId;
 
@@ -79,7 +80,7 @@ class Validator
    * @param string $receiptId
    * @return self
    */
-  public function setReceiptId($receiptId) : self
+  public function setReceiptId($receiptId): self
   {
     $this->_receiptId = $receiptId;
 
@@ -99,38 +100,38 @@ class Validator
 
   /**
    *
-   * @param int $developerSecret
+   * @param string $developerSecret
    * @return self
    */
-  public function setDeveloperSecret($developerSecret) : self
+  public function setDeveloperSecret($developerSecret): self
   {
     $this->_developerSecret = $developerSecret;
 
     return $this;
   }
 
-    /**
-     * get endpoint
-     *
-     * @return string
-     */
-    public function getEndpoint() : string
-    {
-        return $this->_endpoint;
-    }
+  /**
+   * get endpoint
+   *
+   * @return string
+   */
+  public function getEndpoint(): string
+  {
+    return $this->_endpoint;
+  }
 
-    /**
-     * set endpoint
-     *
-     * @param string $endpoint
-     * @return $this
-     */
-    function setEndpoint(string $endpoint) : self
-    {
-        $this->_endpoint = $endpoint;
+  /**
+   * set endpoint
+   *
+   * @param string $endpoint
+   * @return $this
+   */
+  function setEndpoint(string $endpoint): self
+  {
+    $this->_endpoint = $endpoint;
 
-        return $this;
-    }
+    return $this;
+  }
 
 
   /**
@@ -138,7 +139,7 @@ class Validator
    *
    * @return HttpClient
    */
-  protected function getClient() : HttpClient
+  protected function getClient(): HttpClient
   {
     if ($this->_client == null) {
       $this->_client = new HttpClient(['base_uri' => $this->_endpoint]);
@@ -147,10 +148,12 @@ class Validator
     return $this->_client;
   }
 
+
   /**
    * validate the receipt data
-   *
    * @return Response
+   * @throws RunTimeException
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
   public function validate()
   {

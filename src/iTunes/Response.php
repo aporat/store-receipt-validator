@@ -93,9 +93,8 @@ class Response
    */
   public function __construct($jsonResponse = null)
   {
-    $this->response = $jsonResponse;
-    if ($this->response !== null) {
-      $this->parseJsonResponse();
+    if ($jsonResponse !== null) {
+      $this->parseJsonResponse($jsonResponse);
     }
   }
 
@@ -195,12 +194,13 @@ class Response
   /**
    * Parse JSON Response
    *
-   * @return self
+   * @param array|null $jsonResponse
+   *
    * @throws RunTimeException
+   * @return $this
    */
-  public function parseJsonResponse() : self
+  public function parseJsonResponse($jsonResponse = null) : self
   {
-    $jsonResponse = $this->response;
     if (!is_array($jsonResponse)) {
       throw new RuntimeException('Response must be a scalar value');
     }
