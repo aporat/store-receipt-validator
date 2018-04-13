@@ -26,6 +26,10 @@ class AmazonValidatorTest extends TestCase
     $this->validator->setDeveloperSecret('SECRET');
 
     $this->assertEquals('SECRET', $this->validator->getDeveloperSecret());
+
+    $this->validator->setEndpoint(AmazonValidator::ENDPOINT_PRODUCTION);
+
+    $this->assertEquals(AmazonValidator::ENDPOINT_PRODUCTION, $this->validator->getEndpoint());
   }
 
   public function testValidateWithNoReceiptData()

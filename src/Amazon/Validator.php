@@ -109,6 +109,29 @@ class Validator
     return $this;
   }
 
+    /**
+     * get endpoint
+     *
+     * @return string
+     */
+    public function getEndpoint() : string
+    {
+        return $this->_endpoint;
+    }
+
+    /**
+     * set endpoint
+     *
+     * @param string $endpoint
+     * @return $this
+     */
+    function setEndpoint(string $endpoint) : self
+    {
+        $this->_endpoint = $endpoint;
+
+        return $this;
+    }
+
 
   /**
    * returns the Guzzle client
