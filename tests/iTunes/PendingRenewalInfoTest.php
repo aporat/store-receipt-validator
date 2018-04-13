@@ -148,8 +148,7 @@ class iTunesPendingRenewalInfoTest extends TestCase
     $this->assertEquals('Test_Subscription_1', $info['auto_renew_product_id']);
 
     // Get non-existing
-    $this->expectException(Notice::class);
-    $info['undefined_value'];
+    $this->assertNull($info['undefined_value']);
 
     // Set existing
     $info['product_id'] = 'new_product_id';
@@ -161,14 +160,13 @@ class iTunesPendingRenewalInfoTest extends TestCase
     $this->assertEquals('test', $info['undefined_value']);
 
     // Exists
-    $this->assertEquals(true, $info['product_id']);
+    $this->assertArrayHasKey('product_id', $info);
     $this->assertEquals(false, $info['another_undefined_value']);
 
     // Unset
     $info['unset_test'] = 'tmp';
     $this->assertEquals('tmp', $info['unset_test']);
     unset($info['unset_test']);
-    $this->expectException(Notice::class);
-    $info['unset_test'];
+    $this->assertNull($info['unset_test']);
   }
 }

@@ -82,8 +82,7 @@ class iTunesResponseTest extends TestCase
     $this->assertEquals('2014-03-29 05:37:36 Etc/GMT', $firstItem['purchase_date']);
 
     // Get non-existing
-    $this->expectException(Notice::class);
-    $temp = $firstItem['undefined_value'];
+    $this->assertNull($firstItem['undefined_value']);
 
     // Set existing
     $firstItem['transaction_id'] = 999;
@@ -102,7 +101,6 @@ class iTunesResponseTest extends TestCase
     $firstItem['unset_test'] = 'tmp';
     $this->assertEquals('tmp', $firstItem['unset_test']);
     unset($firstItem['unset_test']);
-    $this->expectException(Notice::class);
-    $firstItem['unset_test'];
+    $this->assertNull($firstItem['unset_test']);
   }
 }
