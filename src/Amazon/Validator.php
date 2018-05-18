@@ -126,7 +126,7 @@ class Validator
    * @param string $endpoint
    * @return $this
    */
-  function setEndpoint(string $endpoint): self
+  public function setEndpoint(string $endpoint): self
   {
     $this->_endpoint = $endpoint;
 
