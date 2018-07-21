@@ -310,7 +310,7 @@ class Response
       }
 
       foreach ($this->raw_data['receipt']['in_app'] as $purchase_item_data) {
-        $this->raw_data[] = new PurchaseItem($purchase_item_data);
+        $this->purchases[] = new PurchaseItem($purchase_item_data);
       }
 
       if (array_key_exists('bundle_id', $this->raw_data['receipt'])) {

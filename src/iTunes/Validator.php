@@ -30,7 +30,7 @@ class Validator
    *
    * @var string|null
    */
-  protected $receiptData;
+  protected $receipt_data;
 
   /**
    * The shared secret is a unique code to receive your In-App Purchase receipts.
@@ -39,7 +39,7 @@ class Validator
    *
    * @var string|null
    */
-  protected $sharedSecret = null;
+  protected $shared_secret = null;
 
   /**
    * Guzzle http client
@@ -69,21 +69,21 @@ class Validator
    */
   public function getReceiptData(): ?string
   {
-    return $this->receiptData;
+    return $this->receipt_data;
   }
 
   /**
    * set receipt data, either in base64, or in json
    *
-   * @param string|null $receiptData
+   * @param string|null $receipt_data
    * @return $this
    */
-  function setReceiptData($receiptData): self
+  public function setReceiptData($receipt_data): self
   {
-    if (strpos($receiptData, '{') !== false) {
-      $this->receiptData = base64_encode($receiptData);
+    if (strpos($receipt_data, '{') !== false) {
+      $this->receipt_data = base64_encode($receipt_data);
     } else {
-      $this->receiptData = $receiptData;
+      $this->receipt_data = $receipt_data;
     }
 
     return $this;
@@ -94,16 +94,16 @@ class Validator
    */
   public function getSharedSecret(): ?string
   {
-    return $this->sharedSecret;
+    return $this->shared_secret;
   }
 
   /**
-   * @param string|null $sharedSecret
+   * @param string|null $shared_secret
    * @return $this
    */
-  public function setSharedSecret($sharedSecret = null): self
+  public function setSharedSecret($shared_secret = null): self
   {
-    $this->sharedSecret = $sharedSecret;
+    $this->shared_secret = $shared_secret;
 
     return $this;
   }
@@ -124,7 +124,7 @@ class Validator
    * @param string $endpoint
    * @return $this
    */
-  function setEndpoint(string $endpoint): self
+  public function setEndpoint(string $endpoint): self
   {
     $this->endpoint = $endpoint;
 
@@ -180,8 +180,8 @@ class Validator
       'exclude-old-transactions' => $this->getExcludeOldTransactions()
     ];
 
-    if (!is_null($this->sharedSecret)) {
-      $request['password'] = $this->sharedSecret;
+    if (!is_null($this->shared_secret)) {
+      $request['password'] = $this->shared_secret;
     }
 
     return json_encode($request);
@@ -189,43 +189,43 @@ class Validator
 
 
   /**
-   * @param null|string $receiptData
-   * @param null|string $sharedSecret
+   * @param null|string $receipt_data
+   * @param null|string $shared_secret
    * @return Response
    * @throws RunTimeException
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function validate(?string $receiptData = null, ?string $sharedSecret = null): Response
+  public function validate(?string $receipt_data = null, ?string $shared_secret = null): Response
   {
 
-    if ($receiptData != null) {
-      $this->setReceiptData($receiptData);
+    if ($receipt_data !== null) {
+      $this->setReceiptData($receipt_data);
     }
 
-    if ($sharedSecret != null) {
-      $this->setSharedSecret($sharedSecret);
+    if ($shared_secret !== null) {
+      $this->setSharedSecret($shared_secret);
     }
 
-    $httpResponse = $this->getClient()->request('POST', null, ['body' => $this->encodeRequest()]);
+    $http_response = $this->getClient()->request('POST', null, ['body' => $this->encodeRequest()]);
 
-    if ($httpResponse->getStatusCode() != 200) {
+    if ($http_response->getStatusCode() != 200) {
       throw new RunTimeException('Unable to get response from itunes server');
     }
 
-    $response = new Response(json_decode($httpResponse->getBody(), true));
+    $response = new Response(json_decode($http_response->getBody(), true));
 
     // on a 21007 error, retry the request in the sandbox environment (if the current environment is production)
     // these are receipts from the Apple review team
     if ($this->endpoint == self::ENDPOINT_PRODUCTION && $response->getResultCode() == Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
       $client = new HttpClient(['base_uri' => self::ENDPOINT_SANDBOX]);
 
-      $httpResponse = $client->request('POST', null, ['body' => $this->encodeRequest()]);
+      $http_response = $client->request('POST', null, ['body' => $this->encodeRequest()]);
 
-      if ($httpResponse->getStatusCode() != 200) {
+      if ($http_response->getStatusCode() != 200) {
         throw new RunTimeException('Unable to get response from itunes server');
       }
 
-      $response = new Response(json_decode($httpResponse->getBody(), true));
+      $response = new Response(json_decode($http_response->getBody(), true));
     }
 
     return $response;
