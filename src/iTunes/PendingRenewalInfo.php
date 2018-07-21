@@ -264,6 +264,6 @@ class PendingRenewalInfo implements ArrayAccess
    */
   public function offsetExists($key)
   {
-    return isset($this->_rawData[$key]);
+    return isset($this->raw_data[$key]);
   }
 }

@@ -166,9 +166,9 @@ class PurchaseItem implements ArrayAccess
   }
 
   /**
-   * @return array
+   * @return array|null
    */
-  public function getRawResponse(): array
+  public function getRawResponse(): ?array
   {
     return $this->raw_data;
   }
@@ -272,7 +272,7 @@ class PurchaseItem implements ArrayAccess
    */
   public function offsetSet($key, $value)
   {
-    $this->rawData[$key] = $value;
+    $this->raw_data[$key] = $value;
     $this->parseData();
   }
 
@@ -284,7 +284,7 @@ class PurchaseItem implements ArrayAccess
    */
   public function offsetGet($key)
   {
-    return $this->rawData[$key];
+    return $this->raw_data[$key];
   }
 
   /**
@@ -294,7 +294,7 @@ class PurchaseItem implements ArrayAccess
    */
   public function offsetUnset($key)
   {
-    unset($this->rawData[$key]);
+    unset($this->raw_data[$key]);
   }
 
   /**
@@ -305,6 +305,6 @@ class PurchaseItem implements ArrayAccess
    */
   public function offsetExists($key)
   {
-    return isset($this->_rawData[$key]);
+    return isset($this->raw_data[$key]);
   }
 }
