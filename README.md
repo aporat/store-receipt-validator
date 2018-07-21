@@ -12,7 +12,7 @@ PHP library that can be used to validate base64 encoded iTunes in app purchase r
 
 ## Requirements ##
 
-* PHP >= 7.0
+* PHP >= 7.1
 
 ## Getting Started ##
 
