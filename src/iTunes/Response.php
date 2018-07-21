@@ -225,6 +225,16 @@ class Response
   }
 
   /**
+   * A string that the App Store uses to uniquely identify the application that created the transaction.
+   *
+   * @return string
+   */
+  public function getAppItemId(): string
+  {
+    return $this->app_item_id;
+  }
+
+  /**
    * @return Carbon|null
    */
   public function getOriginalPurchaseDate(): ?Carbon
@@ -284,7 +294,7 @@ class Response
     if (array_key_exists('receipt', $this->raw_data) && is_array($this->raw_data['receipt']) && array_key_exists('in_app', $this->raw_data['receipt']) && is_array($this->raw_data['receipt']['in_app'])) {
       $this->result_code = $this->raw_data['status'];
       $this->receipt = $this->raw_data['receipt'];
-      $this->app_item_id = $this->raw_data['app_item_id'];
+      $this->app_item_id = $this->raw_data['receipt']['app_item_id'];
       $this->purchases = [];
 
       if (array_key_exists('original_purchase_date_ms', $this->raw_data['receipt'])) {

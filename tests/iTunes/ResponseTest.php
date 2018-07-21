@@ -111,6 +111,11 @@ class iTunesResponseTest extends TestCase
     );
 
     $this->assertEquals(
+      11202513425662,
+      $response->getAppItemId()
+    );
+
+    $this->assertEquals(
       1000000093384828,
       $response->getLatestReceiptInfo()[0]->getTransactionId()
     );
