@@ -63,6 +63,15 @@ try {
 if ($response->isValid()) {
   echo 'Receipt is valid.' . PHP_EOL;
   echo 'Receipt data = ' . print_r($response->getReceipt()) . PHP_EOL;
+  
+  foreach ($response->getPurchases() as $purchase) {
+    echo 'getProductId: ' . $purchase->getProductId() . PHP_EOL;
+    echo 'getTransactionId: ' . $purchase->getTransactionId() . PHP_EOL;
+
+    if ($purchase->getPurchaseDate() != null) {
+      echo 'getPurchaseDate: ' . $purchase->getPurchaseDate()->toIso8601String() . PHP_EOL;
+    }
+  }
 } else {
   echo 'Receipt is not valid.' . PHP_EOL;
   echo 'Receipt result code = ' . $response->getResultCode() . PHP_EOL;
