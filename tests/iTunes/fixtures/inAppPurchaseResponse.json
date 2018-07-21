@@ -41,7 +41,19 @@
     "app_item_id": 0,
     "application_version": 1,
     "bundle_id": "com.myapp",
-    "download_id": 0,
+    "download_id": 112025169293341,
+    "original_application_version": "1.0",
+    "receipt_creation_date": "2013-08-01 07:00:00 Etc\/GMT",
+    "receipt_creation_date_ms": 1375340400000,
+    "receipt_creation_date_pst": "2013-08-01 00:00:00 America\/Los_Angeles",
+    "original_purchase_date": "2013-08-01 07:00:00 Etc\/GMT",
+    "original_purchase_date_ms": 1375340400000,
+    "original_purchase_date_pst": "2013-08-01 00:00:00 America\/Los_Angeles",
+    "receipt_type": "Sandbox",
+    "request_date": "2015-05-24 16:31:18 Etc\/GMT",
+    "request_date_ms": 1432485078143,
+    "request_date_pst": "2015-05-24 09:31:18 America\/Los_Angeles",
+    "version_external_identifier": 0,
     "in_app": [
       {
         "is_trial_period": false,
@@ -69,16 +81,7 @@
         "quantity": 1,
         "transaction_id": 1000000156014803
       }
-    ],
-    "original_application_version": "1.0",
-    "original_purchase_date": "2013-08-01 07:00:00 Etc\/GMT",
-    "original_purchase_date_ms": 1375340400000,
-    "original_purchase_date_pst": "2013-08-01 00:00:00 America\/Los_Angeles",
-    "receipt_type": "ProductionSandbox",
-    "request_date": "2015-05-24 16:31:18 Etc\/GMT",
-    "request_date_ms": 1432485078143,
-    "request_date_pst": "2015-05-24 09:31:18 America\/Los_Angeles",
-    "version_external_identifier": 0
+    ]
   },
   "status": 0,
   "pending_renewal_info": [

@@ -16,22 +16,21 @@ class Validator
    *
    * @var string
    */
-  protected $_endpoint;
+  protected $endpoint;
 
   /**
    * Whether to exclude old transactions
    *
    * @var bool
    */
-  protected $_exclude_old_transactions = false;
+  protected $exclude_old_transactions = false;
 
   /**
    * itunes receipt data, in base64 format
    *
    * @var string|null
    */
-  protected $_receiptData;
-
+  protected $receiptData;
 
   /**
    * The shared secret is a unique code to receive your In-App Purchase receipts.
@@ -40,22 +39,27 @@ class Validator
    *
    * @var string|null
    */
-  protected $_sharedSecret = null;
+  protected $sharedSecret = null;
 
   /**
    * Guzzle http client
    *
    * @var \GuzzleHttp\Client
    */
-  protected $_client = null;
+  protected $client = null;
 
+  /**
+   * Validator constructor.
+   * @param string $endpoint
+   * @throws \InvalidArgumentException
+   */
   public function __construct(string $endpoint = self::ENDPOINT_PRODUCTION)
   {
     if ($endpoint != self::ENDPOINT_PRODUCTION && $endpoint != self::ENDPOINT_SANDBOX) {
-      throw new RunTimeException("Invalid endpoint '{$endpoint}'");
+      throw new \InvalidArgumentException("Invalid endpoint '{$endpoint}'");
     }
 
-    $this->_endpoint = $endpoint;
+    $this->endpoint = $endpoint;
   }
 
   /**
@@ -63,9 +67,9 @@ class Validator
    *
    * @return string|null
    */
-  public function getReceiptData()
+  public function getReceiptData(): ?string
   {
-    return $this->_receiptData;
+    return $this->receiptData;
   }
 
   /**
@@ -77,9 +81,9 @@ class Validator
   function setReceiptData($receiptData): self
   {
     if (strpos($receiptData, '{') !== false) {
-      $this->_receiptData = base64_encode($receiptData);
+      $this->receiptData = base64_encode($receiptData);
     } else {
-      $this->_receiptData = $receiptData;
+      $this->receiptData = $receiptData;
     }
 
     return $this;
@@ -88,9 +92,9 @@ class Validator
   /**
    * @return string|null
    */
-  public function getSharedSecret()
+  public function getSharedSecret(): ?string
   {
-    return $this->_sharedSecret;
+    return $this->sharedSecret;
   }
 
   /**
@@ -99,7 +103,7 @@ class Validator
    */
   public function setSharedSecret($sharedSecret = null): self
   {
-    $this->_sharedSecret = $sharedSecret;
+    $this->sharedSecret = $sharedSecret;
 
     return $this;
   }
@@ -111,7 +115,7 @@ class Validator
    */
   public function getEndpoint(): string
   {
-    return $this->_endpoint;
+    return $this->endpoint;
   }
 
   /**
@@ -122,7 +126,7 @@ class Validator
    */
   function setEndpoint(string $endpoint): self
   {
-    $this->_endpoint = $endpoint;
+    $this->endpoint = $endpoint;
 
     return $this;
   }
@@ -134,7 +138,7 @@ class Validator
    */
   public function getExcludeOldTransactions(): bool
   {
-    return $this->_exclude_old_transactions;
+    return $this->exclude_old_transactions;
   }
 
   /**
@@ -145,7 +149,7 @@ class Validator
    */
   public function setExcludeOldTransactions(bool $exclude): self
   {
-    $this->_exclude_old_transactions = $exclude;
+    $this->exclude_old_transactions = $exclude;
 
     return $this;
   }
@@ -157,11 +161,11 @@ class Validator
    */
   protected function getClient(): HttpClient
   {
-    if ($this->_client == null) {
-      $this->_client = new HttpClient(['base_uri' => $this->_endpoint]);
+    if ($this->client == null) {
+      $this->client = new HttpClient(['base_uri' => $this->endpoint]);
     }
 
-    return $this->_client;
+    return $this->client;
   }
 
   /**
@@ -169,31 +173,29 @@ class Validator
    *
    * @return string
    */
-  private function encodeRequest()
+  private function encodeRequest(): string
   {
     $request = [
       'receipt-data' => $this->getReceiptData(),
       'exclude-old-transactions' => $this->getExcludeOldTransactions()
     ];
 
-    if (!is_null($this->_sharedSecret)) {
-
-      $request['password'] = $this->_sharedSecret;
+    if (!is_null($this->sharedSecret)) {
+      $request['password'] = $this->sharedSecret;
     }
 
     return json_encode($request);
   }
 
+
   /**
-   * validate the receipt data
-   *
-   * @param string|null $receiptData
-   * @param string|null $sharedSecret
-   *
-   * @throws RunTimeException
+   * @param null|string $receiptData
+   * @param null|string $sharedSecret
    * @return Response
+   * @throws RunTimeException
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function validate($receiptData = null, $sharedSecret = null)
+  public function validate(?string $receiptData = null, ?string $sharedSecret = null): Response
   {
 
     if ($receiptData != null) {
@@ -212,9 +214,9 @@ class Validator
 
     $response = new Response(json_decode($httpResponse->getBody(), true));
 
-    // on a 21007 error retry the request in the sandbox environment (if the current environment is Production)
-    // these are receipts from apple review team
-    if ($this->_endpoint == self::ENDPOINT_PRODUCTION && $response->getResultCode() == Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
+    // on a 21007 error, retry the request in the sandbox environment (if the current environment is production)
+    // these are receipts from the Apple review team
+    if ($this->endpoint == self::ENDPOINT_PRODUCTION && $response->getResultCode() == Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION) {
       $client = new HttpClient(['base_uri' => self::ENDPOINT_SANDBOX]);
 
       $httpResponse = $client->request('POST', null, ['body' => $this->encodeRequest()]);

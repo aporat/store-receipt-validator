@@ -2,41 +2,61 @@
 namespace ReceiptValidator\iTunes;
 
 use ReceiptValidator\RunTimeException;
+use Carbon\Carbon;
 
 class Response
 {
-  /**
-   * Response Codes
-   *
-   * @var int
+
+  /* @var int
+   * receipt response is valid
    */
   const RESULT_OK = 0;
 
-  // The App Store could not read the JSON object you provided.
+  /* @var int
+   * The App Store could not read the JSON object you provided.
+   */
   const RESULT_APPSTORE_CANNOT_READ = 21000;
 
-  // The data in the receipt-data property was malformed or missing.
+  /* @var int
+   * The data in the receipt-data property was malformed or missing.
+   */
   const RESULT_DATA_MALFORMED = 21002;
 
-  // The receipt could not be authenticated.
+  /* @var int
+   * The receipt could not be authenticated.
+   */
   const RESULT_RECEIPT_NOT_AUTHENTICATED = 21003;
 
-  // The shared secret you provided does not match the shared secret on file for your account.
-  // Only returned for iOS 6 style transaction receipts for auto-renewable subscriptions.
+  /* @var int
+   * The shared secret you provided does not match the shared secret on file for your account.
+   * Only returned for iOS 6 style transaction receipts for auto-renewable subscriptions.
+   */
   const RESULT_SHARED_SECRET_NOT_MATCH = 21004;
 
-  // The receipt server is not currently available.
+  /* @var int
+   * The receipt server is not currently available.
+   */
   const RESULT_RECEIPT_SERVER_UNAVAILABLE = 21005;
 
-  // This receipt is valid but the subscription has expired. When this status code is returned to your server, the receipt data is also decoded and returned as part of the response.
-  // Only returned for iOS 6 style transaction receipts for auto-renewable subscriptions.
+  /* @var int
+   * This receipt is valid but the subscription has expired. When this status code is returned to your server,
+   * the receipt data is also decoded and returned as part of the response.
+   * Only returned for iOS 6 style transaction receipts for auto-renewable subscriptions.
+   */
   const RESULT_RECEIPT_VALID_BUT_SUB_EXPIRED = 21006;
 
-  // This receipt is from the test environment, but it was sent to the production environment for verification. Send it to the test environment instead.
-  // special case for app review handling - forward any request that is intended for the Sandbox but was sent to Production, this is what the app review team does
+  /* @var int
+   * This receipt is from the test environment, but it was sent to the production environment for verification.
+   * Send it to the test environment instead.
+   * special case for app review handling - forward any request that is intended for the Sandbox but was sent to Production,
+   * this is what the app review team does
+   */
   const RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION = 21007;
 
-  // This receipt is from the production environment, but it was sent to the test environment for verification. Send it to the production environment instead.
+  /* @var int
+   * This receipt is from the production environment, but it was sent to the test environment for verification.
+   * Send it to the production environment instead.
+   */
   const RESULT_PRODUCTION_RECEIPT_SENT_TO_SANDBOX = 21008;
 
   /**
@@ -44,58 +64,91 @@ class Response
    *
    * @var int
    */
-  protected $_code;
+  protected $result_code;
 
   /**
    * bundle_id (app) belongs to the receipt
    *
    * @var string
    */
-  protected $_bundle_id;
+  protected $bundle_id;
+
+  /**
+   * item id
+   *
+   * @var string
+   */
+  protected $app_item_id;
+
+  /**
+   * original_purchase_date
+   *
+   * @var Carbon|null
+   */
+  protected $original_purchase_date;
+
+  /**
+   * request date
+   *
+   * @var Carbon|null
+   */
+  protected $request_date;
+
+  /**
+   * The date when the app receipt was created
+   *
+   * @var Carbon|null
+   */
+  protected $receipt_creation_date;
 
   /**
    * receipt info
    *
    * @var array
    */
-  protected $_receipt = [];
+  protected $receipt = [];
 
   /**
-   * latest receipt (needs for auto-renewable subscriptions)
+   * latest receipt
    *
    * @var string
    */
-  protected $_latest_receipt;
+  protected $latest_receipt;
 
   /**
-   * latest receipt info (needs for auto-renewable subscriptions)
+   * latest receipt info (for auto-renewable subscriptions)
    *
    * @var PurchaseItem[]
    */
-  protected $_latest_receipt_info;
+  protected $latest_receipt_info = [];
 
   /**
    * purchases info
    * @var PurchaseItem[]
    */
-  protected $_purchases = [];
+  protected $purchases = [];
 
   /**
    * pending renewal info
    * @var PendingRenewalInfo[]
    */
-  protected $_pending_renewal_info;
+  protected $pending_renewal_info = [];
+
+  /**
+   * entire response of receipt
+   * @var ?array
+   */
+  protected $raw_data = null;
 
   /**
    * Response constructor.
-   * @param array|null $jsonResponse
+   * @param array|null $data
    * @throws RunTimeException
    */
-  public function __construct($jsonResponse = null)
+  public function __construct(?array $data = null)
   {
-    if ($jsonResponse !== null) {
-      $this->parseJsonResponse($jsonResponse);
-    }
+    $this->raw_data = $data;
+    $this->parseData();
   }
 
   /**
@@ -103,9 +156,9 @@ class Response
    *
    * @return int
    */
-  public function getResultCode()
+  public function getResultCode(): int
   {
-    return $this->_code;
+    return $this->result_code;
   }
 
   /**
@@ -114,9 +167,9 @@ class Response
    * @param int $code
    * @return self
    */
-  public function setResultCode($code)
+  public function setResultCode(int $code): self
   {
-    $this->_code = $code;
+    $this->result_code = $code;
 
     return $this;
   }
@@ -128,7 +181,7 @@ class Response
    */
   public function getPurchases()
   {
-    return $this->_purchases;
+    return $this->purchases;
   }
 
   /**
@@ -136,9 +189,9 @@ class Response
    *
    * @return array
    */
-  public function getReceipt()
+  public function getReceipt(): array
   {
-    return $this->_receipt;
+    return $this->receipt;
   }
 
   /**
@@ -148,7 +201,7 @@ class Response
    */
   public function getLatestReceiptInfo()
   {
-    return $this->_latest_receipt_info;
+    return $this->latest_receipt_info;
   }
 
   /**
@@ -156,9 +209,9 @@ class Response
    *
    * @return string
    */
-  public function getLatestReceipt()
+  public function getLatestReceipt(): string
   {
-    return $this->_latest_receipt;
+    return $this->latest_receipt;
   }
 
   /**
@@ -166,9 +219,33 @@ class Response
    *
    * @return string
    */
-  public function getBundleId()
+  public function getBundleId(): string
   {
-    return $this->_bundle_id;
+    return $this->bundle_id;
+  }
+
+  /**
+   * @return Carbon|null
+   */
+  public function getOriginalPurchaseDate(): ?Carbon
+  {
+    return $this->original_purchase_date;
+  }
+
+  /**
+   * @return Carbon|null
+   */
+  public function getRequestDate(): ?Carbon
+  {
+    return $this->request_date;
+  }
+
+  /**
+   * @return Carbon|null
+   */
+  public function getReceiptCreationDate(): ?Carbon
+  {
+    return $this->receipt_creation_date;
   }
 
   /**
@@ -178,7 +255,7 @@ class Response
    */
   public function getPendingRenewalInfo()
   {
-    return $this->_pending_renewal_info;
+    return $this->pending_renewal_info;
   }
 
   /**
@@ -186,78 +263,88 @@ class Response
    *
    * @return boolean
    */
-  public function isValid() : bool
+  public function isValid(): bool
   {
-    return ($this->_code == self::RESULT_OK);
+    return ($this->result_code == self::RESULT_OK);
   }
 
   /**
-   * Parse JSON Response
-   *
-   * @param array|null $jsonResponse
+   * Parse Data from JSON Response
    *
    * @throws RunTimeException
    * @return $this
    */
-  public function parseJsonResponse($jsonResponse = null) : self
+  public function parseData(): self
   {
-    if (!is_array($jsonResponse)) {
+    if (!is_array($this->raw_data)) {
       throw new RuntimeException('Response must be a scalar value');
     }
 
     // ios > 7 receipt validation
-    if (array_key_exists('receipt', $jsonResponse) && is_array($jsonResponse['receipt']) && array_key_exists('in_app', $jsonResponse['receipt']) && is_array($jsonResponse['receipt']['in_app'])) {
-      $this->_code = $jsonResponse['status'];
-      $this->_receipt = $jsonResponse['receipt'];
-      $this->_app_item_id = $this->_receipt['app_item_id'];
-      $this->_purchases = [];
+    if (array_key_exists('receipt', $this->raw_data) && is_array($this->raw_data['receipt']) && array_key_exists('in_app', $this->raw_data['receipt']) && is_array($this->raw_data['receipt']['in_app'])) {
+      $this->result_code = $this->raw_data['status'];
+      $this->receipt = $this->raw_data['receipt'];
+      $this->app_item_id = $this->raw_data['app_item_id'];
+      $this->purchases = [];
 
-      foreach ($jsonResponse['receipt']['in_app'] as $purchase_item_data) {
-        $this->_purchases[] = new PurchaseItem($purchase_item_data);
+      if (array_key_exists('original_purchase_date_ms', $this->raw_data['receipt'])) {
+        $this->original_purchase_date = Carbon::createFromTimestampUTC(intval(round($this->raw_data['receipt']['original_purchase_date_ms'] / 1000)));
       }
 
-      if (array_key_exists('bundle_id', $jsonResponse['receipt'])) {
-        $this->_bundle_id = $jsonResponse['receipt']['bundle_id'];
+      if (array_key_exists('request_date_ms', $this->raw_data['receipt'])) {
+        $this->request_date = Carbon::createFromTimestampUTC(intval(round($this->raw_data['receipt']['request_date_ms'] / 1000)));
       }
 
-      if (array_key_exists('latest_receipt_info', $jsonResponse)) {
+      if (array_key_exists('receipt_creation_date_ms', $this->raw_data['receipt'])) {
+        $this->receipt_creation_date = Carbon::createFromTimestampUTC(intval(round($this->raw_data['receipt']['receipt_creation_date_ms'] / 1000)));
+      }
 
-        $this->_latest_receipt_info = array_map(function ($data) {
+      foreach ($this->raw_data['receipt']['in_app'] as $purchase_item_data) {
+        $this->raw_data[] = new PurchaseItem($purchase_item_data);
+      }
+
+      if (array_key_exists('bundle_id', $this->raw_data['receipt'])) {
+        $this->bundle_id = $this->raw_data['receipt']['bundle_id'];
+      }
+
+      if (array_key_exists('latest_receipt_info', $this->raw_data)) {
+
+        $this->latest_receipt_info = array_map(function ($data) {
           return new PurchaseItem($data);
-        }, $jsonResponse['latest_receipt_info']);
+        }, $this->raw_data['latest_receipt_info']);
 
-        usort($this->_latest_receipt_info, function (PurchaseItem $a, PurchaseItem $b) {
+        usort($this->latest_receipt_info, function (PurchaseItem $a, PurchaseItem $b) {
           return $b->getPurchaseDate()->timestamp - $a->getPurchaseDate()->timestamp;
         });
       }
 
-      if (array_key_exists('latest_receipt', $jsonResponse)) {
-        $this->_latest_receipt = $jsonResponse['latest_receipt'];
+      if (array_key_exists('latest_receipt', $this->raw_data)) {
+        $this->latest_receipt = $this->raw_data['latest_receipt'];
       }
 
-      if (array_key_exists('pending_renewal_info', $jsonResponse)) {
-        $this->_pending_renewal_info = array_map(function ($data) {
+      if (array_key_exists('pending_renewal_info', $this->raw_data)) {
+        $this->pending_renewal_info = array_map(function ($data) {
             return new PendingRenewalInfo($data);
-        }, $jsonResponse['pending_renewal_info']);
+        }, $this->raw_data['pending_renewal_info']);
       }
-    } elseif (array_key_exists('receipt', $jsonResponse)) {
+    } elseif (array_key_exists('receipt', $this->raw_data)) {
 
       // ios <= 6.0 validation
-      $this->_code = $jsonResponse['status'];
+      $this->result_code = $this->raw_data['status'];
 
-      if (array_key_exists('receipt', $jsonResponse)) {
-        $this->_receipt = $jsonResponse['receipt'];
-        $this->_purchases = [];
-        $this->_purchases[] = new PurchaseItem($jsonResponse['receipt']);
+      if (array_key_exists('receipt', $this->raw_data)) {
+        $this->receipt = $this->raw_data['receipt'];
+        $this->purchases = [];
+        $this->purchases[] = new PurchaseItem($this->raw_data['receipt']);
 
-        if (array_key_exists('bid', $jsonResponse['receipt'])) {
-          $this->_bundle_id = $jsonResponse['receipt']['bid'];
+        if (array_key_exists('bid', $this->raw_data['receipt'])) {
+          $this->bundle_id = $this->raw_data['receipt']['bid'];
         }
       }
-    } elseif (array_key_exists('status', $jsonResponse)) {
-      $this->_code = $jsonResponse['status'];
+    } elseif (array_key_exists('status', $this->raw_data)) {
+      $this->result_code = $this->raw_data['status'];
     } else {
-      $this->_code = self::RESULT_DATA_MALFORMED;
+      $this->result_code = self::RESULT_DATA_MALFORMED;
     }
 
     return $this;

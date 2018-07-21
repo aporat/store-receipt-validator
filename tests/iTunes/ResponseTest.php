@@ -1,9 +1,7 @@
 <?php
 
-use PHPUnit\Framework\Error\Notice;
 use ReceiptValidator\iTunes\Response;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Constraint\IsType;
 
 /**
  * @group library
@@ -11,31 +9,46 @@ use PHPUnit\Framework\Constraint\IsType;
 class iTunesResponseTest extends TestCase
 {
 
-  public function testInvalidOptionsToConstructor()
+  public function testInvalidOptionsToConstructor(): void
   {
-    $this->expectException("ReceiptValidator\\RuntimeException");
-    $this->expectExceptionMessage("Response must be a scalar value");
+    $this->expectException(\ReceiptValidator\RunTimeException::class);
 
-    new Response('invalid');
+    new Response(null);
   }
 
-  public function testInvalidReceipt()
+  public function testInvalidReceipt(): void
   {
-    $response = new Response(array('status' => Response::RESULT_DATA_MALFORMED, 'receipt' => array()));
+    $response = new Response(['status' => Response::RESULT_DATA_MALFORMED, 'receipt' => []]);
 
-    $this->assertFalse($response->isValid(), 'receipt must be invalid');
-    $this->assertEquals(Response::RESULT_DATA_MALFORMED, $response->getResultCode(), 'receipt result code must match');
+    $this->assertFalse(
+      $response->isValid(),
+      'receipt must be invalid'
+    );
+
+    $this->assertEquals(
+      Response::RESULT_DATA_MALFORMED,
+      $response->getResultCode(),
+      'receipt result code must match'
+    );
   }
 
-  public function testReceiptSentToWrongEndpoint()
+  public function testReceiptSentToWrongEndpoint(): void
   {
-    $response = new Response(array('status' => Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION));
+    $response = new Response(['status' => Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION]);
 
-    $this->assertFalse($response->isValid(), 'receipt must be invalid');
-    $this->assertEquals(Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION, $response->getResultCode(), 'receipt result code must match');
+    $this->assertFalse(
+      $response->isValid(),
+      'receipt must be invalid'
+    );
+
+    $this->assertEquals(
+      Response::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION,
+      $response->getResultCode(),
+      'receipt result code must match'
+    );
   }
 
-  public function testValidReceipt()
+  public function testValidReceipt(): void
   {
     $response = new Response(array('status' => Response::RESULT_OK, 'receipt' => array('testValue')));
 
@@ -43,66 +56,64 @@ class iTunesResponseTest extends TestCase
     $this->assertEquals(Response::RESULT_OK, $response->getResultCode(), 'receipt result code must match');
   }
 
-  public function testReceiptWithLatestReceiptInfo()
+  public function testReceiptWithLatestReceiptInfo(): void
   {
     $jsonResponseString = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseResponse.json');
     $jsonResponseArray = json_decode($jsonResponseString, true);
 
     $response = new Response($jsonResponseArray);
 
-    $this->assertInternalType(IsType::TYPE_ARRAY, $response->getLatestReceiptInfo());
-    $this->assertContainsOnly('ReceiptValidator\iTunes\PurchaseItem', $response->getLatestReceiptInfo());
+    $this->assertEquals(
+      Response::RESULT_OK,
+      $response->getResultCode()
+    );
 
-    // Check sorting correctly
-    $this->assertEquals(2, count($response->getLatestReceiptInfo()));
-    $firstItem = $response->getLatestReceiptInfo()[0];
-    $this->assertEquals(1000000093384828, $firstItem->getTransactionId());
+    $this->assertContainsOnlyInstancesOf(
+      ReceiptValidator\iTunes\PurchaseItem::class,
+      $response->getLatestReceiptInfo()
+    );
 
-    $this->assertInternalType(IsType::TYPE_STRING, $response->getLatestReceipt());
-    $this->assertEquals($jsonResponseArray['latest_receipt'], $response->getLatestReceipt(), 'latest receipt must match');
+    $this->assertCount(
+      2,
+      $response->getLatestReceiptInfo()
+    );
 
-    $this->assertInternalType(IsType::TYPE_STRING, $response->getBundleId());
-    $this->assertEquals($jsonResponseArray['receipt']['bundle_id'], $response->getBundleId(), 'receipt bundle id must match');
+    $this->assertEquals(
+      $jsonResponseArray['latest_receipt'],
+      $response->getLatestReceipt(),
+      'latest receipt must match'
+    );
 
-    $this->assertInternalType(IsType::TYPE_ARRAY, $response->getPendingRenewalInfo());
-    $this->assertContainsOnly('ReceiptValidator\iTunes\PendingRenewalInfo', $response->getPendingRenewalInfo());
-  }
+    $this->assertEquals(
+      $jsonResponseArray['receipt']['bundle_id'],
+      $response->getBundleId(),
+      'receipt bundle id must match'
+    );
 
-  // For backwards compatability
-  public function testPurchaseItemBehavesLikeArray()
-  {
-    $jsonResponseString = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseResponse.json');
-    $jsonResponseArray = json_decode($jsonResponseString, true);
-    $response = new Response($jsonResponseArray);
-    $firstItem = $response->getLatestReceiptInfo()[0];
-    $this->assertNotNull($firstItem);
+    $this->assertEquals(
+      '2013-08-01T07:00:00+00:00',
+      $response->getOriginalPurchaseDate()->toIso8601String()
+    );
 
-    // Get existing
-    $this->assertEquals(1396071456569, $firstItem['purchase_date_ms']);
-    $this->assertEquals('2014-03-29 05:37:36 Etc/GMT', $firstItem['purchase_date']);
+    $this->assertEquals(
+      '2013-08-01T07:00:00+00:00',
+      $response->getReceiptCreationDate()->toIso8601String()
+    );
 
-    // Get non-existing
-    $this->expectException(Notice::class);
-    $temp = $firstItem['undefined_value'];
+    $this->assertEquals(
+      '2015-05-24T16:31:18+00:00',
+      $response->getRequestDate()->toIso8601String()
+    );
 
-    // Set existing
-    $firstItem['transaction_id'] = 999;
-    $this->assertEquals(999, $firstItem['transaction_id']);
-    $this->assertEquals(999, $firstItem->getTransactionId());
+    $this->assertContainsOnlyInstancesOf(
+      ReceiptValidator\iTunes\PendingRenewalInfo::class,
+      $response->getPendingRenewalInfo()
+    );
 
-    // Set new
-    $firstItem['undefined_value'] = 'test';
-    $this->assertEquals('test', $firstItem['undefined_value']);
+    $this->assertEquals(
+      1000000093384828,
+      $response->getLatestReceiptInfo()[0]->getTransactionId()
+    );
 
-    // Exists
-    $this->assertEquals(true, $firstItem['transaction_id']);
-    $this->assertEquals(false, $firstItem['another_undefined_value']);
-
-    // Unset
-    $firstItem['unset_test'] = 'tmp';
-    $this->assertEquals('tmp', $firstItem['unset_test']);
-    unset($firstItem['unset_test']);
-    $this->expectException(Notice::class);
-    $firstItem['unset_test'];
   }
 }

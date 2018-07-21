@@ -26,14 +26,14 @@
     "Apache-2.0"
   ],
   "require": {
-    "php": ">=7.0",
-    "guzzlehttp/guzzle": "~6.2",
+    "php": ">=7.1",
+    "guzzlehttp/guzzle": "~6.3",
     "nesbot/carbon": "~1",
     "google/apiclient": "~2.0",
     "robrichards/xmlseclibs": "^2.0|^3.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^6.0"
+    "phpunit/phpunit": "^7.0"
   },
   "autoload": {
     "psr-4": {

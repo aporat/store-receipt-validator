@@ -2,6 +2,7 @@
 namespace ReceiptValidator\iTunes;
 
 use ArrayAccess;
+use ReceiptValidator\RunTimeException;
 
 class PendingRenewalInfo implements ArrayAccess
 {
@@ -25,7 +26,6 @@ class PendingRenewalInfo implements ArrayAccess
 
   /* @var int Unknown */
   const EXPIRATION_INTENT_UNKNOWN = 5;
-
 
   // Retry flag codes //
   /* @var int Still attempting renewal */
@@ -52,131 +52,142 @@ class PendingRenewalInfo implements ArrayAccess
   /**#@-*/
 
   /**
-   * Pending renewal info
-   * @var array
-   */
-  protected $_raw = [];
-
-  /**
    * Product ID
-   * @var string|null
+   * @var string
    */
-  protected $_product_id;
+  protected $product_id = "";
 
   /**
    * Auto Renew Product ID
-   * @var string|null
+   * @var string
    */
-  protected $_auto_renew_product_id;
+  protected $auto_renew_product_id = "";
 
   /**
-   * Original Transation ID
-   * @var string|null
+   * Original Transaction ID
+   * @var string
    */
-  protected $_original_transaction_id;
+  protected $original_transaction_id = "";
+
+  /**
+   * The current renewal status for the auto-renewable subscription
+   *
+   * true - Subscription will renew at the end of the current subscription period.
+   * false - Customer has turned off automatic renewal for their subscription
+   *
+   * @var bool
+   */
+  protected $auto_renew_status = false;
 
   /**
    * Expiration Intent Code
    * @var int|null
    */
-  protected $_expiration_intent;
+  protected $expiration_intent;
 
   /**
    * Is In Billing Retry Period Code
    * @var int|null
    */
-  protected $_is_in_billing_retry_period;
+  protected $is_in_billing_retry_period;
 
   /**
-   * Auto Renew Status Code
-   * @var int|null
+   * Pending renewal info
+   * @var array|null
    */
-  protected $_auto_renew_status;
+  protected $raw_data = null;
 
-  public function __construct(array $rawData)
+  /**
+   * Response constructor.
+   * @throws RunTimeException
+   * @param array|null $data
+   */
+  public function __construct(?array $data = null)
   {
-    $this->_raw = $rawData;
-    $this->hydrateFromRawData();
+    $this->raw_data = $data;
+    $this->parseData();
   }
 
   /**
-   * Hydrate the model from the provided data
+   * Parse Data from JSON Response
    *
-   * @return PendingRenewalInfo
+   * @throws RunTimeException
+   * @return $this
    */
-  protected function hydrateFromRawData() : self
+  public function parseData(): self
   {
-    // Always available
-    $this->_product_id = $this->_raw['product_id'] ?? null;
-    $this->_auto_renew_product_id = $this->_raw['auto_renew_product_id'] ?? null;
-    $this->_auto_renew_status = isset($this->_raw['auto_renew_status']) ? (int) $this->_raw['auto_renew_status'] : null;
+    if (!is_array($this->raw_data)) {
+      throw new RunTimeException('Response must be a scalar value');
+    }
 
-    // Also always available but not in existing fixture, so will assume optional for backwards compatibility
-    $this->_original_transaction_id = $this->_raw['original_transaction_id'] ?? null;
+    $this->product_id = $this->raw_data['product_id'];
+    $this->original_transaction_id = $this->raw_data['original_transaction_id'];
+    $this->auto_renew_product_id = $this->raw_data['auto_renew_product_id'];
+    $this->auto_renew_status = (bool) $this->raw_data['auto_renew_status'];
 
-    // Optionals
-    $this->_expiration_intent = isset($this->_raw['expiration_intent']) ? (int) $this->_raw['expiration_intent'] : null;
-    $this->_is_in_billing_retry_period = isset($this->_raw['is_in_billing_retry_period']) ? (int) $this->_raw['is_in_billing_retry_period'] : null;
+    if (array_key_exists('expiration_intent', $this->raw_data)) {
+      $this->expiration_intent = (int) $this->raw_data['expiration_intent'];
+    }
+
+    if (array_key_exists('is_in_billing_retry_period', $this->raw_data)) {
+      $this->is_in_billing_retry_period = (int) $this->raw_data['is_in_billing_retry_period'];
+    }
 
     return $this;
   }
 
-  /*****************************************
-   * GETTERS
-   *****************************************/
-
   /**
    * Product ID
-   * @return string|null
+   * @return string
    */
-  public function getProductId()
+  public function getProductId(): string
   {
-    return $this->_product_id;
+    return $this->product_id;
   }
 
   /**
    * Auto Renew Product ID
-   * @return string|null
+   * @return string
    */
-  public function getAutoRenewProductId()
+  public function getAutoRenewProductId(): string
   {
-    return $this->_auto_renew_product_id;
+    return $this->auto_renew_product_id;
   }
 
   /**
    * Auto Renew Status Code
-   * @return int|null
+   * @return bool
    */
-  public function getAutoRenewStatus()
+  public function getAutoRenewStatus(): bool
   {
-    return $this->_auto_renew_status;
+    return $this->auto_renew_status;
   }
 
   /**
    * Original Transaction ID
-   * @return string|null
+   * @return string
    */
-  public function getOriginalTransactionId()
+  public function getOriginalTransactionId(): string
   {
-    return $this->_original_transaction_id;
+    return $this->original_transaction_id;
   }
 
   /**
    * Expiration Intent Code
    * @return int|null
    */
-  public function getExpirationIntent()
+  public function getExpirationIntent(): ?int
   {
-    return $this->_expiration_intent;
+    return $this->expiration_intent;
   }
 
   /**
    * Is In Billing Retry Period Code
    * @return int|null
    */
-  public function getIsInBillingRetryPeriod()
+  public function isInBillingRetryPeriod(): ?int
   {
-    return $this->_is_in_billing_retry_period;
+    return $this->is_in_billing_retry_period;
   }
 
   /*****************************************
@@ -191,20 +202,20 @@ class PendingRenewalInfo implements ArrayAccess
    *
    * @return string|null
    */
-  public function getStatus()
+  public function getStatus(): ?string
   {
     // Active when no expiration intent
-    if (null === $this->_expiration_intent) {
+    if (null === $this->expiration_intent) {
       return $this::STATUS_ACTIVE;
     }
 
     // Pending when retrying
-    if ($this::RETRY_PERIOD_ACTIVE === $this->_is_in_billing_retry_period) {
+    if ($this::RETRY_PERIOD_ACTIVE === $this->is_in_billing_retry_period) {
       return $this::STATUS_PENDING;
     }
 
     // Expired when not retrying
-    if ($this::RETRY_PERIOD_INACTIVE === $this->_is_in_billing_retry_period) {
+    if ($this::RETRY_PERIOD_INACTIVE === $this->is_in_billing_retry_period) {
       return $this::STATUS_EXPIRED;
     }
 
@@ -216,13 +227,12 @@ class PendingRenewalInfo implements ArrayAccess
    *
    * @param $key
    * @param $value
-   *
    * @throws RunTimeException
    */
   public function offsetSet($key, $value)
   {
-    $this->_raw[$key] = $value;
-    $this->hydrateFromRawData();
+    $this->raw_data[$key] = $value;
+    $this->parseData();
   }
 
   /**
@@ -233,7 +243,7 @@ class PendingRenewalInfo implements ArrayAccess
    */
   public function offsetGet($key)
   {
-    return $this->_raw[$key];
+    return $this->raw_data[$key];
   }
 
   /**
@@ -243,7 +253,7 @@ class PendingRenewalInfo implements ArrayAccess
    */
   public function offsetUnset($key)
   {
-    unset($this->_raw[$key]);
+    unset($this->raw_data[$key]);
   }
 
   /**
@@ -254,6 +264,6 @@ class PendingRenewalInfo implements ArrayAccess
    */
   public function offsetExists($key)
   {
-    return isset($this->_raw[$key]);
+    return isset($this->_rawData[$key]);
   }
 }
