@@ -87,6 +87,7 @@
   "pending_renewal_info": [
       {
           "auto_renew_product_id": "Test_Subscription",
+          "original_transaction_id": "original_transaction_id_value",
           "product_id": "Test_Subscription",
           "auto_renew_status": "1"
       }
