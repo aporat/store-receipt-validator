@@ -137,11 +137,11 @@ class PurchaseItem implements ArrayAccess
     }
 
     if (array_key_exists('is_trial_period', $this->raw_data)) {
-      $this->is_trial_period = boolval($this->raw_data['is_trial_period']);
+      $this->is_trial_period = ($this->raw_data['is_trial_period']=="true");
     }
 
     if (array_key_exists('is_in_intro_offer_period', $this->raw_data)) {
-      $this->is_in_intro_offer_period = boolval($this->raw_data['is_in_intro_offer_period']);
+      $this->is_in_intro_offer_period = ($this->raw_data['is_in_intro_offer_period']=="true");
     }
 
     if (array_key_exists('purchase_date_ms', $this->raw_data)) {
