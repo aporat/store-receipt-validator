@@ -106,7 +106,7 @@ try {
 
 Or [Using a service account](https://developers.google.com/android-publisher/getting_started#using_a_service_account)
 
-Create service account [Service Account flow](https://developers.google.com/identity/protocols/OAuth2ServiceAccount)
+Create service account [Service Account flow](https://developers.google.com/identity/protocols/OAuth2ServiceAccount) and [guide](https://stackoverflow.com/a/24365026/1248595)
 
 ```php
 $googleClient = new \Google_Client();
