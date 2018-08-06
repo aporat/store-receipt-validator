@@ -27,6 +27,7 @@
   ],
   "require": {
     "php": ">=7.1",
+    "ext-json": "*",
     "guzzlehttp/guzzle": "~6.3",
     "nesbot/carbon": "~1",
     "google/apiclient": "~2.0",
