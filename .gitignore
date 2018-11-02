@@ -22,3 +22,5 @@ extras/documentation
 
 /.idea/
 composer-setup.php
+
+*.swp

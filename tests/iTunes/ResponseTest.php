@@ -120,5 +120,10 @@ class iTunesResponseTest extends TestCase
       $response->getLatestReceiptInfo()[0]->getTransactionId()
     );
 
+    $this->assertEquals(
+      $jsonResponseArray,
+      $response->getRawData()
+    );
+
   }
 }

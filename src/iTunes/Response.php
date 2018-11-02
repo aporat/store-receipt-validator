@@ -269,6 +269,16 @@ class Response
   }
 
   /**
+   * Get the raw data
+   *
+   * @return array
+   */
+  public function getRawData()
+  {
+    return $this->raw_data;
+  }
+
+  /**
    * returns if the receipt is valid or not
    *
    * @return boolean
