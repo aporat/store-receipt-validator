@@ -209,7 +209,7 @@ class PurchaseItem implements ArrayAccess
   /**
    * @return string
    */
-  public function getWebOrderLineItemId(): string
+  public function getWebOrderLineItemId(): ?string
   {
     return $this->web_order_line_item_id;
   }
