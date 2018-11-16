@@ -125,5 +125,9 @@ class iTunesResponseTest extends TestCase
       $response->getRawData()
     );
 
+    $this->assertEquals(
+      false,
+      $response->isRetryable()
+    );
   }
 }

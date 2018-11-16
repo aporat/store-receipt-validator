@@ -141,6 +141,13 @@ class Response
   protected $raw_data = null;
 
   /**
+   * retryable
+   *
+   * @var boolean
+   */
+  protected $is_retryable = false;
+
+  /**
    * Response constructor.
    * @param array|null $data
    * @throws RunTimeException
@@ -289,6 +296,16 @@ class Response
   }
 
   /**
+   * returns retry status or not
+   *
+   * @return boolean
+   */
+  public function isRetryable(): bool
+  {
+    return $this->is_retryable;
+  }
+
+  /**
    * Parse Data from JSON Response
    *
    * @throws RunTimeException
@@ -365,6 +382,9 @@ class Response
       $this->result_code = $this->raw_data['status'];
     } else {
       $this->result_code = self::RESULT_DATA_MALFORMED;
+    }
+    if (array_key_exists('is-retryable', $this->raw_data)) {
+      $this->is_retryable = true;
     }
 
     return $this;
