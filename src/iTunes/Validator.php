@@ -229,7 +229,7 @@ class Validator
      */
     private function sendRequestUsingClient(HttpClient $client)
     {
-        $baseUri = $client->getConfig('base_uri');
+        $baseUri = (string)$client->getConfig('base_uri');
 
         $httpResponse = $client->request('POST', null, ['body' => $this->prepareRequestData()]);
 
