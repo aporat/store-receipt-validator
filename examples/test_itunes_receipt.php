@@ -12,7 +12,7 @@ set_include_path(implode(PATH_SEPARATOR, $path));
 require_once $root . '/vendor/autoload.php';
 
 use ReceiptValidator\iTunes\Validator as iTunesValidator;
-use ReceiptValidator\iTunes\Response as ValidatorResponse;
+use ReceiptValidator\iTunes\AbstractResponse;
 
 $validator = new iTunesValidator(iTunesValidator::ENDPOINT_PRODUCTION);
 
@@ -22,11 +22,11 @@ $response = null;
 try {
   $response = $validator->setReceiptData($receiptBase64Data)->validate();
 
-} catch (Exception $e) {
+} catch (\Exception $e) {
   echo 'got error = ' . $e->getMessage() . PHP_EOL;
 }
 
-if ($response instanceof ValidatorResponse && $response->isValid()) {
+if ($response instanceof AbstractResponse && $response->isValid()) {
   echo 'Receipt is valid.' . PHP_EOL;
 
   echo 'getBundleId: ' . $response->getBundleId() . PHP_EOL;
