@@ -72,6 +72,11 @@ class iTunesResponseTest extends TestCase
         $this->assertFalse((new SandboxResponse([]))->isProduction());
     }
 
+    public function testResponseMightHasNullableEmptyReceipt(): void
+    {
+        $this->assertNull((new ProductionResponse([]))->getLatestReceipt());
+    }
+
     public function testValidReceipt(): void
     {
         $response = new ProductionResponse(
