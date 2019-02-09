@@ -80,7 +80,7 @@ interface ResponseInterface extends EnvironmentResponseInterface
      */
     public function getLatestReceiptInfo();
 
-    public function getLatestReceipt(): string;
+    public function getLatestReceipt(): ?string;
 
     public function getBundleId(): string;
 

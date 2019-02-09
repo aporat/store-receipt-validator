@@ -160,9 +160,9 @@ abstract class AbstractResponse
     /**
      * Get latest receipt
      *
-     * @return string
+     * @return null|string
      */
-    public function getLatestReceipt(): string
+    public function getLatestReceipt(): ?string
     {
         return $this->latest_receipt;
     }
