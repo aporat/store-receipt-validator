@@ -2,77 +2,77 @@
 
 namespace ReceiptValidator\iTunes;
 
-use ReceiptValidator\RunTimeException;
-use Carbon\Carbon;
 use ArrayAccess;
+use Carbon\Carbon;
+use ReceiptValidator\RunTimeException;
 
 class PurchaseItem implements ArrayAccess
 {
     /**
-     * quantity
+     * quantity.
      *
      * @var int
      */
     protected $quantity = 0;
 
     /**
-     * product_id
+     * product_id.
      *
      * @var string
      */
     protected $product_id;
 
     /**
-     * web_order_line_item_id
+     * web_order_line_item_id.
      *
      * @var string
      */
     protected $web_order_line_item_id;
 
     /**
-     * transaction_id
+     * transaction_id.
      *
      * @var string
      */
     protected $transaction_id;
 
     /**
-     * original_transaction_id
+     * original_transaction_id.
      *
      * @var string
      */
     protected $original_transaction_id;
 
     /**
-     * purchase_date
+     * purchase_date.
      *
      * @var Carbon
      */
     protected $purchase_date;
 
     /**
-     * original_purchase_date
+     * original_purchase_date.
      *
      * @var Carbon
      */
     protected $original_purchase_date;
 
     /**
-     * expires_date
+     * expires_date.
      *
      * @var Carbon
      */
     protected $expires_date;
 
     /**
-     * cancellation_date
+     * cancellation_date.
      *
      * @var Carbon|null
      */
     protected $cancellation_date;
 
     /**
-     * For a subscription, whether or not it is in the free trial period
+     * For a subscription, whether or not it is in the free trial period.
      *
      * @var bool|null
      */
@@ -86,7 +86,7 @@ class PurchaseItem implements ArrayAccess
     protected $is_in_intro_offer_period = null;
 
     /**
-     * purchase item info
+     * purchase item info.
      *
      * @var array|null
      */
@@ -94,7 +94,9 @@ class PurchaseItem implements ArrayAccess
 
     /**
      * PurchaseItem constructor.
+     *
      * @param array|null $data
+     *
      * @throws RunTimeException
      */
     public function __construct(?array $data = null)
@@ -104,9 +106,10 @@ class PurchaseItem implements ArrayAccess
     }
 
     /**
-     * Parse Data from JSON Response
+     * Parse Data from JSON Response.
      *
      * @throws RunTimeException
+     *
      * @return $this
      */
     public function parseData(): self
@@ -116,7 +119,7 @@ class PurchaseItem implements ArrayAccess
         }
 
         if (array_key_exists('quantity', $this->raw_data)) {
-            $this->quantity = (int)$this->raw_data['quantity'];
+            $this->quantity = (int) $this->raw_data['quantity'];
         }
 
         if (array_key_exists('transaction_id', $this->raw_data)) {
@@ -148,27 +151,27 @@ class PurchaseItem implements ArrayAccess
 
         if (array_key_exists('purchase_date_ms', $this->raw_data)) {
             $this->purchase_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['purchase_date_ms'] / 1000)
+                (int) round($this->raw_data['purchase_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('original_purchase_date_ms', $this->raw_data)) {
             $this->original_purchase_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['original_purchase_date_ms'] / 1000)
+                (int) round($this->raw_data['original_purchase_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('expires_date_ms', $this->raw_data)) {
-            $this->expires_date = Carbon::createFromTimestampUTC((int)round($this->raw_data['expires_date_ms'] / 1000));
+            $this->expires_date = Carbon::createFromTimestampUTC((int) round($this->raw_data['expires_date_ms'] / 1000));
         } elseif (array_key_exists('expires_date', $this->raw_data) && is_numeric($this->raw_data['expires_date'])) {
             $this->expires_date = Carbon::createFromTimestampUTC(
-                (int)round((int)$this->raw_data['expires_date'] / 1000)
+                (int) round((int) $this->raw_data['expires_date'] / 1000)
             );
         }
 
         if (array_key_exists('cancellation_date_ms', $this->raw_data)) {
             $this->cancellation_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['cancellation_date_ms'] / 1000)
+                (int) round($this->raw_data['cancellation_date_ms'] / 1000)
             );
         }
 
@@ -207,7 +210,6 @@ class PurchaseItem implements ArrayAccess
         return $this->is_in_intro_offer_period;
     }
 
-
     /**
      * @return string
      */
@@ -217,9 +219,9 @@ class PurchaseItem implements ArrayAccess
     }
 
     /**
-     * @return string
+     * @return null|string
      */
-    public function getWebOrderLineItemId(): string
+    public function getWebOrderLineItemId(): ?string
     {
         return $this->web_order_line_item_id;
     }
@@ -273,7 +275,7 @@ class PurchaseItem implements ArrayAccess
     }
 
     /**
-     * Update a response key and reprocess object properties
+     * Update a response key and reprocess object properties.
      *
      * @param $key
      * @param $value
@@ -287,9 +289,10 @@ class PurchaseItem implements ArrayAccess
     }
 
     /**
-     * Get a response key
+     * Get a response key.
      *
      * @param $key
+     *
      * @return mixed
      */
     public function offsetGet($key)
@@ -298,7 +301,7 @@ class PurchaseItem implements ArrayAccess
     }
 
     /**
-     * Unset a response key
+     * Unset a response key.
      *
      * @param $key
      */
@@ -308,9 +311,10 @@ class PurchaseItem implements ArrayAccess
     }
 
     /**
-     * Check if response key exists
+     * Check if response key exists.
      *
      * @param $key
+     *
      * @return bool
      */
     public function offsetExists($key)
