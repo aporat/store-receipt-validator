@@ -25,17 +25,17 @@ class PurchaseItemTest extends TestCase
     public function testPurchaseData(): void
     {
         $raw_data = [
-            "is_trial_period"             => "false",
-            "original_purchase_date"      => "2015-05-24 01:06:58 Etc\/GMT",
-            "original_purchase_date_ms"   => 1432429618000,
-            "original_purchase_date_pst"  => "2015-05-23 18:06:58 America\/Los_Angeles",
-            "original_transaction_id"     => 1000000156455961,
-            "product_id"                  => "myapp.1",
-            "purchase_date"               => "2015-05-24 01:06:58 Etc\/GMT",
-            "purchase_date_ms"            => 1432429618000,
-            "purchase_date_pst"           => "2015-05-23 18:06:58 America\/Los_Angeles",
-            "quantity"                    => 1,
-            "transaction_id"              => 1000000156455961,
+            'is_trial_period'             => 'false',
+            'original_purchase_date'      => '2015-05-24 01:06:58 Etc\/GMT',
+            'original_purchase_date_ms'   => 1432429618000,
+            'original_purchase_date_pst'  => '2015-05-23 18:06:58 America\/Los_Angeles',
+            'original_transaction_id'     => 1000000156455961,
+            'product_id'                  => 'myapp.1',
+            'purchase_date'               => '2015-05-24 01:06:58 Etc\/GMT',
+            'purchase_date_ms'            => 1432429618000,
+            'purchase_date_pst'           => '2015-05-23 18:06:58 America\/Los_Angeles',
+            'quantity'                    => 1,
+            'transaction_id'              => 1000000156455961,
         ];
 
         $info = new PurchaseItem($raw_data);
