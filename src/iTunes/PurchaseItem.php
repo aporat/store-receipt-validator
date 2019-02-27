@@ -16,7 +16,7 @@ class PurchaseItem implements ArrayAccess
     protected $quantity = 0;
 
     /**
-     * product_id
+     * product_id.
      *
      * @var string
      */
@@ -94,7 +94,9 @@ class PurchaseItem implements ArrayAccess
 
     /**
      * PurchaseItem constructor.
+     *
      * @param array|null $data
+     *
      * @throws RunTimeException
      */
     public function __construct(?array $data = null)
@@ -163,7 +165,7 @@ class PurchaseItem implements ArrayAccess
             $this->expires_date = Carbon::createFromTimestampUTC((int) round($this->raw_data['expires_date_ms'] / 1000));
         } elseif (array_key_exists('expires_date', $this->raw_data) && is_numeric($this->raw_data['expires_date'])) {
             $this->expires_date = Carbon::createFromTimestampUTC(
-                (int) round((int)$this->raw_data['expires_date'] / 1000)
+                (int) round((int) $this->raw_data['expires_date'] / 1000)
             );
         }
 
@@ -276,7 +278,6 @@ class PurchaseItem implements ArrayAccess
      * Update a response key and reprocess object properties.
      *
      * @param $key
-     *
      * @param $value
      *
      * @throws RunTimeException
