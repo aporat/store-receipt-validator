@@ -217,7 +217,7 @@ class PurchaseItem implements ArrayAccess
     }
 
     /**
-     * @return string
+     * @return null|string
      */
     public function getWebOrderLineItemId(): ?string
     {
