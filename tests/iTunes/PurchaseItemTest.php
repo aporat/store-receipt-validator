@@ -118,4 +118,51 @@ class PurchaseItemTest extends TestCase
             $info->getWebOrderLineItemId()
         );
     }
+
+    public function testPurchaseDataWithoutWebOrderLineItemId(): void
+    {
+        $raw_data = [
+            "quantity" => "1",
+            "product_id" => "product.subscription",
+            "transaction_id" => "720000261479083",
+            "original_transaction_id" => "720000261479083",
+            "purchase_date" => "2018-06-14 05:41:29 Etc/GMT",
+            "purchase_date_ms" => 1528954889000,
+            "purchase_date_pst" => "2018-06-13 22:41:29 America/Los_Angeles",
+            "original_purchase_date" => "2018-06-14 05:41:31 Etc/GMT",
+            "original_purchase_date_ms" => 1528954891000,
+            "original_purchase_date_pst" => "2018-06-13 22:41:31 America/Los_Angeles",
+            "expires_date" => "2018-06-21 05:41:29 Etc/GMT",
+            "expires_date_ms" => 1529559689000,
+            "expires_date_pst" => "2018-06-20 22:41:29 America/Los_Angeles",
+            "web_order_line_item_id" => null,
+            "is_trial_period" => true,
+            "is_in_intro_offer_period" => false,
+        ];
+
+        $info = new PurchaseItem($raw_data);
+
+        $this->assertEquals(
+            $raw_data['quantity'],
+            $info->getQuantity()
+        );
+
+        $this->assertEquals(
+            '2018-06-21T05:41:29+00:00',
+            $info->getExpiresDate()->toIso8601String()
+        );
+
+        $this->assertTrue(
+            $info->isTrialPeriod()
+        );
+
+        $this->assertFalse(
+            $info->isInIntroOfferPeriod()
+        );
+
+        $this->assertEquals(
+            null,
+            $info->getWebOrderLineItemId()
+        );
+    }
 }
