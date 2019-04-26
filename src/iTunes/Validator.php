@@ -179,6 +179,14 @@ class Validator
     }
 
     /**
+     * @param \GuzzleHttp\Client $client
+     */
+    public function setClient(HttpClient $client): void
+    {
+        $this->client = $client;
+    }
+
+    /**
      * Prepare request data (json)
      *
      * @return string
