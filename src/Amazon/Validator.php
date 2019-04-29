@@ -8,7 +8,6 @@ use ReceiptValidator\RunTimeException as RunTimeException;
 
 class Validator
 {
-
     const ENDPOINT_SANDBOX = 'http://localhost:8080/RVSSandbox/';
     const ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com/version/1.0/verifyReceiptId/';
 
@@ -51,6 +50,7 @@ class Validator
      * Validator constructor.
      *
      * @param string $endpoint
+     *
      * @throws RunTimeException
      */
     public function __construct(string $endpoint = self::ENDPOINT_PRODUCTION)
@@ -62,10 +62,9 @@ class Validator
         $this->_endpoint = $endpoint;
     }
 
-
     /**
-     *
      * @param string $userId
+     *
      * @return self
      */
     public function setUserId($userId): self
@@ -76,8 +75,8 @@ class Validator
     }
 
     /**
-     *
      * @param string $receiptId
+     *
      * @return self
      */
     public function setReceiptId($receiptId): self
@@ -86,7 +85,6 @@ class Validator
 
         return $this;
     }
-
 
     /**
      * get developer secret.
@@ -134,7 +132,6 @@ class Validator
         return $this;
     }
 
-
     /**
      * returns the Guzzle client.
      *
@@ -149,14 +146,13 @@ class Validator
         return $this->_client;
     }
 
-
     /**
-     * validate the receipt data
+     * validate the receipt data.
      *
-     * @return Response
-     * 
      * @throws RunTimeException
      * @throws \GuzzleHttp\Exception\GuzzleException
+     *
+     * @return Response
      */
     public function validate()
     {

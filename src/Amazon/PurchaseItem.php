@@ -7,7 +7,6 @@ use ReceiptValidator\RunTimeException;
 
 class PurchaseItem
 {
-
     /**
      * purchase item info.
      *
@@ -113,7 +112,6 @@ class PurchaseItem
         return $this->_renewal_date;
     }
 
-
     /**
      * PurchaseItem constructor.
      *
@@ -133,6 +131,7 @@ class PurchaseItem
      *
      * @return PurchaseItem
      * @throws RunTimeException
+     *
      */
     public function parseJsonResponse(): self
     {
