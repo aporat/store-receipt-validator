@@ -7,7 +7,7 @@ use ReceiptValidator\RunTimeException;
 class Response
 {
     /**
-     * Response Codes
+     * Response Codes.
      *
      * @var int
      */
@@ -26,21 +26,22 @@ class Response
     const RESULT_INTERNAL_ERROR = 500;
 
     /**
-     * Result Code
+     * Result Code.
      *
      * @var int
      */
     protected $_code;
 
     /**
-     * receipt info
+     * receipt info.
      *
      * @var array
      */
     protected $_receipt = [];
 
     /**
-     * purchases info
+     * purchases info.
+     *
      * @var PurchaseItem[]
      */
     protected $_purchases = [];
@@ -49,6 +50,7 @@ class Response
      * Response constructor.
      * @param int $httpStatusCode
      * @param array|null $jsonResponse
+     *
      * @throws RunTimeException
      */
     public function __construct($httpStatusCode = 200, $jsonResponse = null)
@@ -61,7 +63,7 @@ class Response
     }
 
     /**
-     * Get Result Code
+     * Get Result Code.
      *
      * @return int
      */
@@ -71,7 +73,7 @@ class Response
     }
 
     /**
-     * Get receipt info
+     * Get receipt info.
      *
      * @return array
      */
@@ -81,7 +83,7 @@ class Response
     }
 
     /**
-     * Get purchases info
+     * Get purchases info.
      *
      * @return PurchaseItem[]
      */
@@ -91,9 +93,9 @@ class Response
     }
 
     /**
-     * returns if the receipt is valid or not
+     * returns if the receipt is valid or not.
      *
-     * @return boolean
+     * @return bool
      */
     public function isValid(): bool
     {
@@ -105,11 +107,12 @@ class Response
     }
 
     /**
-     * Parse JSON Response
+     * Parse JSON Response.
      *
      * @param array|null $jsonResponse
      *
      * @return $this
+     *
      * @throws RunTimeException
      */
     public function parseJsonResponse($jsonResponse = null): self

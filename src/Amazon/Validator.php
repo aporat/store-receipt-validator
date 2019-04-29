@@ -13,14 +13,14 @@ class Validator
     const ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com/version/1.0/verifyReceiptId/';
 
     /**
-     * endpoint url
+     * endpoint url.
      *
      * @var string
      */
     protected $_endpoint;
 
     /**
-     * Guzzle http client
+     * Guzzle http client.
      *
      * @var \GuzzleHttp\Client
      */
@@ -89,7 +89,7 @@ class Validator
 
 
     /**
-     * get developer secret
+     * get developer secret.
      *
      * @return string
      */
@@ -99,8 +99,8 @@ class Validator
     }
 
     /**
-     *
      * @param string $developerSecret
+     *
      * @return self
      */
     public function setDeveloperSecret($developerSecret): self
@@ -111,7 +111,7 @@ class Validator
     }
 
     /**
-     * get endpoint
+     * get endpoint.
      *
      * @return string
      */
@@ -121,9 +121,10 @@ class Validator
     }
 
     /**
-     * set endpoint
+     * set endpoint.
      *
      * @param string $endpoint
+     *
      * @return $this
      */
     public function setEndpoint(string $endpoint): self
@@ -135,7 +136,7 @@ class Validator
 
 
     /**
-     * returns the Guzzle client
+     * returns the Guzzle client.
      *
      * @return HttpClient
      */
@@ -151,7 +152,9 @@ class Validator
 
     /**
      * validate the receipt data
+     *
      * @return Response
+     * 
      * @throws RunTimeException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */

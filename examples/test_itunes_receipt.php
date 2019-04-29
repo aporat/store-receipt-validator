@@ -11,8 +11,8 @@ set_include_path(implode(PATH_SEPARATOR, $path));
 
 require_once $root . '/vendor/autoload.php';
 
-use ReceiptValidator\iTunes\Validator as iTunesValidator;
 use ReceiptValidator\iTunes\AbstractResponse;
+use ReceiptValidator\iTunes\Validator as iTunesValidator;
 
 $validator = new iTunesValidator(iTunesValidator::ENDPOINT_PRODUCTION);
 
@@ -20,26 +20,26 @@ $receiptBase64Data = 'ewoJInNpZ25hdHVyZSIgPSAiQXBNVUJDODZBbHpOaWtWNVl0clpBTWlKUW
 
 $response = null;
 try {
-  $response = $validator->setReceiptData($receiptBase64Data)->validate();
+    $response = $validator->setReceiptData($receiptBase64Data)->validate();
 
 } catch (\Exception $e) {
-  echo 'got error = ' . $e->getMessage() . PHP_EOL;
+    echo 'got error = ' . $e->getMessage() . PHP_EOL;
 }
 
 if ($response instanceof AbstractResponse && $response->isValid()) {
-  echo 'Receipt is valid.' . PHP_EOL;
+    echo 'Receipt is valid.' . PHP_EOL;
 
-  echo 'getBundleId: ' . $response->getBundleId() . PHP_EOL;
+    echo 'getBundleId: ' . $response->getBundleId() . PHP_EOL;
 
-  foreach ($response->getPurchases() as $purchase) {
-    echo 'getProductId: ' . $purchase->getProductId() . PHP_EOL;
-    echo 'getTransactionId: ' . $purchase->getTransactionId() . PHP_EOL;
+    foreach ($response->getPurchases() as $purchase) {
+        echo 'getProductId: ' . $purchase->getProductId() . PHP_EOL;
+        echo 'getTransactionId: ' . $purchase->getTransactionId() . PHP_EOL;
 
-    if ($purchase->getPurchaseDate() != null) {
-      echo 'getPurchaseDate: ' . $purchase->getPurchaseDate()->toIso8601String() . PHP_EOL;
+        if ($purchase->getPurchaseDate() != null) {
+            echo 'getPurchaseDate: ' . $purchase->getPurchaseDate()->toIso8601String() . PHP_EOL;
+        }
     }
-  }
 } else {
-  echo 'Receipt is not valid.' . PHP_EOL;
-  echo 'Receipt result code = ' . $response->getResultCode() . PHP_EOL;
+    echo 'Receipt is not valid.' . PHP_EOL;
+    echo 'Receipt result code = ' . $response->getResultCode() . PHP_EOL;
 }
