@@ -8,10 +8,10 @@ use PHPUnit\Framework\TestCase;
 class ExceptionsTest extends TestCase
 {
 
-  public function testRunTimeException()
-  {
-    $e = new \ReceiptValidator\RunTimeException();
+    public function testRunTimeException()
+    {
+        $e = new \ReceiptValidator\RunTimeException();
 
-    $this->assertInstanceOf("\ReceiptValidator\RunTimeException", $e);
-  }
+        $this->assertInstanceOf("\ReceiptValidator\RunTimeException", $e);
+    }
 }

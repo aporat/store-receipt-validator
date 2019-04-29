@@ -1,9 +1,9 @@
 <?php
 
+use PHPUnit\Framework\TestCase;
 use ReceiptValidator\iTunes\ProductionResponse;
 use ReceiptValidator\iTunes\ResponseInterface;
 use ReceiptValidator\iTunes\SandboxResponse;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @group library

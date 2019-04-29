@@ -1,7 +1,7 @@
 <?php
 
-use ReceiptValidator\GooglePlay\PurchaseResponse;
 use PHPUnit\Framework\TestCase;
+use ReceiptValidator\GooglePlay\PurchaseResponse;
 
 
 /**

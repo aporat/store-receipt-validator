@@ -2,8 +2,8 @@
 
 namespace ReceiptValidator\iTunes;
 
-use ReceiptValidator\RunTimeException;
 use GuzzleHttp\Client as HttpClient;
+use ReceiptValidator\RunTimeException;
 
 class Validator
 {

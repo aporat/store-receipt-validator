@@ -2,9 +2,9 @@
 
 namespace ReceiptValidator\Amazon;
 
-use ReceiptValidator\RunTimeException as RunTimeException;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\RequestException;
+use ReceiptValidator\RunTimeException as RunTimeException;
 
 class Validator
 {

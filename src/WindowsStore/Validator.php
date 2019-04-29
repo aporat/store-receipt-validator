@@ -19,7 +19,7 @@ class Validator
     /**
      * Validate the given receipt.
      *
-     * @param  string $receipt
+     * @param string $receipt
      * @return bool
      * @throws RunTimeException
      */
@@ -46,7 +46,7 @@ class Validator
     /**
      * Load the certificate with the given ID.
      *
-     * @param  string $certificateId
+     * @param string $certificateId
      * @return resource
      */
     protected function retrieveCertificate($certificateId)
@@ -83,11 +83,11 @@ class Validator
      * Validate the receipt contained in the given XML element using the
      * certificate provided.
      *
-     * @param  DOMDocument $dom
-     * @param  resource $certificate
+     * @param DOMDocument $dom
+     * @param resource $certificate
      *
-     * @throws RunTimeException
      * @return bool
+     * @throws RunTimeException
      */
     protected function validateXml(DOMDocument $dom, $certificate)
     {

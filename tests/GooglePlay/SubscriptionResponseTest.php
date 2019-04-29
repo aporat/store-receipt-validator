@@ -1,8 +1,8 @@
 <?php
 
-use ReceiptValidator\GooglePlay\SubscriptionResponse;
-use ReceiptValidator\GooglePlay\AbstractResponse;
 use PHPUnit\Framework\TestCase;
+use ReceiptValidator\GooglePlay\AbstractResponse;
+use ReceiptValidator\GooglePlay\SubscriptionResponse;
 
 /**
  * @group library
@@ -20,8 +20,8 @@ class GooglePlaySubscriptionResponseTest extends TestCase
         $countryCode = 'testCountryCode';
         $priceAmountMicros = 'testPriceAmountMicros';
         $priceCurrencyCode = 'testPriceCurrencyCode';
-        $startTimeMillis =  time() * 1000;
-        $expiryTimeMillis =  $startTimeMillis + 3600 * 24 * 7 * 1000;
+        $startTimeMillis = time() * 1000;
+        $expiryTimeMillis = $startTimeMillis + 3600 * 24 * 7 * 1000;
         $userCancellationTimeMillis = $startTimeMillis + 3600 * 24 * 1000;
         $developerPayload = 'subs:developerPayload';
         $paymentState = 1;

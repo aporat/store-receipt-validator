@@ -86,8 +86,8 @@ class SubscriptionResponse extends AbstractResponse
     }
 
     /**
-     * @deprecated Use getExpiryTimeMillis() method instead
      * @return string
+     * @deprecated Use getExpiryTimeMillis() method instead
      */
     public function getExpiresDate()
     {

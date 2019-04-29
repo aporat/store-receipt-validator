@@ -1,9 +1,9 @@
 <?php
 
-use ReceiptValidator\GooglePlay\Validator;
+use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\PurchaseResponse;
 use ReceiptValidator\GooglePlay\SubscriptionResponse;
-use PHPUnit\Framework\TestCase;
+use ReceiptValidator\GooglePlay\Validator;
 
 /**
  * @group library

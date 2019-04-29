@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-use ReceiptValidator\iTunes\Validator as iTunesValidator;
 use PHPUnit\Framework\TestCase;
+use ReceiptValidator\iTunes\Validator as iTunesValidator;
 
 /**
  * @group library

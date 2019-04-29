@@ -99,8 +99,8 @@ class PendingRenewalInfo implements ArrayAccess
 
     /**
      * Response constructor.
-     * @throws RunTimeException
      * @param array|null $data
+     * @throws RunTimeException
      */
     public function __construct(?array $data = null)
     {
@@ -111,8 +111,8 @@ class PendingRenewalInfo implements ArrayAccess
     /**
      * Parse Data from JSON Response
      *
-     * @throws RunTimeException
      * @return $this
+     * @throws RunTimeException
      */
     public function parseData(): self
     {

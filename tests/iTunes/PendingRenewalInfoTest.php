@@ -1,7 +1,7 @@
 <?php
 
-use ReceiptValidator\iTunes\PendingRenewalInfo;
 use PHPUnit\Framework\TestCase;
+use ReceiptValidator\iTunes\PendingRenewalInfo;
 
 /**
  * @group library

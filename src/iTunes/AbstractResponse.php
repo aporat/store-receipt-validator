@@ -2,8 +2,8 @@
 
 namespace ReceiptValidator\iTunes;
 
-use ReceiptValidator\RunTimeException;
 use Carbon\Carbon;
+use ReceiptValidator\RunTimeException;
 
 abstract class AbstractResponse
 {
@@ -255,8 +255,8 @@ abstract class AbstractResponse
     /**
      * Parse Data from JSON Response
      *
-     * @throws RunTimeException
      * @return $this
+     * @throws RunTimeException
      */
     public function parseData(): self
     {

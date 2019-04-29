@@ -2,8 +2,8 @@
 
 namespace ReceiptValidator\Amazon;
 
-use ReceiptValidator\RunTimeException;
 use Carbon\Carbon;
+use ReceiptValidator\RunTimeException;
 
 class PurchaseItem
 {
