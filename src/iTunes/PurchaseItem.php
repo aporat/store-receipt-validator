@@ -86,7 +86,7 @@ class PurchaseItem implements ArrayAccess
     protected $is_in_intro_offer_period;
 
     /**
-     * When a subscriber redeems an offer, there is a promotional offer ID
+     * When a subscriber redeems an offer, there is a promotional offer ID.
      *
      * @var string|null
      */
@@ -115,9 +115,9 @@ class PurchaseItem implements ArrayAccess
     /**
      * Parse Data from JSON Response.
      *
-     * @return $this
      * @throws RunTimeException
      *
+     * @return $this
      */
     public function parseData(): self
     {
@@ -126,7 +126,7 @@ class PurchaseItem implements ArrayAccess
         }
 
         if (array_key_exists('quantity', $this->raw_data)) {
-            $this->quantity = (int)$this->raw_data['quantity'];
+            $this->quantity = (int) $this->raw_data['quantity'];
         }
 
         if (array_key_exists('transaction_id', $this->raw_data)) {
@@ -162,27 +162,27 @@ class PurchaseItem implements ArrayAccess
 
         if (array_key_exists('purchase_date_ms', $this->raw_data)) {
             $this->purchase_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['purchase_date_ms'] / 1000)
+                (int) round($this->raw_data['purchase_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('original_purchase_date_ms', $this->raw_data)) {
             $this->original_purchase_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['original_purchase_date_ms'] / 1000)
+                (int) round($this->raw_data['original_purchase_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('expires_date_ms', $this->raw_data)) {
-            $this->expires_date = Carbon::createFromTimestampUTC((int)round($this->raw_data['expires_date_ms'] / 1000));
+            $this->expires_date = Carbon::createFromTimestampUTC((int) round($this->raw_data['expires_date_ms'] / 1000));
         } elseif (array_key_exists('expires_date', $this->raw_data) && is_numeric($this->raw_data['expires_date'])) {
             $this->expires_date = Carbon::createFromTimestampUTC(
-                (int)round((int)$this->raw_data['expires_date'] / 1000)
+                (int) round((int) $this->raw_data['expires_date'] / 1000)
             );
         }
 
         if (array_key_exists('cancellation_date_ms', $this->raw_data)) {
             $this->cancellation_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['cancellation_date_ms'] / 1000)
+                (int) round($this->raw_data['cancellation_date_ms'] / 1000)
             );
         }
 
