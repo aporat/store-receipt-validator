@@ -76,21 +76,28 @@ class PurchaseItem implements ArrayAccess
      *
      * @var bool|null
      */
-    protected $is_trial_period = null;
+    protected $is_trial_period;
 
     /**
      * For an auto-renewable subscription, whether or not it is in the introductory price period.
      *
      * @var bool|null
      */
-    protected $is_in_intro_offer_period = null;
+    protected $is_in_intro_offer_period;
+
+    /**
+     * When a subscriber redeems an offer, there is a promotional offer ID
+     *
+     * @var string|null
+     */
+    protected $promotional_offer_id;
 
     /**
      * purchase item info.
      *
      * @var array|null
      */
-    protected $raw_data = null;
+    protected $raw_data;
 
     /**
      * PurchaseItem constructor.
@@ -136,6 +143,10 @@ class PurchaseItem implements ArrayAccess
 
         if (array_key_exists('web_order_line_item_id', $this->raw_data)) {
             $this->web_order_line_item_id = $this->raw_data['web_order_line_item_id'];
+        }
+
+        if (array_key_exists('promotional_offer_id', $this->raw_data)) {
+            $this->promotional_offer_id = $this->raw_data['promotional_offer_id'];
         }
 
         if (array_key_exists('is_trial_period', $this->raw_data)) {
@@ -208,6 +219,14 @@ class PurchaseItem implements ArrayAccess
     public function isInIntroOfferPeriod(): ?bool
     {
         return $this->is_in_intro_offer_period;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPromotionalOfferId(): ?string
+    {
+        return $this->promotional_offer_id;
     }
 
     /**
