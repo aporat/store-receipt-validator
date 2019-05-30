@@ -76,21 +76,28 @@ class PurchaseItem implements ArrayAccess
      *
      * @var bool|null
      */
-    protected $is_trial_period = null;
+    protected $is_trial_period;
 
     /**
      * For an auto-renewable subscription, whether or not it is in the introductory price period.
      *
      * @var bool|null
      */
-    protected $is_in_intro_offer_period = null;
+    protected $is_in_intro_offer_period;
+
+    /**
+     * When a subscriber redeems an offer, there is a promotional offer ID.
+     *
+     * @var string|null
+     */
+    protected $promotional_offer_id;
 
     /**
      * purchase item info.
      *
      * @var array|null
      */
-    protected $raw_data = null;
+    protected $raw_data;
 
     /**
      * PurchaseItem constructor.
@@ -108,9 +115,9 @@ class PurchaseItem implements ArrayAccess
     /**
      * Parse Data from JSON Response.
      *
-     * @return $this
      * @throws RunTimeException
      *
+     * @return $this
      */
     public function parseData(): self
     {
@@ -119,7 +126,7 @@ class PurchaseItem implements ArrayAccess
         }
 
         if (array_key_exists('quantity', $this->raw_data)) {
-            $this->quantity = (int)$this->raw_data['quantity'];
+            $this->quantity = (int) $this->raw_data['quantity'];
         }
 
         if (array_key_exists('transaction_id', $this->raw_data)) {
@@ -138,6 +145,10 @@ class PurchaseItem implements ArrayAccess
             $this->web_order_line_item_id = $this->raw_data['web_order_line_item_id'];
         }
 
+        if (array_key_exists('promotional_offer_id', $this->raw_data)) {
+            $this->promotional_offer_id = $this->raw_data['promotional_offer_id'];
+        }
+
         if (array_key_exists('is_trial_period', $this->raw_data)) {
             $this->is_trial_period = filter_var($this->raw_data['is_trial_period'], FILTER_VALIDATE_BOOLEAN);
         }
@@ -151,27 +162,27 @@ class PurchaseItem implements ArrayAccess
 
         if (array_key_exists('purchase_date_ms', $this->raw_data)) {
             $this->purchase_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['purchase_date_ms'] / 1000)
+                (int) round($this->raw_data['purchase_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('original_purchase_date_ms', $this->raw_data)) {
             $this->original_purchase_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['original_purchase_date_ms'] / 1000)
+                (int) round($this->raw_data['original_purchase_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('expires_date_ms', $this->raw_data)) {
-            $this->expires_date = Carbon::createFromTimestampUTC((int)round($this->raw_data['expires_date_ms'] / 1000));
+            $this->expires_date = Carbon::createFromTimestampUTC((int) round($this->raw_data['expires_date_ms'] / 1000));
         } elseif (array_key_exists('expires_date', $this->raw_data) && is_numeric($this->raw_data['expires_date'])) {
             $this->expires_date = Carbon::createFromTimestampUTC(
-                (int)round((int)$this->raw_data['expires_date'] / 1000)
+                (int) round((int) $this->raw_data['expires_date'] / 1000)
             );
         }
 
         if (array_key_exists('cancellation_date_ms', $this->raw_data)) {
             $this->cancellation_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['cancellation_date_ms'] / 1000)
+                (int) round($this->raw_data['cancellation_date_ms'] / 1000)
             );
         }
 
@@ -208,6 +219,14 @@ class PurchaseItem implements ArrayAccess
     public function isInIntroOfferPeriod(): ?bool
     {
         return $this->is_in_intro_offer_period;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPromotionalOfferId(): ?string
+    {
+        return $this->promotional_offer_id;
     }
 
     /**
