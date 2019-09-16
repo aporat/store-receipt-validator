@@ -1,7 +1,11 @@
 <?php
 
+namespace ReceiptValidator\Tests;
+
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\iTunes\PurchaseItem;
+use ReceiptValidator\RunTimeException;
+use TypeError;
 
 /**
  * @group library
@@ -10,14 +14,15 @@ class PurchaseItemTest extends TestCase
 {
     public function testInvalidOptionsToConstructor(): void
     {
-        $this->expectException(\ReceiptValidator\RunTimeException::class);
+        $this->expectException(RunTimeException::class);
+        $this->expectExceptionMessage('Response must be an array');
 
         new PurchaseItem(null);
     }
 
     public function testInvalidTypeToConstructor(): void
     {
-        $this->expectException('TypeError');
+        $this->expectException(TypeError::class);
 
         new PurchaseItem('invalid');
     }

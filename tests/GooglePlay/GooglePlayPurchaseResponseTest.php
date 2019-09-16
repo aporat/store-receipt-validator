@@ -1,8 +1,11 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-use ReceiptValidator\GooglePlay\PurchaseResponse;
+namespace ReceiptValidator\Tests;
 
+use Google_Service_AndroidPublisher_ProductPurchase;
+use PHPUnit\Framework\TestCase;
+use ReceiptValidator\GooglePlay\AbstractResponse;
+use ReceiptValidator\GooglePlay\PurchaseResponse;
 
 /**
  * @group library
@@ -12,14 +15,14 @@ class GooglePlayPurchaseResponseTest extends TestCase
     /**
      * @link https://developers.google.com/android-publisher/api-ref/purchases/products
      */
-    public function testParsedResponse()
+    public function testParsedResponse(): void
     {
         $developerPayload = ['packageName' => 'testPackageName', 'etc' => 'testEtc'];
         $kind = 'testKind';
         $purchaseTimeMillis = '234346';
 
         // mock objects
-        $productPurchaseMock = $this->getMockBuilder('\Google_Service_AndroidPublisher_ProductPurchase')
+        $productPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_ProductPurchase::class)
             ->disableOriginalConstructor()->getMock();
 
         $productPurchaseMock->consumptionState = PurchaseResponse::CONSUMPTION_STATE_YET_TO_BE_CONSUMED;
@@ -31,7 +34,7 @@ class GooglePlayPurchaseResponseTest extends TestCase
         $productResponse = new PurchaseResponse($productPurchaseMock);
 
         // test abstract methods
-        $this->assertInstanceOf('ReceiptValidator\GooglePlay\AbstractResponse', $productResponse);
+        $this->assertInstanceOf(AbstractResponse::class, $productResponse);
         $this->assertEquals(PurchaseResponse::CONSUMPTION_STATE_YET_TO_BE_CONSUMED, $productResponse->getConsumptionState());
         $this->assertEquals($developerPayload, $productResponse->getDeveloperPayload());
         $this->assertEquals($kind, $productResponse->getKind());
