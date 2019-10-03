@@ -31,6 +31,8 @@ If you're not familiar with Composer, please see <http://getcomposer.org/>.
             },
             ...
         }
+        
+  Alternatively run `composer require aporat/store-receipt-validator:dev-master` (skip step 2).
 
 2. Run `php composer install`.
 
@@ -97,6 +99,7 @@ try {
     ->setProductId('PRODUCT_ID')
     ->setPurchaseToken('PURCHASE_TOKEN')
     ->validatePurchase();
+    //->validateSubscription();
 } catch (Exception $e){
   var_dump($e->getMessage());
   // example message: Error calling GET ....: (404) Product not found for this application.
@@ -122,6 +125,7 @@ try {
       ->setProductId('PRODUCT_ID')
       ->setPurchaseToken('PURCHASE_TOKEN')
       ->validateSubscription();
+      //->validatePurchase();
 } catch (\Exception $e){
   var_dump($e->getMessage());
   // example message: Error calling GET ....: (404) Product not found for this application.
