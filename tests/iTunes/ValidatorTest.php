@@ -80,4 +80,10 @@ class iTunesValidatorTest extends TestCase
         $this->validator->setExcludeOldTransactions(true);
         $this->assertTrue($this->validator->getExcludeOldTransactions());
     }
+
+    public function testSetRequestOptions(): void
+    {
+        $this->validator->setRequestOptions(['timeout' => 10]);
+        $this->assertArrayHasKey('timeout', $this->validator->getRequestOptions());
+    }
 }

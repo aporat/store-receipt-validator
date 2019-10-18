@@ -3,6 +3,7 @@
 namespace ReceiptValidator\iTunes;
 
 use ArrayAccess;
+use Carbon\Carbon;
 use ReceiptValidator\RunTimeException;
 
 class PendingRenewalInfo implements ArrayAccess
@@ -86,6 +87,13 @@ class PendingRenewalInfo implements ArrayAccess
     protected $expiration_intent;
 
     /**
+     * he time at which the grace period for subscription renewals expires.
+     *
+     * @var Carbon
+     */
+    protected $grace_period_expires_date;
+
+    /**
      * Is In Billing Retry Period Code
      * @var int|null
      */
@@ -127,6 +135,12 @@ class PendingRenewalInfo implements ArrayAccess
 
         if (array_key_exists('expiration_intent', $this->raw_data)) {
             $this->expiration_intent = (int)$this->raw_data['expiration_intent'];
+        }
+
+        if (array_key_exists('grace_period_expires_date_ms', $this->raw_data)) {
+            $this->grace_period_expires_date = Carbon::createFromTimestampUTC(
+                (int)round($this->raw_data['grace_period_expires_date_ms'] / 1000)
+            );
         }
 
         if (array_key_exists('is_in_billing_retry_period', $this->raw_data)) {
@@ -220,6 +234,26 @@ class PendingRenewalInfo implements ArrayAccess
         }
 
         return null;
+    }
+
+    /**
+     * Grace Period Expires Date
+     * @return Carbon
+     */
+    public function getGracePeriodExpiresDate(): ?Carbon
+    {
+        return $this->grace_period_expires_date;
+    }
+
+    /**
+     * Billing retrying and grace period expires date is in the future
+     * @return bool
+     */
+    public function isInGracePeriod()
+    {
+        return $this->is_in_billing_retry_period == self::RETRY_PERIOD_ACTIVE &&
+            $this->grace_period_expires_date !== null &&
+            $this->grace_period_expires_date->getTimestamp() > time();
     }
 
     /**
