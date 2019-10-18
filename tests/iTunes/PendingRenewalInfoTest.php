@@ -125,8 +125,7 @@ class iTunesPendingRenewalInfoTest extends TestCase
 
     public function testComputedGracePeriod(): void
     {
-        $time = strtotime('+5 minutes');
-        $grace_period_expires_date = Carbon::createFromTimestampUTC($time);
+        $grace_period_expires_date = Carbon::tomorrow();
         $raw = [
             'auto_renew_product_id' => 'Test_Subscription_1',
             'product_id' => 'Test_Subscription_2',
@@ -134,7 +133,7 @@ class iTunesPendingRenewalInfoTest extends TestCase
             'auto_renew_status' => '1',
             'is_in_billing_retry_period' => '1',
             'grace_period_expires_date' => $grace_period_expires_date->toIso8601String().' Etc\/GMT',
-            'grace_period_expires_date_ms' => $time * 1000,
+            'grace_period_expires_date_ms' => $grace_period_expires_date->getTimestamp() * 1000,
             'grace_period_expires_date_pst' => $grace_period_expires_date->timezone('America/Los_Angeles')->toIso8601String().'  America\/Los_Angeles',
         ];
 
