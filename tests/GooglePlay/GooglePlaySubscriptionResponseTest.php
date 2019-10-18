@@ -1,19 +1,20 @@
 <?php
 
+namespace ReceiptValidator\Tests;
+
+use Google_Service_AndroidPublisher_SubscriptionPurchase;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\AbstractResponse;
 use ReceiptValidator\GooglePlay\SubscriptionResponse;
 
 /**
  * @group library
+ *
  * @link https://developers.google.com/android-publisher/api-ref/purchases/subscriptions
  */
 class GooglePlaySubscriptionResponseTest extends TestCase
 {
-    /**
-     *
-     */
-    public function testParsedResponse()
+    public function testParsedResponse(): void
     {
         $autoRenewing = true;
         $cancelReason = 0;
@@ -27,19 +28,19 @@ class GooglePlaySubscriptionResponseTest extends TestCase
         $paymentState = 1;
 
         $data = [
-            'autoRenewing' => $autoRenewing,
-            'cancelReason' => $cancelReason,
-            'countryCode' => $countryCode,
-            'priceAmountMicros' => $priceAmountMicros,
-            'priceCurrencyCode' => $priceCurrencyCode,
-            'startTimeMillis' => $startTimeMillis,
-            'expiryTimeMillis' => $expiryTimeMillis,
+            'autoRenewing'               => $autoRenewing,
+            'cancelReason'               => $cancelReason,
+            'countryCode'                => $countryCode,
+            'priceAmountMicros'          => $priceAmountMicros,
+            'priceCurrencyCode'          => $priceCurrencyCode,
+            'startTimeMillis'            => $startTimeMillis,
+            'expiryTimeMillis'           => $expiryTimeMillis,
             'userCancellationTimeMillis' => $userCancellationTimeMillis,
-            'developerPayload' => $developerPayload,
-            'paymentState' => $paymentState,
+            'developerPayload'           => $developerPayload,
+            'paymentState'               => $paymentState,
         ];
 
-        $subscriptionPurchase = new \Google_Service_AndroidPublisher_SubscriptionPurchase($data);
+        $subscriptionPurchase = new Google_Service_AndroidPublisher_SubscriptionPurchase($data);
         $subscriptionResponse = new SubscriptionResponse($subscriptionPurchase);
 
         $this->assertInstanceOf(AbstractResponse::class, $subscriptionResponse);

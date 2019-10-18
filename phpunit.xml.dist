@@ -15,7 +15,7 @@
   </logging>
   <testsuites>
     <testsuite name="Test Suite">
-      <directory>./tests/</directory>
+      <directory suffix="Test.php">./tests/</directory>
     </testsuite>
   </testsuites>
 

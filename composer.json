@@ -41,6 +41,11 @@
       "ReceiptValidator\\": "src/"
     }
   },
+  "autoload-dev": {
+      "psr-4": {
+        "ReceiptValidator\\Tests\\": "tests/"
+      }
+  },
   "support": {
     "issues": "https://github.com/aporat/store-receipt-validator/issues"
   }
