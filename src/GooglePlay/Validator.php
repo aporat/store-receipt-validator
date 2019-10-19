@@ -37,8 +37,7 @@ class Validator
     public function __construct(
         \Google_Service_AndroidPublisher $googleServiceAndroidPublisher,
         $validationModePurchase = true
-    )
-    {
+    ) {
         $this->_androidPublisherService = $googleServiceAndroidPublisher;
         $this->validationModePurchase = $validationModePurchase;
     }

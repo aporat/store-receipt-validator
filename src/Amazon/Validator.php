@@ -166,7 +166,8 @@ class Validator
         } catch (RequestException $e) {
             if ($e->hasResponse()) {
                 return new Response(
-                    $e->getResponse()->getStatusCode(), json_decode($e->getResponse()->getBody(), true)
+                    $e->getResponse()->getStatusCode(),
+                    json_decode($e->getResponse()->getBody(), true)
                 );
             }
         }

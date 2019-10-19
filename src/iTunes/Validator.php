@@ -235,7 +235,6 @@ class Validator
      */
     public function validate(?string $receipt_data = null, ?string $shared_secret = null): ResponseInterface
     {
-
         if ($receipt_data !== null) {
             $this->setReceiptData($receipt_data);
         }
@@ -278,7 +277,6 @@ class Validator
 
                 return $this->sendRequestUsingClient($client);
             }
-
         } else {
             $response = new SandboxResponse($decodedBody);
         }

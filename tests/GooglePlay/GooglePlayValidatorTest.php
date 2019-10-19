@@ -51,7 +51,9 @@ class GooglePlayValidatorTest extends TestCase
             ->setPurchaseToken($purchaseToken);
 
         $this->assertEquals(new PurchaseResponse($productResponseMock), $googlePlayValidator->validatePurchase());
-        $this->assertEquals(new SubscriptionResponse($subscriptionResponseMock), $googlePlayValidator
+        $this->assertEquals(
+            new SubscriptionResponse($subscriptionResponseMock),
+            $googlePlayValidator
             ->setValidationModePurchase(false)->validateSubscription()
         );
     }

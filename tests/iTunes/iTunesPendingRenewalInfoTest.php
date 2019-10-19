@@ -36,7 +36,7 @@ class iTunesPendingRenewalInfoTest extends TestCase
             'original_transaction_id'    => '1000000',
             'auto_renew_status'          => '0',
             'is_in_billing_retry_period' => '1',
-            'expiration_intent' => '1',
+            'expiration_intent'          => '1',
         ];
 
         $info = new PendingRenewalInfo($raw);

@@ -332,7 +332,6 @@ abstract class AbstractResponse
         }
 
         if (array_key_exists('latest_receipt_info', $this->raw_data)) {
-
             $this->latest_receipt_info = array_map(
                 function ($data) {
                     return new PurchaseItem($data);
