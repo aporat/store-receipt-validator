@@ -1,30 +1,32 @@
 <?php
 
+namespace ReceiptValidator\Tests;
+
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Response;
+use ReceiptValidator\RuntimeException;
 
 /**
  * @group library
  */
 class AmazonResponseTest extends TestCase
 {
-
-    public function testInvalidOptionsToConstructor()
+    public function testInvalidOptionsToConstructor(): void
     {
-        $this->expectException("ReceiptValidator\\RuntimeException");
-        $this->expectExceptionMessage("Response must be a scalar value");
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Response must be a scalar value');
 
         new Response(Response::RESULT_OK, 'invalid');
     }
 
-    public function testInvalidReceipt()
+    public function testInvalidReceipt(): void
     {
-        $response = new Response(Response::RESULT_INTERNAL_ERROR, array(''));
+        $response = new Response(Response::RESULT_INTERNAL_ERROR, ['']);
 
         $this->assertFalse($response->isValid(), 'receipt must be invalid');
     }
 
-    public function testValidReceipt()
+    public function testValidReceipt(): void
     {
         $receipt = json_decode('{"betaProduct":false,"cancelDate":null,"parentProductId":null,"productId":"pack_100","productType":"CONSUMABLE","purchaseDate":1485359133060,"quantity":1,"receiptId":"M3qQCAiytxUzm3G05OworddJDiSi6ijXQGRFSK#AD=:1:11","renewalDate":null,"term":null,"termSku":null,"testTransaction":false}', true);
 
@@ -40,5 +42,4 @@ class AmazonResponseTest extends TestCase
         $this->assertEquals('M3qQCAiytxUzm3G05OworddJDiSi6ijXQGRFSK#AD=:1:11', $purchase->getTransactionId(), 'transactionId does not match');
         $this->assertEquals(1, $purchase->getQuantity(), 'quantity does not match');
     }
-
 }

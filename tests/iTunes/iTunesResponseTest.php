@@ -1,19 +1,24 @@
 <?php
 
+namespace ReceiptValidator\Tests;
+
 use PHPUnit\Framework\TestCase;
+use ReceiptValidator\iTunes\PendingRenewalInfo;
 use ReceiptValidator\iTunes\ProductionResponse;
+use ReceiptValidator\iTunes\PurchaseItem;
 use ReceiptValidator\iTunes\ResponseInterface;
 use ReceiptValidator\iTunes\SandboxResponse;
+use ReceiptValidator\RunTimeException;
 
 /**
  * @group library
  */
 class iTunesResponseTest extends TestCase
 {
-
     public function testInvalidOptionsToConstructor(): void
     {
-        $this->expectException(\ReceiptValidator\RunTimeException::class);
+        $this->expectException(RunTimeException::class);
+        $this->expectExceptionMessage('Response must be an array');
 
         new ProductionResponse(null);
     }
@@ -57,7 +62,7 @@ class iTunesResponseTest extends TestCase
     public function testResponseWithStatusExpiredReceiptIsValid(): void
     {
         $response = new ProductionResponse([
-            'status' => ResponseInterface::RESULT_RECEIPT_VALID_BUT_SUB_EXPIRED,
+            'status'  => ResponseInterface::RESULT_RECEIPT_VALID_BUT_SUB_EXPIRED,
             'receipt' => [],
         ]);
 
@@ -89,7 +94,7 @@ class iTunesResponseTest extends TestCase
 
     public function testReceiptWithLatestReceiptInfo(): void
     {
-        $jsonResponseString = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseResponse.json');
+        $jsonResponseString = file_get_contents(__DIR__.'/fixtures/inAppPurchaseResponse.json');
         $jsonResponseArray = json_decode($jsonResponseString, true);
 
         $response = new ProductionResponse($jsonResponseArray);
@@ -100,7 +105,7 @@ class iTunesResponseTest extends TestCase
         );
 
         $this->assertContainsOnlyInstancesOf(
-            ReceiptValidator\iTunes\PurchaseItem::class,
+            PurchaseItem::class,
             $response->getLatestReceiptInfo()
         );
 
@@ -137,7 +142,7 @@ class iTunesResponseTest extends TestCase
         );
 
         $this->assertContainsOnlyInstancesOf(
-            ReceiptValidator\iTunes\PendingRenewalInfo::class,
+            PendingRenewalInfo::class,
             $response->getPendingRenewalInfo()
         );
 
@@ -156,9 +161,6 @@ class iTunesResponseTest extends TestCase
             $response->getRawData()
         );
 
-        $this->assertEquals(
-            false,
-            $response->isRetryable()
-        );
+        $this->assertFalse($response->isRetryable());
     }
 }
