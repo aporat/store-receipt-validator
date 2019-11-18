@@ -37,6 +37,14 @@ abstract class AbstractResponse
     }
 
     /**
+     * @return bool
+     */
+    public function isAcknowledge()
+    {
+        return \filter_var($this->response->acknowledgementState, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
      * @return string
      */
     public function getKind()
