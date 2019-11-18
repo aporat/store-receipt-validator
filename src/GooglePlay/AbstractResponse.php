@@ -3,8 +3,7 @@
 namespace ReceiptValidator\GooglePlay;
 
 /**
- * Class AbstractResponse
- * @package ReceiptValidator\GooglePlay
+ * Class AbstractResponse.
  */
 abstract class AbstractResponse
 {
@@ -19,7 +18,7 @@ abstract class AbstractResponse
     protected $response;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase $response
      */

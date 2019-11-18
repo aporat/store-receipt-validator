@@ -3,8 +3,7 @@
 namespace ReceiptValidator\GooglePlay;
 
 /**
- * Class Acknowledger
- * @package ReceiptValidator\GooglePlay
+ * Class Acknowledger.
  */
 class Acknowledger
 {
@@ -27,15 +26,17 @@ class Acknowledger
 
     /**
      * Acknowledger constructor.
+     *
      * @param \Google_Service_AndroidPublisher $googleServiceAndroidPublisher
      */
-    public function __construct(\Google_Service_AndroidPublisher $googleServiceAndroidPublisher) {
+    public function __construct(\Google_Service_AndroidPublisher $googleServiceAndroidPublisher)
+    {
         $this->_androidPublisherService = $googleServiceAndroidPublisher;
     }
 
     /**
-     *
      * @param string $package_name
+     *
      * @return $this
      */
     public function setPackageName($package_name)
@@ -46,8 +47,8 @@ class Acknowledger
     }
 
     /**
-     *
      * @param string $purchase_token
+     *
      * @return $this
      */
     public function setPurchaseToken($purchase_token)
@@ -58,8 +59,8 @@ class Acknowledger
     }
 
     /**
-     *
      * @param string $product_id
+     *
      * @return $this
      */
     public function setProductId($product_id)
@@ -71,6 +72,7 @@ class Acknowledger
 
     /**
      * @param string $developerPayload
+     *
      * @return bool
      */
     public function acknowledge(string $developerPayload = '')
