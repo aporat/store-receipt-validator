@@ -3,8 +3,7 @@
 namespace ReceiptValidator\GooglePlay;
 
 /**
- * Class AbstractResponse
- * @package ReceiptValidator\GooglePlay
+ * Class AbstractResponse.
  */
 abstract class AbstractResponse
 {
@@ -12,6 +11,8 @@ abstract class AbstractResponse
     const CONSUMPTION_STATE_CONSUMED = 1;
     const PURCHASE_STATE_PURCHASED = 0;
     const PURCHASE_STATE_CANCELED = 1;
+    const ACKNOWLEDGEMENT_STATE_YET_TO_BE = 0;
+    const ACKNOWLEDGEMENT_STATE_DONE = 1;
 
     /**
      * @var \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
@@ -19,7 +20,7 @@ abstract class AbstractResponse
     protected $response;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase $response
      */
@@ -34,6 +35,22 @@ abstract class AbstractResponse
     public function getDeveloperPayload()
     {
         return $this->response->getDeveloperPayload();
+    }
+
+    /**
+     * @return int
+     */
+    public function getAcknowledgementState()
+    {
+        return $this->response->acknowledgementState;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAcknowledged()
+    {
+        return $this->response->acknowledgementState === static::ACKNOWLEDGEMENT_STATE_DONE;
     }
 
     /**
