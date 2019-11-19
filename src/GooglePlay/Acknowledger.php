@@ -7,6 +7,9 @@ namespace ReceiptValidator\GooglePlay;
  */
 class Acknowledger
 {
+    const SUBSCRIPTION = 'SUBSCRIPTION';
+    const PRODUCT = 'PRODUCT';
+
     /**
      * @var \Google_Service_AndroidPublisher
      */
@@ -71,21 +74,38 @@ class Acknowledger
     }
 
     /**
+     * @param string $type
      * @param string $developerPayload
      *
      * @return bool
      */
-    public function acknowledge(string $developerPayload = '')
+    public function acknowledge(string $type = self::SUBSCRIPTION, string $developerPayload = '')
     {
         try {
-            $this->_androidPublisherService->purchases_subscriptions->acknowledge(
-                $this->_package_name,
-                $this->_product_id,
-                $this->_purchase_token,
-                new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
-                    ['developerPayload' => $developerPayload]
-                )
-            );
+            switch ($type) {
+                case self::SUBSCRIPTION:
+                    $this->_androidPublisherService->purchases_subscriptions->acknowledge(
+                        $this->_package_name,
+                        $this->_product_id,
+                        $this->_purchase_token,
+                        new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
+                            ['developerPayload' => $developerPayload]
+                        )
+                    );
+                    break;
+                case self::PRODUCT:
+                    $this->_androidPublisherService->purchases_products->acknowledge(
+                        $this->_package_name,
+                        $this->_product_id,
+                        $this->_purchase_token,
+                        new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
+                            ['developerPayload' => $developerPayload]
+                        )
+                    );
+                    break;
+                default:
+                    return false;
+            }
 
             return true;
         } catch (\Exception $e) {
