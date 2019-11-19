@@ -11,6 +11,8 @@ abstract class AbstractResponse
     const CONSUMPTION_STATE_CONSUMED = 1;
     const PURCHASE_STATE_PURCHASED = 0;
     const PURCHASE_STATE_CANCELED = 1;
+    const ACKNOWLEDGEMENT_STATE_YET_TO_BE = 0;
+    const ACKNOWLEDGEMENT_STATE_DONE = 1;
 
     /**
      * @var \Google_Service_AndroidPublisher_ProductPurchase|\Google_Service_AndroidPublisher_SubscriptionPurchase
@@ -36,11 +38,19 @@ abstract class AbstractResponse
     }
 
     /**
+     * @return int
+     */
+    public function getAcknowledgementState()
+    {
+        return $this->response->acknowledgementState;
+    }
+
+    /**
      * @return bool
      */
-    public function isAcknowledge()
+    public function isAcknowledged()
     {
-        return \filter_var($this->response->acknowledgementState, FILTER_VALIDATE_BOOLEAN);
+        return $this->response->acknowledgementState === static::ACKNOWLEDGEMENT_STATE_DONE;
     }
 
     /**

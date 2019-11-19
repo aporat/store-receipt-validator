@@ -15,7 +15,7 @@ class GooglePlayAcknowledgerTest extends TestCase
 {
     public function testValidate(): void
     {
-        $package = 'testPackage';
+        $packageName = 'testPackage';
         $productId = '15';
         $purchaseToken = 'testPurchaseToken';
 
@@ -33,7 +33,7 @@ class GooglePlayAcknowledgerTest extends TestCase
 
         $productPurchaseMock->expects($this->once())->method('acknowledge')
             ->with(
-                $package,
+                $packageName,
                 $productId,
                 $purchaseToken,
                 new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(['developerPayload' => 'bar'])
@@ -41,16 +41,13 @@ class GooglePlayAcknowledgerTest extends TestCase
 
         $subscriptionPurchaseMock->expects($this->once())->method('acknowledge')
             ->with(
-                $package,
+                $packageName,
                 $productId,
                 $purchaseToken,
                 new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(['developerPayload' => 'foo'])
             );
 
-        $googlePlayAcknowledger = (new Acknowledger($googleServiceAndroidPublisherMock))
-            ->setPackageName($package)
-            ->setProductId($productId)
-            ->setPurchaseToken($purchaseToken);
+        $googlePlayAcknowledger = new Acknowledger($googleServiceAndroidPublisherMock, $packageName, $productId, $purchaseToken);
 
         $googlePlayAcknowledger->acknowledge(Acknowledger::SUBSCRIPTION, 'foo');
         $googlePlayAcknowledger->acknowledge(Acknowledger::PRODUCT, 'bar');

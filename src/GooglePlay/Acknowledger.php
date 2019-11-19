@@ -13,64 +13,38 @@ class Acknowledger
     /**
      * @var \Google_Service_AndroidPublisher
      */
-    protected $_androidPublisherService = null;
+    protected $androidPublisherService;
     /**
      * @var string
      */
-    protected $_package_name = null;
+    protected $packageName;
     /**
      * @var string
      */
-    protected $_purchase_token = null;
+    protected $purchaseToken;
     /**
      * @var string
      */
-    protected $_product_id = null;
+    protected $productId;
 
     /**
      * Acknowledger constructor.
      *
      * @param \Google_Service_AndroidPublisher $googleServiceAndroidPublisher
+     * @param string                           $packageName
+     * @param string                           $purchaseToken
+     * @param string                           $productId
      */
-    public function __construct(\Google_Service_AndroidPublisher $googleServiceAndroidPublisher)
-    {
-        $this->_androidPublisherService = $googleServiceAndroidPublisher;
-    }
-
-    /**
-     * @param string $package_name
-     *
-     * @return $this
-     */
-    public function setPackageName($package_name)
-    {
-        $this->_package_name = $package_name;
-
-        return $this;
-    }
-
-    /**
-     * @param string $purchase_token
-     *
-     * @return $this
-     */
-    public function setPurchaseToken($purchase_token)
-    {
-        $this->_purchase_token = $purchase_token;
-
-        return $this;
-    }
-
-    /**
-     * @param string $product_id
-     *
-     * @return $this
-     */
-    public function setProductId($product_id)
-    {
-        $this->_product_id = $product_id;
-
-        return $this;
+    public function __construct(
+        \Google_Service_AndroidPublisher $googleServiceAndroidPublisher,
+        $packageName,
+        $productId,
+        $purchaseToken
+    ) {
+        $this->androidPublisherService = $googleServiceAndroidPublisher;
+        $this->packageName = $packageName;
+        $this->purchaseToken = $purchaseToken;
+        $this->productId = $productId;
     }
 
     /**
@@ -84,40 +58,38 @@ class Acknowledger
         try {
             switch ($type) {
                 case self::SUBSCRIPTION:
-                    $this->_androidPublisherService->purchases_subscriptions->acknowledge(
-                        $this->_package_name,
-                        $this->_product_id,
-                        $this->_purchase_token,
+                    $this->androidPublisherService->purchases_subscriptions->acknowledge(
+                        $this->packageName,
+                        $this->productId,
+                        $this->purchaseToken,
                         new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
                             ['developerPayload' => $developerPayload]
                         )
                     );
                     break;
                 case self::PRODUCT:
-                    $this->_androidPublisherService->purchases_products->acknowledge(
-                        $this->_package_name,
-                        $this->_product_id,
-                        $this->_purchase_token,
+                    $this->androidPublisherService->purchases_products->acknowledge(
+                        $this->packageName,
+                        $this->productId,
+                        $this->purchaseToken,
                         new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
                             ['developerPayload' => $developerPayload]
                         )
                     );
                     break;
                 default:
-                    return false;
+                    throw new \RuntimeException(
+                        \sprintf(
+                            'Invalid type provided : %s expected %s',
+                            $type,
+                            implode(',', [self::PRODUCT, self::SUBSCRIPTION])
+                        )
+                    );
             }
 
             return true;
         } catch (\Exception $e) {
-            return false;
+            throw new \RuntimeException($e->getMessage(), $e);
         }
-    }
-
-    /**
-     * @return \Google_Service_AndroidPublisher
-     */
-    public function getPublisherService()
-    {
-        return $this->_androidPublisherService;
     }
 }
