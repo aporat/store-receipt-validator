@@ -58,24 +58,38 @@ class Acknowledger
         try {
             switch ($type) {
                 case self::SUBSCRIPTION:
-                    $this->androidPublisherService->purchases_subscriptions->acknowledge(
+                    $subscriptionPurchase = $this->androidPublisherService->purchases_subscriptions->get(
                         $this->packageName,
                         $this->productId,
-                        $this->purchaseToken,
-                        new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
-                            ['developerPayload' => $developerPayload]
-                        )
+                        $this->purchaseToken
                     );
+                    if ($subscriptionPurchase->getAcknowledgementState() != 1) {
+                        $this->androidPublisherService->purchases_subscriptions->acknowledge(
+                            $this->packageName,
+                            $this->productId,
+                            $this->purchaseToken,
+                            new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
+                                ['developerPayload' => $developerPayload]
+                            )
+                        );
+                    }
                     break;
                 case self::PRODUCT:
-                    $this->androidPublisherService->purchases_products->acknowledge(
+                    $productPurchase = $this->androidPublisherService->purchases_products->get(
                         $this->packageName,
                         $this->productId,
-                        $this->purchaseToken,
-                        new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
-                            ['developerPayload' => $developerPayload]
-                        )
+                        $this->purchaseToken
                     );
+                    if ($productPurchase->getAcknowledgementState() != 1) {
+                        $this->androidPublisherService->purchases_products->acknowledge(
+                            $this->packageName,
+                            $this->productId,
+                            $this->purchaseToken,
+                            new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
+                                ['developerPayload' => $developerPayload]
+                            )
+                        );
+                    }
                     break;
                 default:
                     throw new \RuntimeException(
@@ -89,7 +103,7 @@ class Acknowledger
 
             return true;
         } catch (\Exception $e) {
-            throw new \RuntimeException($e->getMessage(), $e);
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
     }
 }
