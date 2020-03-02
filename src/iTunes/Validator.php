@@ -258,7 +258,7 @@ class Validator
     {
         $baseUri = (string)$client->getConfig('base_uri');
 
-        $httpResponse = $client->request('POST', null, ['body' => $this->prepareRequestData()]);
+        $httpResponse = $client->request('POST', null, ['body' => $this->prepareRequestData(), 'curl' => [CURLOPT_SSLVERSION => CURL_SSLVERSION_TLSv1_2]]);
 
         if ($httpResponse->getStatusCode() !== 200) {
             throw new RunTimeException('Unable to get response from itunes server');
