@@ -89,7 +89,7 @@ class Acknowledger
 
             return true;
         } catch (\Exception $e) {
-            throw new \RuntimeException($e->getMessage(), $e);
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
     }
 }
