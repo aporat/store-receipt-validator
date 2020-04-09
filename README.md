@@ -1,8 +1,9 @@
 store-receipt-validator
 =======
 
-[![Latest Stable Version](https://poser.pugx.org/aporat/store-receipt-validator/version.png)](https://packagist.org/packages/aporat/store-receipt-validator) [![Composer Downloads](https://poser.pugx.org/aporat/store-receipt-validator/d/total.png)](https://packagist.org/packages/aporat/store-receipt-validator)
-[![Build Status](https://travis-ci.org/aporat/store-receipt-validator.png?branch=master)](https://travis-ci.org/aporat/store-receipt-validator)
+[![Latest Stable Version](https://poser.pugx.org/aporat/store-receipt-validator/version.png)](https://packagist.org/packages/aporat/store-receipt-validator)
+[![Composer Downloads](https://poser.pugx.org/aporat/store-receipt-validator/d/total.png)](https://packagist.org/packages/aporat/store-receipt-validator)
+[![Build Status](https://github.com/aporat/store-receipt-validator/workflows/Tests/badge.svg)](https://github.com/aporat/store-receipt-validator/actions)
 [![Code Coverage](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/?branch=master)
 [![License](https://poser.pugx.org/aporat/store-receipt-validator/license.svg)](https://packagist.org/packages/aporat/store-receipt-validator)
