@@ -116,6 +116,7 @@ class PurchaseItem
      * PurchaseItem constructor.
      *
      * @param array|null $jsonResponse
+     *
      * @throws RunTimeException
      */
     public function __construct($jsonResponse = null)
@@ -129,9 +130,9 @@ class PurchaseItem
     /**
      * Parse JSON Response.
      *
-     * @return PurchaseItem
      * @throws RunTimeException
      *
+     * @return PurchaseItem
      */
     public function parseJsonResponse(): self
     {

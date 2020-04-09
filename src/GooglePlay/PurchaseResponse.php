@@ -3,8 +3,7 @@
 namespace ReceiptValidator\GooglePlay;
 
 /**
- * Class PurchaseResponse
- * @package ReceiptValidator\GooglePlay
+ * Class PurchaseResponse.
  */
 class PurchaseResponse extends AbstractResponse
 {
@@ -44,6 +43,7 @@ class PurchaseResponse extends AbstractResponse
 
     /**
      * @param string $key
+     *
      * @return string
      */
     public function getDeveloperPayloadElement($key)

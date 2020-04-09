@@ -8,96 +8,101 @@ use ReceiptValidator\RunTimeException;
 abstract class AbstractResponse
 {
     /**
-     * Result Code
+     * Result Code.
      *
      * @var int
      */
     protected $result_code;
 
     /**
-     * bundle_id (app) belongs to the receipt
+     * bundle_id (app) belongs to the receipt.
      *
      * @var string
      */
     protected $bundle_id;
 
     /**
-     * item id
+     * item id.
      *
      * @var string
      */
     protected $app_item_id;
 
     /**
-     * original_purchase_date
+     * original_purchase_date.
      *
      * @var Carbon|null
      */
     protected $original_purchase_date;
 
     /**
-     * request date
+     * request date.
      *
      * @var Carbon|null
      */
     protected $request_date;
 
     /**
-     * The date when the app receipt was created
+     * The date when the app receipt was created.
      *
      * @var Carbon|null
      */
     protected $receipt_creation_date;
 
     /**
-     * receipt info
+     * receipt info.
      *
      * @var array
      */
     protected $receipt = [];
 
     /**
-     * latest receipt
+     * latest receipt.
      *
      * @var string
      */
     protected $latest_receipt;
 
     /**
-     * latest receipt info (for auto-renewable subscriptions)
+     * latest receipt info (for auto-renewable subscriptions).
      *
      * @var PurchaseItem[]
      */
     protected $latest_receipt_info = [];
 
     /**
-     * purchases info
+     * purchases info.
+     *
      * @var PurchaseItem[]
      */
     protected $purchases = [];
 
     /**
-     * pending renewal info
+     * pending renewal info.
+     *
      * @var PendingRenewalInfo[]
      */
     protected $pending_renewal_info = [];
 
     /**
-     * entire response of receipt
+     * entire response of receipt.
+     *
      * @var ?array
      */
     protected $raw_data;
 
     /**
-     * Retry validation for this receipt. Only applicable to status codes 21100-21199
+     * Retry validation for this receipt. Only applicable to status codes 21100-21199.
      *
-     * @var boolean
+     * @var bool
      */
     protected $is_retryable = false;
 
     /**
      * Response constructor.
+     *
      * @param array|null $data
+     *
      * @throws RunTimeException
      */
     public function __construct(?array $data = null)
@@ -107,7 +112,7 @@ abstract class AbstractResponse
     }
 
     /**
-     * Get Result Code
+     * Get Result Code.
      *
      * @return int
      */
@@ -117,9 +122,10 @@ abstract class AbstractResponse
     }
 
     /**
-     * Set Result Code
+     * Set Result Code.
      *
      * @param int $code
+     *
      * @return self
      */
     public function setResultCode(int $code): void
@@ -128,7 +134,7 @@ abstract class AbstractResponse
     }
 
     /**
-     * Get purchases info
+     * Get purchases info.
      *
      * @return PurchaseItem[]
      */
@@ -138,7 +144,7 @@ abstract class AbstractResponse
     }
 
     /**
-     * Get receipt info
+     * Get receipt info.
      *
      * @return array
      */
@@ -148,7 +154,7 @@ abstract class AbstractResponse
     }
 
     /**
-     * Get latest receipt info
+     * Get latest receipt info.
      *
      * @return PurchaseItem[]
      */
@@ -158,7 +164,7 @@ abstract class AbstractResponse
     }
 
     /**
-     * Get latest receipt
+     * Get latest receipt.
      *
      * @return null|string
      */
@@ -168,7 +174,7 @@ abstract class AbstractResponse
     }
 
     /**
-     * Get the bundle id associated with the receipt
+     * Get the bundle id associated with the receipt.
      *
      * @return string
      */
@@ -212,7 +218,7 @@ abstract class AbstractResponse
     }
 
     /**
-     * Get the pending renewal info
+     * Get the pending renewal info.
      *
      * @return PendingRenewalInfo[]
      */
@@ -222,7 +228,7 @@ abstract class AbstractResponse
     }
 
     /**
-     * Get the raw data
+     * Get the raw data.
      *
      * @return array
      */
@@ -232,9 +238,9 @@ abstract class AbstractResponse
     }
 
     /**
-     * returns if the receipt is valid or not
+     * returns if the receipt is valid or not.
      *
-     * @return boolean
+     * @return bool
      */
     public function isValid(): bool
     {
@@ -243,9 +249,9 @@ abstract class AbstractResponse
     }
 
     /**
-     * Returns retry status or not
+     * Returns retry status or not.
      *
-     * @return boolean
+     * @return bool
      */
     public function isRetryable(): bool
     {
@@ -253,10 +259,11 @@ abstract class AbstractResponse
     }
 
     /**
-     * Parse Data from JSON Response
+     * Parse Data from JSON Response.
+     *
+     * @throws RunTimeException
      *
      * @return $this
-     * @throws RunTimeException
      */
     public function parseData(): self
     {
@@ -296,7 +303,8 @@ abstract class AbstractResponse
     }
 
     /**
-     * Collect data for iOS >= 7.0 receipt
+     * Collect data for iOS >= 7.0 receipt.
+     *
      * @throws RunTimeException
      */
     protected function parseIOS7StyleReceipt(): void
@@ -307,19 +315,19 @@ abstract class AbstractResponse
 
         if (array_key_exists('original_purchase_date_ms', $this->raw_data['receipt'])) {
             $this->original_purchase_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['receipt']['original_purchase_date_ms'] / 1000)
+                (int) round($this->raw_data['receipt']['original_purchase_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('request_date_ms', $this->raw_data['receipt'])) {
             $this->request_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['receipt']['request_date_ms'] / 1000)
+                (int) round($this->raw_data['receipt']['request_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('receipt_creation_date_ms', $this->raw_data['receipt'])) {
             $this->receipt_creation_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['receipt']['receipt_creation_date_ms'] / 1000)
+                (int) round($this->raw_data['receipt']['receipt_creation_date_ms'] / 1000)
             );
         }
 
@@ -366,7 +374,8 @@ abstract class AbstractResponse
     }
 
     /**
-     * Collect data for iOS <= 6.0 receipt
+     * Collect data for iOS <= 6.0 receipt.
+     *
      * @throws RunTimeException
      */
     protected function parseIOS6StyleReceipt(): void

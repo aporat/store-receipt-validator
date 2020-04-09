@@ -3,8 +3,7 @@
 namespace ReceiptValidator\GooglePlay;
 
 /**
- * Class Validator
- * @package ReceiptValidator\GooglePlay
+ * Class Validator.
  */
 class Validator
 {
@@ -31,8 +30,9 @@ class Validator
 
     /**
      * Validator constructor.
+     *
      * @param \Google_Service_AndroidPublisher $googleServiceAndroidPublisher
-     * @param boolean $validationModePurchase
+     * @param bool                             $validationModePurchase
      */
     public function __construct(
         \Google_Service_AndroidPublisher $googleServiceAndroidPublisher,
@@ -43,8 +43,8 @@ class Validator
     }
 
     /**
-     *
      * @param string $package_name
+     *
      * @return $this
      */
     public function setPackageName($package_name)
@@ -55,8 +55,8 @@ class Validator
     }
 
     /**
-     *
      * @param string $purchase_token
+     *
      * @return $this
      */
     public function setPurchaseToken($purchase_token)
@@ -67,8 +67,8 @@ class Validator
     }
 
     /**
-     *
      * @param string $product_id
+     *
      * @return $this
      */
     public function setProductId($product_id)
@@ -80,6 +80,7 @@ class Validator
 
     /**
      * @param bool $validationModePurchase
+     *
      * @return Validator
      */
     public function setValidationModePurchase($validationModePurchase)

@@ -3,8 +3,7 @@
 namespace ReceiptValidator\GooglePlay;
 
 /**
- * Class SubscriptionResponse
- * @package ReceiptValidator\GooglePlay
+ * Class SubscriptionResponse.
  */
 class SubscriptionResponse extends AbstractResponse
 {
@@ -18,11 +17,11 @@ class SubscriptionResponse extends AbstractResponse
      */
     public function getAutoRenewing()
     {
-        return (bool)$this->response->getAutoRenewing();
+        return (bool) $this->response->getAutoRenewing();
     }
 
     /**
-     * @return integer|null
+     * @return int|null
      */
     public function getCancelReason()
     {
@@ -38,7 +37,7 @@ class SubscriptionResponse extends AbstractResponse
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getPriceAmountMicros()
     {
@@ -62,7 +61,7 @@ class SubscriptionResponse extends AbstractResponse
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getExpiryTimeMillis()
     {
@@ -70,7 +69,7 @@ class SubscriptionResponse extends AbstractResponse
     }
 
     /**
-     * @return integer|null
+     * @return int|null
      */
     public function getUserCancellationTimeMillis()
     {
@@ -78,7 +77,7 @@ class SubscriptionResponse extends AbstractResponse
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getPaymentState()
     {
@@ -87,6 +86,7 @@ class SubscriptionResponse extends AbstractResponse
 
     /**
      * @return string
+     *
      * @deprecated Use getExpiryTimeMillis() method instead
      */
     public function getExpiresDate()
