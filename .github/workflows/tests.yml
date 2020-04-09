@@ -61,7 +61,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.4"
+          - "7.1"
 
     steps:
       - name: "Checkout"
@@ -99,4 +99,4 @@ jobs:
         run: "wget https://scrutinizer-ci.com/ocular.phar"
 
       - name: "Scrutinizer Code Coverage Upload"
-        run: "php ocular.phar code-coverage:upload --format=php-clover coverage.clover"
+        run: "php ocular.phar code-coverage:upload --format=php-clover .build/logs/clover.xml"
