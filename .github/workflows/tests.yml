@@ -95,3 +95,8 @@ jobs:
       - name: "Collect code coverage with Xdebug and phpunit/phpunit"
         run: "vendor/bin/phpunit --coverage-clover=.build/logs/clover.xml"
 
+      - name: "Scrutinizer Code Coverage"
+        run: "wget https://scrutinizer-ci.com/ocular.phar"
+
+      - name: "Scrutinizer Code Coverage Upload"
+        run: "php ocular.phar code-coverage:upload --format=php-clover coverage.clover"
