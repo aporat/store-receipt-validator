@@ -36,7 +36,6 @@ class PendingRenewalInfo implements ArrayAccess
     /* @var int Stopped attempting renewal */
     const RETRY_PERIOD_INACTIVE = 0;
 
-
     // Auto renew status codes //
     /* @var int Subscription will renew */
     const AUTO_RENEW_ACTIVE = 1;
@@ -61,7 +60,7 @@ class PendingRenewalInfo implements ArrayAccess
     protected $product_id = '';
 
     /**
-     * Auto Renew Product ID
+     * Auto Renew Product ID.
      *
      * @var string
      */
@@ -75,7 +74,7 @@ class PendingRenewalInfo implements ArrayAccess
     protected $original_transaction_id = '';
 
     /**
-     * The current renewal status for the auto-renewable subscription
+     * The current renewal status for the auto-renewable subscription.
      *
      * true - Subscription will renew at the end of the current subscription period.
      * false - Customer has turned off automatic renewal for their subscription
@@ -129,7 +128,7 @@ class PendingRenewalInfo implements ArrayAccess
      * Parse Data from JSON Response.
      *
      * @throws RunTimeException
-
+     *
      * @return $this
      */
     public function parseData(): self
@@ -161,7 +160,8 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Product ID
+     * Product ID.
+     *
      * @return string
      */
     public function getProductId(): string
@@ -170,7 +170,8 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Auto Renew Product ID
+     * Auto Renew Product ID.
+     *
      * @return string
      */
     public function getAutoRenewProductId(): string
@@ -179,7 +180,8 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Auto Renew Status Code
+     * Auto Renew Status Code.
+     *
      * @return bool
      */
     public function getAutoRenewStatus(): bool
@@ -188,7 +190,8 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Original Transaction ID
+     * Original Transaction ID.
+     *
      * @return string
      */
     public function getOriginalTransactionId(): string
@@ -197,7 +200,8 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Expiration Intent Code
+     * Expiration Intent Code.
+     *
      * @return int|null
      */
     public function getExpirationIntent(): ?int
@@ -206,7 +210,8 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Is In Billing Retry Period Code
+     * Is In Billing Retry Period Code.
+     *
      * @return int|null
      */
     public function isInBillingRetryPeriod(): ?int
@@ -219,7 +224,7 @@ class PendingRenewalInfo implements ArrayAccess
      *****************************************/
 
     /**
-     * Status of Pending Renewal
+     * Status of Pending Renewal.
      *
      * This is a computed property that assumes a particular status based on
      * contextual information.
@@ -247,7 +252,8 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Grace Period Expires Date
+     * Grace Period Expires Date.
+     *
      * @return Carbon
      */
     public function getGracePeriodExpiresDate(): ?Carbon
@@ -256,7 +262,8 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Billing retrying and grace period expires date is in the future
+     * Billing retrying and grace period expires date is in the future.
+     *
      * @return bool
      */
     public function isInGracePeriod()
@@ -267,10 +274,11 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Update a key and reprocess object properties
+     * Update a key and reprocess object properties.
      *
      * @param $key
      * @param $value
+     *
      * @throws RunTimeException
      */
     public function offsetSet($key, $value)
@@ -280,9 +288,10 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Get a value
+     * Get a value.
      *
      * @param $key
+     *
      * @return mixed
      */
     public function offsetGet($key)
@@ -291,7 +300,7 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Unset a key
+     * Unset a key.
      *
      * @param $key
      */
@@ -301,9 +310,10 @@ class PendingRenewalInfo implements ArrayAccess
     }
 
     /**
-     * Check if key exists
+     * Check if key exists.
      *
      * @param $key
+     *
      * @return bool
      */
     public function offsetExists($key)

@@ -25,7 +25,6 @@ class Validator
      */
     protected $_client = null;
 
-
     /**
      * @var string
      */
@@ -159,7 +158,7 @@ class Validator
         try {
             $httpResponse = $this->getClient()->request(
                 'GET',
-                sprintf("developer/%s/user/%s/receiptId/%s", $this->_developerSecret, $this->_userId, $this->_receiptId)
+                sprintf('developer/%s/user/%s/receiptId/%s', $this->_developerSecret, $this->_userId, $this->_receiptId)
             );
 
             return new Response($httpResponse->getStatusCode(), json_decode($httpResponse->getBody(), true));

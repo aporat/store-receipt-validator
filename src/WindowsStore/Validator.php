@@ -20,13 +20,15 @@ class Validator
      * Validate the given receipt.
      *
      * @param string $receipt
-     * @return bool
+     *
      * @throws RunTimeException
+     *
+     * @return bool
      */
     public function validate($receipt)
     {
         // Load the receipt that needs to verified as an XML document.
-        $dom = new \DOMDocument;
+        $dom = new \DOMDocument();
         if (@$dom->loadXML($receipt) === false) {
             throw new RunTimeException('Invalid XML');
         }
@@ -47,12 +49,13 @@ class Validator
      * Load the certificate with the given ID.
      *
      * @param string $certificateId
+     *
      * @return resource
      */
     protected function retrieveCertificate($certificateId)
     {
         // Retrieve from cache if a cache handler has been set.
-        $cacheKey = 'store-receipt-validate.windowsstore.' . $certificateId;
+        $cacheKey = 'store-receipt-validate.windowsstore.'.$certificateId;
         $certificate = $this->cache !== null ? $this->cache->get($cacheKey) : null;
 
         if ($certificate === null) {
@@ -61,7 +64,7 @@ class Validator
             // We are attempting to retrieve the following url. The getAppReceiptAsync website at
             // http://msdn.microsoft.com/en-us/library/windows/apps/windows.applicationmodel.store.currentapp.getappreceiptasync.aspx
             // lists the following format for the certificate url.
-            $certificateUrl = '/fwlink/?LinkId=246509&cid=' . $certificateId;
+            $certificateUrl = '/fwlink/?LinkId=246509&cid='.$certificateId;
 
             // Make an HTTP GET request for the certificate.
             $client = new \GuzzleHttp\Client(['base_uri' => 'https://go.microsoft.com']);
@@ -84,14 +87,15 @@ class Validator
      * certificate provided.
      *
      * @param DOMDocument $dom
-     * @param resource $certificate
+     * @param resource    $certificate
+     *
+     * @throws RunTimeException
      *
      * @return bool
-     * @throws RunTimeException
      */
     protected function validateXml(DOMDocument $dom, $certificate)
     {
-        $secDsig = new XMLSecurityDSig;
+        $secDsig = new XMLSecurityDSig();
 
         // Locate the signature in the receipt XML.
         $dsig = $secDsig->locateSignature($dom);

@@ -9,6 +9,7 @@ interface CacheInterface
      * should be returned.
      *
      * @param string $key
+     *
      * @return mixed
      */
     public function get($key);
@@ -18,8 +19,9 @@ interface CacheInterface
      * means forever.
      *
      * @param string $key
-     * @param mixed $value
-     * @param int $minutes
+     * @param mixed  $value
+     * @param int    $minutes
+     *
      * @return void
      */
     public function put($key, $value, $minutes);
