@@ -57,17 +57,22 @@ class Validator
     /**
      * Validator constructor.
      *
-     * @param string $endpoint
+     * @param string     $endpoint
+     * @param HttpClient $client
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct(string $endpoint = self::ENDPOINT_PRODUCTION)
+    public function __construct(string $endpoint = self::ENDPOINT_PRODUCTION, HttpClient $client = null)
     {
         if ($endpoint !== self::ENDPOINT_PRODUCTION && $endpoint !== self::ENDPOINT_SANDBOX) {
             throw new \InvalidArgumentException("Invalid endpoint '{$endpoint}'");
         }
 
         $this->endpoint = $endpoint;
+
+        $this->client = $client
+            ? new $client($this->getClientConfig())
+            : new HttpClient($this->getClientConfig());
     }
 
     /**
