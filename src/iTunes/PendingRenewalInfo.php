@@ -254,7 +254,7 @@ class PendingRenewalInfo implements ArrayAccess
     /**
      * Grace Period Expires Date.
      *
-     * @return Carbon
+     * @return Carbon|null
      */
     public function getGracePeriodExpiresDate(): ?Carbon
     {
