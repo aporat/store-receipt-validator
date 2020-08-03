@@ -60,7 +60,7 @@ interface ResponseInterface extends EnvironmentResponseInterface
 
     /**
      * @var int
-     * This receipt could not be authorized. Treat this the same as if a purchase was never made.
+     *          This receipt could not be authorized. Treat this the same as if a purchase was never made.
      */
     const RESULT_RECEIPT_WITHOUT_PURCHASE = 21010;
 

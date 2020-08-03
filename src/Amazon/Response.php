@@ -48,7 +48,8 @@ class Response
 
     /**
      * Response constructor.
-     * @param int $httpStatusCode
+     *
+     * @param int        $httpStatusCode
      * @param array|null $jsonResponse
      *
      * @throws RunTimeException
@@ -111,9 +112,9 @@ class Response
      *
      * @param array|null $jsonResponse
      *
-     * @return $this
-     *
      * @throws RunTimeException
+     *
+     * @return $this
      */
     public function parseJsonResponse($jsonResponse = null): self
     {

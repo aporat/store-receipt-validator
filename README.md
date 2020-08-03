@@ -1,44 +1,23 @@
 store-receipt-validator
 =======
 
-[![Latest Stable Version](https://poser.pugx.org/aporat/store-receipt-validator/version.png)](https://packagist.org/packages/aporat/store-receipt-validator) [![Composer Downloads](https://poser.pugx.org/aporat/store-receipt-validator/d/total.png)](https://packagist.org/packages/aporat/store-receipt-validator)
-[![Build Status](https://travis-ci.org/aporat/store-receipt-validator.png?branch=master)](https://travis-ci.org/aporat/store-receipt-validator)
+[![Latest Stable Version](https://poser.pugx.org/aporat/store-receipt-validator/version.png)](https://packagist.org/packages/aporat/store-receipt-validator)
+[![Composer Downloads](https://poser.pugx.org/aporat/store-receipt-validator/d/total.png)](https://packagist.org/packages/aporat/store-receipt-validator)
+[![Build Status](https://github.com/aporat/store-receipt-validator/workflows/Tests/badge.svg)](https://github.com/aporat/store-receipt-validator/actions)
 [![Code Coverage](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/?branch=master)
+[![StyleCI](https://github.styleci.io/repos/14928361/shield?branch=master)](https://github.styleci.io/repos/14928361)
 [![License](https://poser.pugx.org/aporat/store-receipt-validator/license.svg)](https://packagist.org/packages/aporat/store-receipt-validator)
 
-PHP library that can be used to validate base64 encoded iTunes in app purchase receipts.
-
+PHP receipt validator for Apple iTunes, Google Play and Amazon App Store
 
 ## Requirements ##
 
 * PHP >= 7.1
 
-## Getting Started ##
+## Installation ##
 
-The easiest way to work with this package is when it's installed as a
-Composer package inside your project. Composer isn't strictly
-required, but makes life a lot easier.
-
-If you're not familiar with Composer, please see <http://getcomposer.org/>.
-
-1. Add iap-validator to your application's composer.json.
-
-        {
-            ...
-            "require": {
-                "aporat/store-receipt-validator": "dev-master"
-            },
-            ...
-        }
-
-2. Run `php composer install`.
-
-3. If you haven't already, add the Composer autoload to your project's
-   initialization file. (example)
-
-        require 'vendor/autoload.php';
-
+ `composer require aporat/store-receipt-validator`
 
 ## Quick Example ##
 

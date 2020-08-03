@@ -2,8 +2,14 @@
 
 namespace ReceiptValidator\GooglePlay;
 
+use Exception;
+use Google_Service_AndroidPublisher;
+use Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest;
+use Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest;
 use ReceiptValidator\GooglePlay\Exception\AlreadyAcknowledgeException;
 use ReceiptValidator\RunTimeException;
+use function in_array;
+use function sprintf;
 
 /**
  * Class Acknowledger.
@@ -19,7 +25,7 @@ class Acknowledger
     const PRODUCT = 'PRODUCT';
 
     /**
-     * @var \Google_Service_AndroidPublisher
+     * @var Google_Service_AndroidPublisher
      */
     protected $androidPublisherService;
     /**
@@ -42,7 +48,7 @@ class Acknowledger
     /**
      * Acknowledger constructor.
      *
-     * @param \Google_Service_AndroidPublisher $googleServiceAndroidPublisher
+     * @param Google_Service_AndroidPublisher $googleServiceAndroidPublisher
      * @param string                           $packageName
      * @param string                           $purchaseToken
      * @param string                           $productId
@@ -51,14 +57,14 @@ class Acknowledger
      * @throws RunTimeException
      */
     public function __construct(
-        \Google_Service_AndroidPublisher $googleServiceAndroidPublisher,
+        Google_Service_AndroidPublisher $googleServiceAndroidPublisher,
         $packageName,
         $productId,
         $purchaseToken,
         $strategy = self::ACKNOWLEDGE_STRATEGY_EXPLICIT
     ) {
-        if (!\in_array($strategy, [self::ACKNOWLEDGE_STRATEGY_EXPLICIT, self::ACKNOWLEDGE_STRATEGY_IMPLICIT])) {
-            throw new RuntimeException(\sprintf('Invalid strategy provided %s', $strategy));
+        if (! in_array($strategy, [self::ACKNOWLEDGE_STRATEGY_EXPLICIT, self::ACKNOWLEDGE_STRATEGY_IMPLICIT])) {
+            throw new RuntimeException(sprintf('Invalid strategy provided %s', $strategy));
         }
 
         $this->androidPublisherService = $googleServiceAndroidPublisher;
@@ -78,63 +84,67 @@ class Acknowledger
      */
     public function acknowledge(string $type = self::SUBSCRIPTION, string $developerPayload = '')
     {
-        switch ($type) {
-            case self::SUBSCRIPTION:
-                $subscriptionPurchase = $this->androidPublisherService->purchases_subscriptions->get(
-                    $this->packageName,
-                    $this->productId,
-                    $this->purchaseToken
-                );
-
-                if ($this->strategy === self::ACKNOWLEDGE_STRATEGY_EXPLICIT
-                    && $subscriptionPurchase->getAcknowledgementState() === 1) {
-                    throw AlreadyAcknowledgeException::fromSubscriptionPurchase($subscriptionPurchase);
-                }
-
-                if ($subscriptionPurchase->getAcknowledgementState() != 1) {
-                    $this->androidPublisherService->purchases_subscriptions->acknowledge(
+        try {
+            switch ($type) {
+                case self::SUBSCRIPTION:
+                    $subscriptionPurchase = $this->androidPublisherService->purchases_subscriptions->get(
                         $this->packageName,
                         $this->productId,
-                        $this->purchaseToken,
-                        new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
-                            ['developerPayload' => $developerPayload]
-                        )
+                        $this->purchaseToken
                     );
-                }
-                break;
-            case self::PRODUCT:
-                $productPurchase = $this->androidPublisherService->purchases_products->get(
-                    $this->packageName,
-                    $this->productId,
-                    $this->purchaseToken
-                );
 
-                if ($this->strategy === self::ACKNOWLEDGE_STRATEGY_EXPLICIT
-                    && $productPurchase->getAcknowledgementState() === 1) {
-                    throw AlreadyAcknowledgeException::fromProductPurchase($productPurchase);
-                }
+                    if ($this->strategy === self::ACKNOWLEDGE_STRATEGY_EXPLICIT
+                        && $subscriptionPurchase->getAcknowledgementState() === 1) {
+                        throw AlreadyAcknowledgeException::fromSubscriptionPurchase($subscriptionPurchase);
+                    }
 
-                if ($productPurchase->getAcknowledgementState() != 1) {
-                    $this->androidPublisherService->purchases_products->acknowledge(
+                    if ($subscriptionPurchase->getAcknowledgementState() != 1) {
+                        $this->androidPublisherService->purchases_subscriptions->acknowledge(
+                            $this->packageName,
+                            $this->productId,
+                            $this->purchaseToken,
+                            new Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
+                                ['developerPayload' => $developerPayload]
+                            )
+                        );
+                    }
+                    break;
+                case self::PRODUCT:
+                    $productPurchase = $this->androidPublisherService->purchases_products->get(
                         $this->packageName,
                         $this->productId,
-                        $this->purchaseToken,
-                        new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
-                            ['developerPayload' => $developerPayload]
+                        $this->purchaseToken
+                    );
+
+                    if ($this->strategy === self::ACKNOWLEDGE_STRATEGY_EXPLICIT
+                        && $productPurchase->getAcknowledgementState() === 1) {
+                        throw AlreadyAcknowledgeException::fromProductPurchase($productPurchase);
+                    }
+
+                    if ($productPurchase->getAcknowledgementState() != 1) {
+                        $this->androidPublisherService->purchases_products->acknowledge(
+                            $this->packageName,
+                            $this->productId,
+                            $this->purchaseToken,
+                            new Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
+                                ['developerPayload' => $developerPayload]
+                            )
+                        );
+                    }
+                    break;
+                default:
+                    throw new \RuntimeException(
+                        sprintf(
+                            'Invalid type provided : %s expected %s',
+                            $type,
+                            implode(',', [self::PRODUCT, self::SUBSCRIPTION])
                         )
                     );
-                }
-                break;
-            default:
-                throw new RuntimeException(
-                    \sprintf(
-                        'Invalid type provided : %s expected %s',
-                        $type,
-                        implode(',', [self::PRODUCT, self::SUBSCRIPTION])
-                    )
-                );
+            }
+
+            return true;
+        } catch (Exception $e) {
+            throw new \RuntimeException($e->getCode(), $e->getCode(), $e);
         }
-
-        return true;
     }
 }

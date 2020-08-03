@@ -1,11 +1,17 @@
 build:
-    tests:
+  nodes:
+    analysis:
+      tests:
         override:
-            - php-scrutinizer-run
-
-tools:
-    external_code_coverage: true
+          - php-scrutinizer-run
 
 filter:
-    excluded_paths:
-        - 'tests/'
+  excluded_paths:
+    - "tests/"
+    - "build/"
+  dependency_paths:
+    - "vendor/"
+
+tools:
+    external_code_coverage:
+        timeout: 2100 # Timeout in seconds.
