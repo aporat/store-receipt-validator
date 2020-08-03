@@ -8,8 +8,6 @@ use Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest;
 use Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest;
 use ReceiptValidator\GooglePlay\Exception\AlreadyAcknowledgeException;
 use ReceiptValidator\RunTimeException;
-use function in_array;
-use function sprintf;
 
 /**
  * Class Acknowledger.
@@ -49,10 +47,10 @@ class Acknowledger
      * Acknowledger constructor.
      *
      * @param Google_Service_AndroidPublisher $googleServiceAndroidPublisher
-     * @param string                           $packageName
-     * @param string                           $purchaseToken
-     * @param string                           $productId
-     * @param string                           $strategy
+     * @param string                          $packageName
+     * @param string                          $purchaseToken
+     * @param string                          $productId
+     * @param string                          $strategy
      *
      * @throws RunTimeException
      */
@@ -78,9 +76,9 @@ class Acknowledger
      * @param string $type
      * @param string $developerPayload
      *
+     * @return bool
      * @throws RunTimeException
      *
-     * @return bool
      */
     public function acknowledge(string $type = self::SUBSCRIPTION, string $developerPayload = '')
     {
