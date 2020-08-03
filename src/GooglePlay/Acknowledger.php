@@ -4,9 +4,6 @@ namespace ReceiptValidator\GooglePlay;
 
 use Exception;
 use Google_Service_AndroidPublisher;
-use Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest;
-use Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest;
-use ReceiptValidator\GooglePlay\Exception\AlreadyAcknowledgeException;
 use ReceiptValidator\RunTimeException;
 
 /**
@@ -61,7 +58,7 @@ class Acknowledger
         $purchaseToken,
         $strategy = self::ACKNOWLEDGE_STRATEGY_EXPLICIT
     ) {
-        if (! in_array($strategy, [self::ACKNOWLEDGE_STRATEGY_EXPLICIT, self::ACKNOWLEDGE_STRATEGY_IMPLICIT])) {
+        if (!in_array($strategy, [self::ACKNOWLEDGE_STRATEGY_EXPLICIT, self::ACKNOWLEDGE_STRATEGY_IMPLICIT])) {
             throw new RuntimeException(sprintf('Invalid strategy provided %s', $strategy));
         }
 
@@ -76,58 +73,72 @@ class Acknowledger
      * @param string $type
      * @param string $developerPayload
      *
-     * @return bool
      * @throws RunTimeException
      *
+     * @return bool
      */
     public function acknowledge(string $type = self::SUBSCRIPTION, string $developerPayload = '')
     {
         try {
             switch ($type) {
                 case self::SUBSCRIPTION:
-                    $subscriptionPurchase = $this->androidPublisherService->purchases_subscriptions->get(
-                        $this->packageName,
-                        $this->productId,
-                        $this->purchaseToken
-                    );
-
-                    if ($this->strategy === self::ACKNOWLEDGE_STRATEGY_EXPLICIT
-                        && $subscriptionPurchase->getAcknowledgementState() === 1) {
-                        throw AlreadyAcknowledgeException::fromSubscriptionPurchase($subscriptionPurchase);
-                    }
-
-                    if ($subscriptionPurchase->getAcknowledgementState() != 1) {
+                    if ($this->strategy === self::ACKNOWLEDGE_STRATEGY_EXPLICIT) {
+                        // Here exception might be thrown as previously, so no BC break here
                         $this->androidPublisherService->purchases_subscriptions->acknowledge(
                             $this->packageName,
                             $this->productId,
                             $this->purchaseToken,
-                            new Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
+                            new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
                                 ['developerPayload' => $developerPayload]
                             )
                         );
+                    } elseif ($this->strategy === self::ACKNOWLEDGE_STRATEGY_IMPLICIT) {
+                        $subscriptionPurchase = $this->androidPublisherService->purchases_subscriptions->get(
+                            $this->packageName,
+                            $this->productId,
+                            $this->purchaseToken
+                        );
+
+                        if ($subscriptionPurchase->getAcknowledgementState() !== AbstractResponse::ACKNOWLEDGEMENT_STATE_DONE) {
+                            $this->androidPublisherService->purchases_subscriptions->acknowledge(
+                                $this->packageName,
+                                $this->productId,
+                                $this->purchaseToken,
+                                new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
+                                    ['developerPayload' => $developerPayload]
+                                )
+                            );
+                        }
                     }
                     break;
                 case self::PRODUCT:
-                    $productPurchase = $this->androidPublisherService->purchases_products->get(
-                        $this->packageName,
-                        $this->productId,
-                        $this->purchaseToken
-                    );
-
-                    if ($this->strategy === self::ACKNOWLEDGE_STRATEGY_EXPLICIT
-                        && $productPurchase->getAcknowledgementState() === 1) {
-                        throw AlreadyAcknowledgeException::fromProductPurchase($productPurchase);
-                    }
-
-                    if ($productPurchase->getAcknowledgementState() != 1) {
+                    if ($this->strategy === self::ACKNOWLEDGE_STRATEGY_EXPLICIT) {
+                        // Here exception might be thrown as previously, so no BC break here
                         $this->androidPublisherService->purchases_products->acknowledge(
                             $this->packageName,
                             $this->productId,
                             $this->purchaseToken,
-                            new Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
+                            new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
                                 ['developerPayload' => $developerPayload]
                             )
                         );
+                    } elseif ($this->strategy === self::ACKNOWLEDGE_STRATEGY_IMPLICIT) {
+                        $productPurchase = $this->androidPublisherService->purchases_products->get(
+                            $this->packageName,
+                            $this->productId,
+                            $this->purchaseToken
+                        );
+
+                        if ($productPurchase->getAcknowledgementState() !== AbstractResponse::ACKNOWLEDGEMENT_STATE_DONE) {
+                            $this->androidPublisherService->purchases_products->acknowledge(
+                                $this->packageName,
+                                $this->productId,
+                                $this->purchaseToken,
+                                new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
+                                    ['developerPayload' => $developerPayload]
+                                )
+                            );
+                        }
                     }
                     break;
                 default:

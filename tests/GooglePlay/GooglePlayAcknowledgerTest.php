@@ -9,7 +9,6 @@ use Google_Service_AndroidPublisher_Resource_PurchasesSubscriptions;
 use Google_Service_AndroidPublisher_SubscriptionPurchase;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\Acknowledger;
-use ReceiptValidator\GooglePlay\Exception\AlreadyAcknowledgeException;
 
 /**
  * @group library
@@ -48,12 +47,6 @@ class GooglePlayAcknowledgerTest extends TestCase
         $googleServiceAndroidPublisherMock->purchases_products = $purchasesProductsMock;
         $googleServiceAndroidPublisherMock->purchases_subscriptions = $purchasesSubscriptionsMock;
 
-        $purchasesProductsMock->expects($this->once())->method('get')
-                              ->with(
-                                  $packageName,
-                                  $productId,
-                                  $purchaseToken
-                              )->willReturn($productPurchaseMock);
         $purchasesProductsMock->expects($this->once())->method('acknowledge')
                               ->with(
                                   $packageName,
@@ -64,12 +57,6 @@ class GooglePlayAcknowledgerTest extends TestCase
                                   )
                               );
 
-        $purchasesSubscriptionsMock->expects($this->once())->method('get')
-                                   ->with(
-                                       $packageName,
-                                       $productId,
-                                       $purchaseToken
-                                   )->willReturn($subscriptionPurchaseMock);
         $purchasesSubscriptionsMock->expects($this->once())->method('acknowledge')
                                    ->with(
                                        $packageName,
@@ -169,35 +156,30 @@ class GooglePlayAcknowledgerTest extends TestCase
 
     public function testValidateWithAcknowledgedPurchaseAndExplicitStrategyForSubscription(): void
     {
-        $this->expectException(AlreadyAcknowledgeException::class);
-
         $packageName = 'testPackage';
         $productId = '15';
         $purchaseToken = 'testPurchaseToken';
 
         // mock objects
         $googleServiceAndroidPublisherMock = $this->getMockBuilder(Google_Service_AndroidPublisher::class)
-                                                  ->disableOriginalConstructor()->getMock();
+                                                  ->disableOriginalConstructor()
+                                                  ->getMock();
 
         // subscriptions
         $purchasesSubscriptionsMock = $this->getMockBuilder(
             Google_Service_AndroidPublisher_Resource_PurchasesSubscriptions::class
         )
-                                           ->disableOriginalConstructor()->getMock();
+                                           ->disableOriginalConstructor()
+                                           ->getMock();
         $subscriptionPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_SubscriptionPurchase::class)
-                                         ->disableOriginalConstructor()->getMock();
+                                         ->disableOriginalConstructor()
+                                         ->getMock();
         $subscriptionPurchaseMock->expects($this->any())->method('getAcknowledgementState')->willReturn(1);
 
         // mock expectations
         $googleServiceAndroidPublisherMock->purchases_subscriptions = $purchasesSubscriptionsMock;
 
-        $purchasesSubscriptionsMock->expects($this->once())->method('get')
-                                   ->with(
-                                       $packageName,
-                                       $productId,
-                                       $purchaseToken
-                                   )->willReturn($subscriptionPurchaseMock);
-        $purchasesSubscriptionsMock->expects($this->never())->method('acknowledge')
+        $purchasesSubscriptionsMock->expects($this->once())->method('acknowledge')
                                    ->with(
                                        $packageName,
                                        $productId,
@@ -219,8 +201,6 @@ class GooglePlayAcknowledgerTest extends TestCase
 
     public function testValidateWithAcknowledgedPurchaseAndExplicitStrategyForProduct(): void
     {
-        $this->expectException(AlreadyAcknowledgeException::class);
-
         $packageName = 'testPackage';
         $productId = '15';
         $purchaseToken = 'testPurchaseToken';
@@ -241,13 +221,7 @@ class GooglePlayAcknowledgerTest extends TestCase
         // mock expectations
         $googleServiceAndroidPublisherMock->purchases_products = $purchasesProductsMock;
 
-        $purchasesProductsMock->expects($this->once())->method('get')
-                              ->with(
-                                  $packageName,
-                                  $productId,
-                                  $purchaseToken
-                              )->willReturn($productPurchaseMock);
-        $purchasesProductsMock->expects($this->never())->method('acknowledge')
+        $purchasesProductsMock->expects($this->once())->method('acknowledge')
                               ->with(
                                   $packageName,
                                   $productId,
