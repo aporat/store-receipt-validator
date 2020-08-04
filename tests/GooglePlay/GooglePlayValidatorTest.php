@@ -1,6 +1,6 @@
 <?php
 
-namespace ReceiptValidator\Tests;
+namespace ReceiptValidator\Tests\GooglePlay;
 
 use Google_Service_AndroidPublisher;
 use Google_Service_AndroidPublisher_ProductPurchase;

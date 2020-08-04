@@ -1,6 +1,6 @@
 <?php
 
-namespace ReceiptValidator\Tests;
+namespace ReceiptValidator\Tests\WindowsStore;
 
 use ReceiptValidator\WindowsStore\CacheInterface;
 

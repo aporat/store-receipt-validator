@@ -1,6 +1,6 @@
 <?php
 
-namespace ReceiptValidator\Tests;
+namespace ReceiptValidator\Tests\Amazon;
 
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Response;

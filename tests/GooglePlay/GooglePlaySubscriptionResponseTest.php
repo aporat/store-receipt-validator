@@ -1,6 +1,6 @@
 <?php
 
-namespace ReceiptValidator\Tests;
+namespace ReceiptValidator\Tests\GooglePlay;
 
 use Google_Service_AndroidPublisher_SubscriptionPurchase;
 use PHPUnit\Framework\TestCase;

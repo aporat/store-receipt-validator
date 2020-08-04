@@ -1,6 +1,6 @@
 <?php
 
-namespace ReceiptValidator\Tests;
+namespace ReceiptValidator\Tests\iTunes;
 
 use Carbon\Carbon;
 use PHPUnit\Framework\TestCase;

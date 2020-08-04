@@ -1,6 +1,6 @@
 <?php
 
-namespace ReceiptValidator\Tests;
+namespace ReceiptValidator\Tests\WindowsStore;
 
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\RunTimeException;

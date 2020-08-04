@@ -1,6 +1,6 @@
 <?php
 
-namespace ReceiptValidator\Tests;
+namespace ReceiptValidator\Tests\iTunes;
 
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\iTunes\PurchaseItem;
