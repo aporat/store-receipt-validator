@@ -125,8 +125,6 @@ abstract class AbstractResponse
      * Set Result Code.
      *
      * @param int $code
-     *
-     * @return self
      */
     public function setResultCode(int $code): void
     {

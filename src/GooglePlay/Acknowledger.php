@@ -73,8 +73,6 @@ class Acknowledger
      * @param string $type
      * @param string $developerPayload
      *
-     * @throws RunTimeException
-     *
      * @return bool
      */
     public function acknowledge(string $type = self::SUBSCRIPTION, string $developerPayload = '')
