@@ -13,7 +13,7 @@ PHP receipt validator for Apple iTunes, Google Play and Amazon App Store
 
 ## Requirements ##
 
-* PHP >= 7.1
+* PHP >= 7.2
 
 ## Installation ##
 
