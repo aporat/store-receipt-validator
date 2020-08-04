@@ -26,9 +26,9 @@
         "Apache-2.0"
     ],
     "require": {
-        "php": "^7.1",
+        "php": "^7.2.5",
         "ext-json": "*",
-        "guzzlehttp/guzzle": "^6.3",
+        "guzzlehttp/guzzle": "^7.0",
         "nesbot/carbon": "^1.0|^2.0",
         "google/apiclient": "^2.0",
         "robrichards/xmlseclibs": "^3.0.4"
