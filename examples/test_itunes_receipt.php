@@ -24,6 +24,8 @@ try {
     $response = $validator->setReceiptData($receiptBase64Data)->validate();
 } catch (\Exception $e) {
     echo 'got error = '.$e->getMessage().PHP_EOL;
+    echo $e->getTraceAsString().PHP_EOL;
+    exit;
 }
 
 if ($response instanceof AbstractResponse && $response->isValid()) {
