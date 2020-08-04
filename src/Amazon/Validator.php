@@ -16,29 +16,29 @@ class Validator
      *
      * @var string
      */
-    protected $_endpoint;
+    protected $endpoint;
 
     /**
      * Guzzle http client.
      *
      * @var \GuzzleHttp\Client
      */
-    protected $_client = null;
+    protected $client = null;
 
     /**
-     * @var string
+     * @var string|null
      */
-    protected $_userId = null;
+    protected $userId = null;
 
     /**
-     * @var string
+     * @var string|null
      */
-    protected $_receiptId = null;
+    protected $receiptId = null;
 
     /**
-     * @var string
+     * @var string|null
      */
-    protected $_developerSecret = null;
+    protected $developerSecret = null;
 
     /**
      * Validator constructor.
@@ -53,29 +53,29 @@ class Validator
             throw new RunTimeException("Invalid endpoint '{$endpoint}'");
         }
 
-        $this->_endpoint = $endpoint;
+        $this->endpoint = $endpoint;
     }
 
     /**
-     * @param string $userId
+     * @param string|null $userId
      *
      * @return self
      */
-    public function setUserId($userId): self
+    public function setUserId(?string $userId = null): self
     {
-        $this->_userId = $userId;
+        $this->userId = $userId;
 
         return $this;
     }
 
     /**
-     * @param string $receiptId
+     * @param string|null $receiptId
      *
      * @return self
      */
-    public function setReceiptId($receiptId): self
+    public function setReceiptId(?string $receiptId): self
     {
-        $this->_receiptId = $receiptId;
+        $this->receiptId = $receiptId;
 
         return $this;
     }
@@ -83,21 +83,21 @@ class Validator
     /**
      * get developer secret.
      *
-     * @return string
+     * @return string|null
      */
-    public function getDeveloperSecret()
+    public function getDeveloperSecret(): ?string
     {
-        return $this->_developerSecret;
+        return $this->developerSecret;
     }
 
     /**
-     * @param string $developerSecret
+     * @param string|null $developerSecret
      *
      * @return self
      */
-    public function setDeveloperSecret($developerSecret): self
+    public function setDeveloperSecret(?string $developerSecret): self
     {
-        $this->_developerSecret = $developerSecret;
+        $this->developerSecret = $developerSecret;
 
         return $this;
     }
@@ -109,7 +109,7 @@ class Validator
      */
     public function getEndpoint(): string
     {
-        return $this->_endpoint;
+        return $this->endpoint;
     }
 
     /**
@@ -121,7 +121,7 @@ class Validator
      */
     public function setEndpoint(string $endpoint): self
     {
-        $this->_endpoint = $endpoint;
+        $this->endpoint = $endpoint;
 
         return $this;
     }
@@ -133,11 +133,11 @@ class Validator
      */
     protected function getClient(): HttpClient
     {
-        if ($this->_client == null) {
-            $this->_client = new HttpClient(['base_uri' => $this->_endpoint]);
+        if ($this->client == null) {
+            $this->client = new HttpClient(['base_uri' => $this->endpoint]);
         }
 
-        return $this->_client;
+        return $this->client;
     }
 
     /**
@@ -153,7 +153,7 @@ class Validator
         try {
             $httpResponse = $this->getClient()->request(
                 'GET',
-                sprintf('developer/%s/user/%s/receiptId/%s', $this->_developerSecret, $this->_userId, $this->_receiptId)
+                sprintf('developer/%s/user/%s/receiptId/%s', $this->developerSecret, $this->userId, $this->receiptId)
             );
 
             return new Response($httpResponse->getStatusCode(), json_decode($httpResponse->getBody(), true));

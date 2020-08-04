@@ -87,7 +87,7 @@ class Validator
      *
      * @return $this
      */
-    public function setReceiptData($receipt_data): self
+    public function setReceiptData(?string $receipt_data = null): self
     {
         if (strpos($receipt_data, '{') !== false) {
             $this->receipt_data = base64_encode($receipt_data);
@@ -111,7 +111,7 @@ class Validator
      *
      * @return $this
      */
-    public function setSharedSecret($shared_secret = null): self
+    public function setSharedSecret(?string $shared_secret = null): self
     {
         $this->shared_secret = $shared_secret;
 
@@ -197,10 +197,8 @@ class Validator
      */
     protected function getClientConfig(): array
     {
-        $baseUri = ['base_uri' => $this->endpoint];
-        $clientConfig = array_merge($this->request_options, $baseUri);
-
-        return $clientConfig;
+        $base_uri = ['base_uri' => $this->endpoint];
+        return array_merge($this->request_options, $base_uri);
     }
 
     /**

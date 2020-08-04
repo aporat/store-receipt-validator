@@ -30,21 +30,21 @@ class Response
      *
      * @var int
      */
-    protected $_code;
+    protected $code;
 
     /**
      * receipt info.
      *
      * @var array
      */
-    protected $_receipt = [];
+    protected $receipt = [];
 
     /**
      * purchases info.
      *
      * @var PurchaseItem[]
      */
-    protected $_purchases = [];
+    protected $purchases = [];
 
     /**
      * Response constructor.
@@ -56,7 +56,7 @@ class Response
      */
     public function __construct($httpStatusCode = 200, $jsonResponse = null)
     {
-        $this->_code = $httpStatusCode;
+        $this->code = $httpStatusCode;
 
         if ($jsonResponse !== null) {
             $this->parseJsonResponse($jsonResponse);
@@ -70,7 +70,7 @@ class Response
      */
     public function getResultCode(): int
     {
-        return $this->_code;
+        return $this->code;
     }
 
     /**
@@ -80,7 +80,7 @@ class Response
      */
     public function getReceipt()
     {
-        return $this->_receipt;
+        return $this->receipt;
     }
 
     /**
@@ -90,7 +90,7 @@ class Response
      */
     public function getPurchases()
     {
-        return $this->_purchases;
+        return $this->purchases;
     }
 
     /**
@@ -100,7 +100,7 @@ class Response
      */
     public function isValid(): bool
     {
-        if ($this->_code == self::RESULT_OK) {
+        if ($this->code == self::RESULT_OK) {
             return true;
         }
 
@@ -122,9 +122,9 @@ class Response
             throw new RuntimeException('Response must be a scalar value');
         }
 
-        $this->_receipt = $jsonResponse;
-        $this->_purchases = [];
-        $this->_purchases[] = new PurchaseItem($jsonResponse);
+        $this->receipt = $jsonResponse;
+        $this->purchases = [];
+        $this->purchases[] = new PurchaseItem($jsonResponse);
 
         return $this;
     }
