@@ -41,11 +41,6 @@ class Validator
     protected $_developerSecret = null;
 
     /**
-     * @var string
-     */
-    protected $_product_id = null;
-
-    /**
      * Validator constructor.
      *
      * @param string $endpoint
