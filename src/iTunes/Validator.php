@@ -7,8 +7,8 @@ use ReceiptValidator\RunTimeException;
 
 class Validator
 {
-    const ENDPOINT_SANDBOX = 'https://sandbox.itunes.apple.com/verifyReceipt';
-    const ENDPOINT_PRODUCTION = 'https://buy.itunes.apple.com/verifyReceipt';
+    const ENDPOINT_SANDBOX = 'https://sandbox.itunes.apple.com';
+    const ENDPOINT_PRODUCTION = 'https://buy.itunes.apple.com';
 
     /**
      * endpoint url.
@@ -271,7 +271,7 @@ class Validator
     {
         $baseUri = (string) $client->getConfig('base_uri');
 
-        $httpResponse = $client->request('POST', '', ['body' => $this->prepareRequestData()]);
+        $httpResponse = $client->request('POST', '/verifyReceipt', ['body' => $this->prepareRequestData()]);
 
         if ($httpResponse->getStatusCode() !== 200) {
             throw new RunTimeException('Unable to get response from itunes server');

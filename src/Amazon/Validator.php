@@ -8,8 +8,8 @@ use ReceiptValidator\RunTimeException as RunTimeException;
 
 class Validator
 {
-    const ENDPOINT_SANDBOX = 'http://localhost:8080/RVSSandbox/';
-    const ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com/version/1.0/verifyReceiptId/';
+    const ENDPOINT_SANDBOX = 'http://localhost:8080/RVSSandbox';
+    const ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com/version/1.0/verifyReceiptId';
 
     /**
      * endpoint url.
@@ -153,7 +153,7 @@ class Validator
         try {
             $httpResponse = $this->getClient()->request(
                 'GET',
-                sprintf('developer/%s/user/%s/receiptId/%s', $this->developerSecret, $this->userId, $this->receiptId)
+                sprintf('/developer/%s/user/%s/receiptId/%s', $this->developerSecret, $this->userId, $this->receiptId)
             );
 
             return new Response($httpResponse->getStatusCode(), json_decode($httpResponse->getBody(), true));
