@@ -95,10 +95,10 @@ class iTunesValidatorTest extends TestCase
 
     public function testValidatorWithValidResponse(): void
     {
-        $json_response = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseResponse.json');
+        $json_response = file_get_contents(__DIR__.'/fixtures/inAppPurchaseResponse.json');
 
         $mock = new MockHandler([
-            new Response(200, [], $json_response)
+            new Response(200, [], $json_response),
         ]);
 
         $handler = HandlerStack::create($mock);
@@ -110,10 +110,9 @@ class iTunesValidatorTest extends TestCase
         $this->assertEquals(ResponseInterface::RESULT_OK, $response->getResultCode());
         $this->assertCount(2, $response->getPurchases());
 
-
         $this->assertTrue($response->isSandbox());
         $this->assertEquals('com.myapp', $response->getBundleId());
-        $this->assertEquals(Carbon::parse("2013-08-01 07:00:00 Etc/GMT"), $response->getOriginalPurchaseDate());
+        $this->assertEquals(Carbon::parse('2013-08-01 07:00:00 Etc/GMT'), $response->getOriginalPurchaseDate());
 
         $first_purchase = $response->getPurchases()[0];
         $this->assertEquals('myapp.1', $first_purchase->getProductId());
@@ -126,10 +125,10 @@ class iTunesValidatorTest extends TestCase
 
     public function testValidatorWithInvalidResponse(): void
     {
-        $json_response = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseInvalidReceiptResponse.json');
+        $json_response = file_get_contents(__DIR__.'/fixtures/inAppPurchaseInvalidReceiptResponse.json');
 
         $mock = new MockHandler([
-            new Response(200, [], $json_response)
+            new Response(200, [], $json_response),
         ]);
 
         $handler = HandlerStack::create($mock);
