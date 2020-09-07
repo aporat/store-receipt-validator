@@ -2,8 +2,13 @@
 
 namespace ReceiptValidator\Tests\iTunes;
 
+use Carbon\Carbon;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use ReceiptValidator\iTunes\ResponseInterface;
 use ReceiptValidator\iTunes\Validator as iTunesValidator;
 
 /**
@@ -86,5 +91,53 @@ class iTunesValidatorTest extends TestCase
     {
         $this->validator->setRequestOptions(['timeout' => 10]);
         $this->assertArrayHasKey('timeout', $this->validator->getRequestOptions());
+    }
+
+    public function testValidatorWithValidResponse(): void
+    {
+        $json_response = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseResponse.json');
+
+        $mock = new MockHandler([
+            new Response(200, [], $json_response)
+        ]);
+
+        $handler = HandlerStack::create($mock);
+
+        $this->validator->setRequestOptions(['handler' => $handler]);
+
+        $response = $this->validator->setReceiptData($this->receiptBase64Data)->validate();
+        $this->assertTrue($response->isValid());
+        $this->assertEquals(ResponseInterface::RESULT_OK, $response->getResultCode());
+        $this->assertCount(2, $response->getPurchases());
+
+
+        $this->assertTrue($response->isSandbox());
+        $this->assertEquals('com.myapp', $response->getBundleId());
+        $this->assertEquals(Carbon::parse("2013-08-01 07:00:00 Etc/GMT"), $response->getOriginalPurchaseDate());
+
+        $first_purchase = $response->getPurchases()[0];
+        $this->assertEquals('myapp.1', $first_purchase->getProductId());
+        $this->assertEquals('1000000156455961', $first_purchase->getTransactionId());
+
+        $pending_renewal_info = $response->getPendingRenewalInfo()[0];
+        $this->assertEquals('Test_Subscription', $pending_renewal_info->getProductId());
+        $this->assertEquals('original_transaction_id_value', $pending_renewal_info->getOriginalTransactionId());
+    }
+
+    public function testValidatorWithInvalidResponse(): void
+    {
+        $json_response = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseInvalidReceiptResponse.json');
+
+        $mock = new MockHandler([
+            new Response(200, [], $json_response)
+        ]);
+
+        $handler = HandlerStack::create($mock);
+
+        $this->validator->setRequestOptions(['handler' => $handler]);
+
+        $response = $this->validator->setReceiptData($this->receiptBase64Data)->validate();
+        $this->assertFalse($response->isValid());
+        $this->assertEquals(ResponseInterface::RESULT_DATA_MALFORMED, $response->getResultCode());
     }
 }
