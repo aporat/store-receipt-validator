@@ -108,6 +108,30 @@ try {
 // success
 ```
 
+#### Reduce the size of the google sdk ####
+To reduce the size of the google sdk you can follow thoses steps on the [google documentation](https://github.com/googleapis/google-api-php-client#cleaning-up-unused-services)
+```json
+{
+    "scripts": {
+        "post-install-cmd": [
+            "Google_Task_Composer::cleanup"
+        ],
+        "post-update-cmd": [
+            "Google_Task_Composer::cleanup"
+        ]
+    },
+    "extra": {
+        "google/apiclient-services": [
+            "AndroidPublisher"
+        ]
+    }
+}
+```
+**IMPORTANT:** If you add any services back in composer.json, you will need to remove the vendor/google/apiclient-services directory explicity for the change you made to have effect:
+```sh
+rm -r vendor/google/apiclient-services
+composer update
+```
 
 ### Amazon App Store ###
 
