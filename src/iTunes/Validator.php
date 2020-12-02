@@ -63,11 +63,7 @@ class Validator
      */
     public function __construct(string $endpoint = self::ENDPOINT_PRODUCTION)
     {
-        if ($endpoint !== self::ENDPOINT_PRODUCTION && $endpoint !== self::ENDPOINT_SANDBOX) {
-            throw new \InvalidArgumentException("Invalid endpoint '{$endpoint}'");
-        }
-
-        $this->endpoint = $endpoint;
+        $this->setEndpoint($endpoint);
     }
 
     /**
@@ -129,14 +125,15 @@ class Validator
     }
 
     /**
-     * set endpoint.
-     *
      * @param string $endpoint
-     *
      * @return $this
+     * @throws \InvalidArgumentException
      */
     public function setEndpoint(string $endpoint): self
     {
+        if ($endpoint !== self::ENDPOINT_PRODUCTION && $endpoint !== self::ENDPOINT_SANDBOX) {
+            throw new \InvalidArgumentException("Invalid endpoint '{$endpoint}'");
+        }
         $this->endpoint = $endpoint;
 
         return $this;
