@@ -128,8 +128,10 @@ class Validator
 
     /**
      * @param string $endpoint
-     * @return $this
+     *
      * @throws InvalidArgumentException
+     *
+     * @return $this
      */
     public function setEndpoint(string $endpoint): self
     {
