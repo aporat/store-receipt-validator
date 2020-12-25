@@ -78,7 +78,7 @@ class Response
      *
      * @return array
      */
-    public function getReceipt()
+    public function getReceipt(): array
     {
         return $this->receipt;
     }
@@ -88,7 +88,7 @@ class Response
      *
      * @return PurchaseItem[]
      */
-    public function getPurchases()
+    public function getPurchases(): array
     {
         return $this->purchases;
     }

@@ -136,7 +136,7 @@ abstract class AbstractResponse
      *
      * @return PurchaseItem[]
      */
-    public function getPurchases()
+    public function getPurchases(): array
     {
         return $this->purchases;
     }
@@ -156,7 +156,7 @@ abstract class AbstractResponse
      *
      * @return PurchaseItem[]
      */
-    public function getLatestReceiptInfo()
+    public function getLatestReceiptInfo(): array
     {
         return $this->latest_receipt_info;
     }
@@ -220,7 +220,7 @@ abstract class AbstractResponse
      *
      * @return PendingRenewalInfo[]
      */
-    public function getPendingRenewalInfo()
+    public function getPendingRenewalInfo(): array
     {
         return $this->pending_renewal_info;
     }

@@ -3,6 +3,7 @@
 namespace ReceiptValidator\Amazon;
 
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use ReceiptValidator\RunTimeException as RunTimeException;
 
@@ -21,7 +22,7 @@ class Validator
     /**
      * Guzzle http client.
      *
-     * @var \GuzzleHttp\Client
+     * @var HttpClient
      */
     protected $client = null;
 
@@ -144,11 +145,11 @@ class Validator
      * validate the receipt data.
      *
      * @throws RunTimeException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      *
      * @return Response
      */
-    public function validate()
+    public function validate(): Response
     {
         try {
             $httpResponse = $this->getClient()->request(

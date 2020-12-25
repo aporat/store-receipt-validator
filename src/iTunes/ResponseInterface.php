@@ -71,14 +71,14 @@ interface ResponseInterface extends EnvironmentResponseInterface
     /**
      * @return PurchaseItem[]
      */
-    public function getPurchases();
+    public function getPurchases(): array;
 
     public function getReceipt(): array;
 
     /**
      * @return PurchaseItem[]
      */
-    public function getLatestReceiptInfo();
+    public function getLatestReceiptInfo(): array;
 
     public function getLatestReceipt(): ?string;
 
@@ -95,7 +95,7 @@ interface ResponseInterface extends EnvironmentResponseInterface
     /**
      * @return PendingRenewalInfo[]
      */
-    public function getPendingRenewalInfo();
+    public function getPendingRenewalInfo(): array;
 
     public function getRawData(): ?array;
 

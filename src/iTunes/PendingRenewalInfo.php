@@ -266,7 +266,7 @@ class PendingRenewalInfo implements ArrayAccess
      *
      * @return bool
      */
-    public function isInGracePeriod()
+    public function isInGracePeriod(): bool
     {
         return $this->is_in_billing_retry_period == self::RETRY_PERIOD_ACTIVE &&
             $this->grace_period_expires_date !== null &&
@@ -316,7 +316,7 @@ class PendingRenewalInfo implements ArrayAccess
      *
      * @return bool
      */
-    public function offsetExists($key)
+    public function offsetExists($key): bool
     {
         return isset($this->raw_data[$key]);
     }
