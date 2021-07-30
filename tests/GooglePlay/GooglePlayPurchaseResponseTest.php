@@ -2,7 +2,6 @@
 
 namespace ReceiptValidator\Tests\GooglePlay;
 
-use Google_Service_AndroidPublisher_ProductPurchase;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\AbstractResponse;
 use ReceiptValidator\GooglePlay\PurchaseResponse;
@@ -22,7 +21,7 @@ class GooglePlayPurchaseResponseTest extends TestCase
         $purchaseTimeMillis = '234346';
 
         // mock objects
-        $productPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_ProductPurchase::class)
+        $productPurchaseMock = $this->getMockBuilder(ProductPurchase::class)
             ->disableOriginalConstructor()->getMock();
 
         $productPurchaseMock->consumptionState = PurchaseResponse::CONSUMPTION_STATE_YET_TO_BE_CONSUMED;

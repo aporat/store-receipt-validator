@@ -2,7 +2,7 @@
 
 namespace ReceiptValidator\Tests\GooglePlay;
 
-use Google_Service_AndroidPublisher_SubscriptionPurchase;
+use Google\Service\AndroidPublisher\SubscriptionPurchase;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\AbstractResponse;
 use ReceiptValidator\GooglePlay\SubscriptionResponse;
@@ -40,7 +40,7 @@ class GooglePlaySubscriptionResponseTest extends TestCase
             'paymentState'               => $paymentState,
         ];
 
-        $subscriptionPurchase = new Google_Service_AndroidPublisher_SubscriptionPurchase($data);
+        $subscriptionPurchase = new SubscriptionPurchase($data);
         $subscriptionResponse = new SubscriptionResponse($subscriptionPurchase);
 
         $this->assertInstanceOf(AbstractResponse::class, $subscriptionResponse);

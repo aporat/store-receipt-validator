@@ -3,7 +3,9 @@
 namespace ReceiptValidator\GooglePlay;
 
 use Exception;
-use Google_Service_AndroidPublisher;
+use Google\Service\AndroidPublisher;
+use Google\Service\AndroidPublisher\ProductPurchasesAcknowledgeRequest;
+use Google\Service\AndroidPublisher\SubscriptionPurchasesAcknowledgeRequest;
 use ReceiptValidator\RunTimeException;
 
 /**
@@ -20,7 +22,7 @@ class Acknowledger
     const PRODUCT = 'PRODUCT';
 
     /**
-     * @var Google_Service_AndroidPublisher
+     * @var AndroidPublisher
      */
     protected $androidPublisherService;
     /**
@@ -43,16 +45,16 @@ class Acknowledger
     /**
      * Acknowledger constructor.
      *
-     * @param Google_Service_AndroidPublisher $googleServiceAndroidPublisher
-     * @param string                          $packageName
-     * @param string                          $purchaseToken
-     * @param string                          $productId
-     * @param string                          $strategy
+     * @param AndroidPublisher $googleServiceAndroidPublisher
+     * @param string           $packageName
+     * @param string           $purchaseToken
+     * @param string           $productId
+     * @param string           $strategy
      *
      * @throws RunTimeException
      */
     public function __construct(
-        Google_Service_AndroidPublisher $googleServiceAndroidPublisher,
+        AndroidPublisher $googleServiceAndroidPublisher,
         $packageName,
         $productId,
         $purchaseToken,
@@ -86,7 +88,7 @@ class Acknowledger
                             $this->packageName,
                             $this->productId,
                             $this->purchaseToken,
-                            new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
+                            new SubscriptionPurchasesAcknowledgeRequest(
                                 ['developerPayload' => $developerPayload]
                             )
                         );
@@ -102,7 +104,7 @@ class Acknowledger
                                 $this->packageName,
                                 $this->productId,
                                 $this->purchaseToken,
-                                new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
+                                new SubscriptionPurchasesAcknowledgeRequest(
                                     ['developerPayload' => $developerPayload]
                                 )
                             );
@@ -116,7 +118,7 @@ class Acknowledger
                             $this->packageName,
                             $this->productId,
                             $this->purchaseToken,
-                            new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
+                            new ProductPurchasesAcknowledgeRequest(
                                 ['developerPayload' => $developerPayload]
                             )
                         );
@@ -132,7 +134,7 @@ class Acknowledger
                                 $this->packageName,
                                 $this->productId,
                                 $this->purchaseToken,
-                                new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
+                                new ProductPurchasesAcknowledgeRequest(
                                     ['developerPayload' => $developerPayload]
                                 )
                             );

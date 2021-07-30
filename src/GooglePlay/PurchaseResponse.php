@@ -2,13 +2,15 @@
 
 namespace ReceiptValidator\GooglePlay;
 
+use Google\Service\AndroidPublisher\ProductPurchase;
+
 /**
  * Class PurchaseResponse.
  */
 class PurchaseResponse extends AbstractResponse
 {
     /**
-     * @var \Google_Service_AndroidPublisher_ProductPurchase
+     * @var ProductPurchase
      */
     protected $response;
 
