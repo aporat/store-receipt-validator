@@ -2,11 +2,11 @@
 
 namespace ReceiptValidator\Tests\GooglePlay;
 
-use Google_Service_AndroidPublisher;
-use Google_Service_AndroidPublisher_ProductPurchase;
-use Google_Service_AndroidPublisher_Resource_PurchasesProducts;
-use Google_Service_AndroidPublisher_Resource_PurchasesSubscriptions;
-use Google_Service_AndroidPublisher_SubscriptionPurchase;
+use Google\Service\AndroidPublisher;
+use Google\Service\AndroidPublisher\ProductPurchase;
+use Google\Service\AndroidPublisher\Resource\PurchasesProducts;
+use Google\Service\AndroidPublisher\Resource\PurchasesSubscriptions;
+use Google\Service\AndroidPublisher\SubscriptionPurchase;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\PurchaseResponse;
 use ReceiptValidator\GooglePlay\SubscriptionResponse;
@@ -24,15 +24,15 @@ class GooglePlayValidatorTest extends TestCase
         $purchaseToken = 'testPurchaseToken';
 
         // mock objects
-        $productResponseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_ProductPurchase::class)
+        $productResponseMock = $this->getMockBuilder(ProductPurchase::class)
             ->disableOriginalConstructor()->getMock();
-        $subscriptionResponseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_SubscriptionPurchase::class)
+        $subscriptionResponseMock = $this->getMockBuilder(SubscriptionPurchase::class)
             ->disableOriginalConstructor()->getMock();
-        $googleServiceAndroidPublisherMock = $this->getMockBuilder(Google_Service_AndroidPublisher::class)
+        $googleServiceAndroidPublisherMock = $this->getMockBuilder(AndroidPublisher::class)
             ->disableOriginalConstructor()->getMock();
-        $productPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_Resource_PurchasesProducts::class)
+        $productPurchaseMock = $this->getMockBuilder(PurchasesProducts::class)
             ->disableOriginalConstructor()->getMock();
-        $subscriptionPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_Resource_PurchasesSubscriptions::class)
+        $subscriptionPurchaseMock = $this->getMockBuilder(PurchasesSubscriptions::class)
             ->disableOriginalConstructor()->getMock();
 
         // mock expectations

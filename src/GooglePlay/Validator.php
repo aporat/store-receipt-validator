@@ -2,13 +2,15 @@
 
 namespace ReceiptValidator\GooglePlay;
 
+use Google\Service\AndroidPublisher;
+
 /**
  * Class Validator.
  */
 class Validator
 {
     /**
-     * @var \Google_Service_AndroidPublisher
+     * @var AndroidPublisher
      */
     protected $_androidPublisherService = null;
     /**
@@ -31,11 +33,11 @@ class Validator
     /**
      * Validator constructor.
      *
-     * @param \Google_Service_AndroidPublisher $googleServiceAndroidPublisher
-     * @param bool                             $validationModePurchase
+     * @param AndroidPublisher $googleServiceAndroidPublisher
+     * @param bool             $validationModePurchase
      */
     public function __construct(
-        \Google_Service_AndroidPublisher $googleServiceAndroidPublisher,
+        AndroidPublisher $googleServiceAndroidPublisher,
         $validationModePurchase = true
     ) {
         $this->_androidPublisherService = $googleServiceAndroidPublisher;
@@ -127,7 +129,7 @@ class Validator
     }
 
     /**
-     * @return \Google_Service_AndroidPublisher
+     * @return AndroidPublisher
      */
     public function getPublisherService()
     {

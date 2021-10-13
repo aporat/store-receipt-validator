@@ -69,7 +69,7 @@ $client->setApplicationName('...');
 $client->setAuthConfig('...');
 $client->setScopes('...');
 
-$validator = new PlayValidator(new \Google_Service_AndroidPublisher($client));
+$validator = new PlayValidator(new \Google\Service\AndroidPublisher($client));
 
 try {
   $response = $validator->setPackageName('PACKAGE_NAME')
@@ -89,11 +89,11 @@ Create service account [Service Account flow](https://developers.google.com/iden
 
 ```php
 $googleClient = new \Google_Client();
-$googleClient->setScopes([\Google_Service_AndroidPublisher::ANDROIDPUBLISHER]);
+$googleClient->setScopes([\Google\Service\AndroidPublisher::ANDROIDPUBLISHER]);
 $googleClient->setApplicationName('Your_Purchase_Validator_Name');
 $googleClient->setAuthConfig($pathToServiceAccountJsonFile);
 
-$googleAndroidPublisher = new \Google_Service_AndroidPublisher($googleClient);
+$googleAndroidPublisher = new \Google\Service\AndroidPublisher($googleClient);
 $validator = new \ReceiptValidator\GooglePlay\Validator($googleAndroidPublisher);
 
 try {

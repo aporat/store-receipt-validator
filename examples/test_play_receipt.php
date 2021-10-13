@@ -28,7 +28,7 @@ $client->setApplicationName($applicationName);
 $client->setAuthConfig($configLocation);
 $client->setScopes($scope);
 
-$validator = new PlayValidator(new \Google_Service_AndroidPublisher($client));
+$validator = new PlayValidator(new \Google\Service\AndroidPublisher($client));
 
 try {
     $response = $validator->setPackageName($packageName)->setProductId($productId)->setPurchaseToken($purchaseToken)->validatePurchase();

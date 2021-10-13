@@ -2,11 +2,13 @@
 
 namespace ReceiptValidator\Tests\GooglePlay;
 
-use Google_Service_AndroidPublisher;
-use Google_Service_AndroidPublisher_ProductPurchase;
-use Google_Service_AndroidPublisher_Resource_PurchasesProducts;
-use Google_Service_AndroidPublisher_Resource_PurchasesSubscriptions;
-use Google_Service_AndroidPublisher_SubscriptionPurchase;
+use Google\Service\AndroidPublisher;
+use Google\Service\AndroidPublisher\ProductPurchase;
+use Google\Service\AndroidPublisher\ProductPurchasesAcknowledgeRequest;
+use Google\Service\AndroidPublisher\Resource\PurchasesProducts;
+use Google\Service\AndroidPublisher\Resource\PurchasesSubscriptions;
+use Google\Service\AndroidPublisher\SubscriptionPurchase;
+use Google\Service\AndroidPublisher\SubscriptionPurchasesAcknowledgeRequest;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\Acknowledger;
 
@@ -22,24 +24,24 @@ class GooglePlayAcknowledgerTest extends TestCase
         $purchaseToken = 'testPurchaseToken';
 
         // mock objects
-        $googleServiceAndroidPublisherMock = $this->getMockBuilder(Google_Service_AndroidPublisher::class)
+        $googleServiceAndroidPublisherMock = $this->getMockBuilder(AndroidPublisher::class)
                                                   ->disableOriginalConstructor()->getMock();
 
         // products
         $purchasesProductsMock = $this->getMockBuilder(
-            Google_Service_AndroidPublisher_Resource_PurchasesProducts::class
+            PurchasesProducts::class
         )
                                       ->disableOriginalConstructor()->getMock();
-        $productPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_ProductPurchase::class)
+        $productPurchaseMock = $this->getMockBuilder(ProductPurchase::class)
                                     ->disableOriginalConstructor()->getMock();
         $productPurchaseMock->expects($this->any())->method('getAcknowledgementState')->willReturn(0);
 
         // subscriptions
         $purchasesSubscriptionsMock = $this->getMockBuilder(
-            Google_Service_AndroidPublisher_Resource_PurchasesSubscriptions::class
+            PurchasesSubscriptions::class
         )
                                            ->disableOriginalConstructor()->getMock();
-        $subscriptionPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_SubscriptionPurchase::class)
+        $subscriptionPurchaseMock = $this->getMockBuilder(SubscriptionPurchase::class)
                                          ->disableOriginalConstructor()->getMock();
         $subscriptionPurchaseMock->expects($this->any())->method('getAcknowledgementState')->willReturn(0);
 
@@ -52,7 +54,7 @@ class GooglePlayAcknowledgerTest extends TestCase
                                   $packageName,
                                   $productId,
                                   $purchaseToken,
-                                  new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
+                                  new ProductPurchasesAcknowledgeRequest(
                                       ['developerPayload' => 'bar']
                                   )
                               );
@@ -62,7 +64,7 @@ class GooglePlayAcknowledgerTest extends TestCase
                                        $packageName,
                                        $productId,
                                        $purchaseToken,
-                                       new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
+                                       new SubscriptionPurchasesAcknowledgeRequest(
                                            ['developerPayload' => 'foo']
                                        )
                                    );
@@ -85,24 +87,24 @@ class GooglePlayAcknowledgerTest extends TestCase
         $purchaseToken = 'testPurchaseToken';
 
         // mock objects
-        $googleServiceAndroidPublisherMock = $this->getMockBuilder(Google_Service_AndroidPublisher::class)
+        $googleServiceAndroidPublisherMock = $this->getMockBuilder(AndroidPublisher::class)
                                                   ->disableOriginalConstructor()->getMock();
 
         // products
         $purchasesProductsMock = $this->getMockBuilder(
-            Google_Service_AndroidPublisher_Resource_PurchasesProducts::class
+            PurchasesProducts::class
         )
                                       ->disableOriginalConstructor()->getMock();
-        $productPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_ProductPurchase::class)
+        $productPurchaseMock = $this->getMockBuilder(ProductPurchase::class)
                                     ->disableOriginalConstructor()->getMock();
         $productPurchaseMock->expects($this->any())->method('getAcknowledgementState')->willReturn(1);
 
         // subscriptions
         $purchasesSubscriptionsMock = $this->getMockBuilder(
-            Google_Service_AndroidPublisher_Resource_PurchasesSubscriptions::class
+            PurchasesSubscriptions::class
         )
                                            ->disableOriginalConstructor()->getMock();
-        $subscriptionPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_SubscriptionPurchase::class)
+        $subscriptionPurchaseMock = $this->getMockBuilder(SubscriptionPurchase::class)
                                          ->disableOriginalConstructor()->getMock();
         $subscriptionPurchaseMock->expects($this->any())->method('getAcknowledgementState')->willReturn(1);
 
@@ -121,7 +123,7 @@ class GooglePlayAcknowledgerTest extends TestCase
                                   $packageName,
                                   $productId,
                                   $purchaseToken,
-                                  new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
+                                  new ProductPurchasesAcknowledgeRequest(
                                       ['developerPayload' => 'bar']
                                   )
                               );
@@ -137,7 +139,7 @@ class GooglePlayAcknowledgerTest extends TestCase
                                        $packageName,
                                        $productId,
                                        $purchaseToken,
-                                       new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
+                                       new SubscriptionPurchasesAcknowledgeRequest(
                                            ['developerPayload' => 'foo']
                                        )
                                    );
@@ -161,17 +163,17 @@ class GooglePlayAcknowledgerTest extends TestCase
         $purchaseToken = 'testPurchaseToken';
 
         // mock objects
-        $googleServiceAndroidPublisherMock = $this->getMockBuilder(Google_Service_AndroidPublisher::class)
+        $googleServiceAndroidPublisherMock = $this->getMockBuilder(AndroidPublisher::class)
                                                   ->disableOriginalConstructor()
                                                   ->getMock();
 
         // subscriptions
         $purchasesSubscriptionsMock = $this->getMockBuilder(
-            Google_Service_AndroidPublisher_Resource_PurchasesSubscriptions::class
+            PurchasesSubscriptions::class
         )
                                            ->disableOriginalConstructor()
                                            ->getMock();
-        $subscriptionPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_SubscriptionPurchase::class)
+        $subscriptionPurchaseMock = $this->getMockBuilder(SubscriptionPurchase::class)
                                          ->disableOriginalConstructor()
                                          ->getMock();
         $subscriptionPurchaseMock->expects($this->any())->method('getAcknowledgementState')->willReturn(1);
@@ -184,7 +186,7 @@ class GooglePlayAcknowledgerTest extends TestCase
                                        $packageName,
                                        $productId,
                                        $purchaseToken,
-                                       new \Google_Service_AndroidPublisher_SubscriptionPurchasesAcknowledgeRequest(
+                                       new SubscriptionPurchasesAcknowledgeRequest(
                                            ['developerPayload' => 'foo']
                                        )
                                    );
@@ -206,15 +208,15 @@ class GooglePlayAcknowledgerTest extends TestCase
         $purchaseToken = 'testPurchaseToken';
 
         // mock objects
-        $googleServiceAndroidPublisherMock = $this->getMockBuilder(Google_Service_AndroidPublisher::class)
+        $googleServiceAndroidPublisherMock = $this->getMockBuilder(AndroidPublisher::class)
                                                   ->disableOriginalConstructor()->getMock();
 
         // products
         $purchasesProductsMock = $this->getMockBuilder(
-            Google_Service_AndroidPublisher_Resource_PurchasesProducts::class
+            PurchasesProducts::class
         )
                                       ->disableOriginalConstructor()->getMock();
-        $productPurchaseMock = $this->getMockBuilder(Google_Service_AndroidPublisher_ProductPurchase::class)
+        $productPurchaseMock = $this->getMockBuilder(ProductPurchase::class)
                                     ->disableOriginalConstructor()->getMock();
         $productPurchaseMock->expects($this->any())->method('getAcknowledgementState')->willReturn(1);
 
@@ -226,7 +228,7 @@ class GooglePlayAcknowledgerTest extends TestCase
                                   $packageName,
                                   $productId,
                                   $purchaseToken,
-                                  new \Google_Service_AndroidPublisher_ProductPurchasesAcknowledgeRequest(
+                                  new ProductPurchasesAcknowledgeRequest(
                                       ['developerPayload' => 'bar']
                                   )
                               );
