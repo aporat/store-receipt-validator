@@ -301,6 +301,7 @@ class PurchaseItem implements ArrayAccess
      *
      * @throws RunTimeException
      */
+    #[ReturnTypeWillChange]
     public function offsetSet($key, $value)
     {
         $this->raw_data[$key] = $value;
@@ -314,6 +315,7 @@ class PurchaseItem implements ArrayAccess
      *
      * @return mixed
      */
+    #[ReturnTypeWillChange]
     public function offsetGet($key)
     {
         return $this->raw_data[$key];
@@ -324,6 +326,7 @@ class PurchaseItem implements ArrayAccess
      *
      * @param $key
      */
+    #[ReturnTypeWillChange]
     public function offsetUnset($key)
     {
         unset($this->raw_data[$key]);
@@ -336,6 +339,7 @@ class PurchaseItem implements ArrayAccess
      *
      * @return bool
      */
+    #[ReturnTypeWillChange]
     public function offsetExists($key)
     {
         return isset($this->raw_data[$key]);

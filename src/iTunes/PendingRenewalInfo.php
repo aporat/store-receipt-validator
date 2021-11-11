@@ -281,6 +281,7 @@ class PendingRenewalInfo implements ArrayAccess
      *
      * @throws RunTimeException
      */
+    #[ReturnTypeWillChange]
     public function offsetSet($key, $value)
     {
         $this->raw_data[$key] = $value;
@@ -294,6 +295,7 @@ class PendingRenewalInfo implements ArrayAccess
      *
      * @return mixed
      */
+    #[ReturnTypeWillChange]
     public function offsetGet($key)
     {
         return $this->raw_data[$key];
@@ -304,6 +306,7 @@ class PendingRenewalInfo implements ArrayAccess
      *
      * @param $key
      */
+    #[ReturnTypeWillChange]
     public function offsetUnset($key)
     {
         unset($this->raw_data[$key]);
@@ -316,6 +319,7 @@ class PendingRenewalInfo implements ArrayAccess
      *
      * @return bool
      */
+    #[ReturnTypeWillChange]
     public function offsetExists($key): bool
     {
         return isset($this->raw_data[$key]);
