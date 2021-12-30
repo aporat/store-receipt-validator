@@ -298,7 +298,7 @@ class PendingRenewalInfo implements ArrayAccess
     #[\ReturnTypeWillChange]
     public function offsetGet($key)
     {
-        return $this->raw_data[$key];
+        return $this->raw_data[$key] ?? null;
     }
 
     /**
