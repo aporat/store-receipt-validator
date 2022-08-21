@@ -11,6 +11,9 @@ store-receipt-validator
 
 PHP receipt validator for Apple iTunes, Google Play and Amazon App Store
 
+Note:<br/>
+If you're looking for the fastest way to implement in-app purchases, check [IAPHUB](https://www.iaphub.com) (IAPHUB will do the receipt validation for you).
+
 ## Requirements ##
 
 * PHP >= 7.3
