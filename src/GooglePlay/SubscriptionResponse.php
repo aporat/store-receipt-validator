@@ -95,4 +95,12 @@ class SubscriptionResponse extends AbstractResponse
     {
         return $this->response->expiryTimeMillis;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getExternalAccountId()
+    {
+        return $this->response->getExternalAccountId();
+    }
 }
