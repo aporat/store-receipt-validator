@@ -19,7 +19,9 @@ class PurchaseResponse extends AbstractResponse
     public function __construct($response)
     {
         parent::__construct($response);
-        $this->developerPayload = json_decode($this->response->developerPayload, true);
+        if (isset($this->response->developerPayload)) {
+            $this->developerPayload = json_decode($this->response->developerPayload, true);
+        }
     }
 
     /**
