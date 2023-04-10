@@ -198,9 +198,13 @@ class Validator
      */
     protected function getClientConfig(): array
     {
-        $base_uri = ['base_uri' => $this->endpoint];
+        if (!isset($this->request_options['base_uri'])) {
+            $base_uri = ['base_uri' => $this->endpoint];
 
-        return array_merge($this->request_options, $base_uri);
+            return array_merge($this->request_options, $base_uri);
+        }
+
+        return $this->request_options;
     }
 
     /**
