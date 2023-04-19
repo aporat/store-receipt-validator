@@ -31,6 +31,11 @@ class Validator
     private $validationModePurchase = true;
 
     /**
+     * @var bool
+     */
+    private $validationSubscriptionV2 = false;
+
+    /**
      * Validator constructor.
      *
      * @param AndroidPublisher $googleServiceAndroidPublisher
@@ -93,11 +98,30 @@ class Validator
     }
 
     /**
+     * @param bool
+     *
+     * @return Validator
+     */
+    public function setValidationSubscriptionV2(bool $validationSubscriptionV2)
+    {
+        $this->validationModePurchase = $validationSubscriptionV2;
+
+        return $this;
+    }
+
+    /**
      * @return PurchaseResponse|SubscriptionResponse
      */
     public function validate()
     {
-        return ($this->validationModePurchase) ? $this->validatePurchase() : $this->validateSubscription();
+        if ($this->validationModePurchase) {
+            $result = $this->validatePurchase();
+        } elseif ($this->validateSubscriptionV2()) {
+            $result = $this->validateSubscriptionV2();
+        } else {
+            $result = $this->validateSubscription();
+        }
+        return $result;
     }
 
     /**
@@ -123,6 +147,16 @@ class Validator
             $this->_androidPublisherService->purchases_subscriptions->get(
                 $this->_package_name,
                 $this->_product_id,
+                $this->_purchase_token
+            )
+        );
+    }
+
+    public function validateSubscriptionV2()
+    {
+        return new SubscriptionV2Response(
+            $this->_androidPublisherService->purchases_subscriptionsv2->get(
+                $this->_package_name,
                 $this->_purchase_token
             )
         );
