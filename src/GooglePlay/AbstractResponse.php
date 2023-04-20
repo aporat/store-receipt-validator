@@ -4,6 +4,7 @@ namespace ReceiptValidator\GooglePlay;
 
 use Google\Service\AndroidPublisher\ProductPurchase;
 use Google\Service\AndroidPublisher\SubscriptionPurchase;
+use Google\Service\AndroidPublisher\SubscriptionPurchaseV2;
 
 /**
  * Class AbstractResponse.
@@ -18,14 +19,14 @@ abstract class AbstractResponse
     const ACKNOWLEDGEMENT_STATE_DONE = 1;
 
     /**
-     * @var ProductPurchase|SubscriptionPurchase
+     * @var ProductPurchase|SubscriptionPurchase|SubscriptionPurchaseV2
      */
     protected $response;
 
     /**
      * Constructor.
      *
-     * @param ProductPurchase|SubscriptionPurchase $response
+     * @param ProductPurchase|SubscriptionPurchase|SubscriptionPurchaseV2 $response
      */
     public function __construct($response)
     {
@@ -65,7 +66,7 @@ abstract class AbstractResponse
     }
 
     /**
-     * @return ProductPurchase|SubscriptionPurchase
+     * @return ProductPurchase|SubscriptionPurchase|SubscriptionPurchaseV2
      */
     public function getRawResponse()
     {
