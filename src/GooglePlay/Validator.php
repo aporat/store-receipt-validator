@@ -104,7 +104,7 @@ class Validator
      */
     public function setValidationSubscriptionV2(bool $validationSubscriptionV2)
     {
-        $this->validationModePurchase = $validationSubscriptionV2;
+        $this->validationSubscriptionV2 = $validationSubscriptionV2;
 
         return $this;
     }
@@ -116,7 +116,7 @@ class Validator
     {
         if ($this->validationModePurchase) {
             $result = $this->validatePurchase();
-        } elseif ($this->validateSubscriptionV2()) {
+        } elseif ($this->validationSubscriptionV2) {
             $result = $this->validateSubscriptionV2();
         } else {
             $result = $this->validateSubscription();
