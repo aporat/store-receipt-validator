@@ -38,9 +38,7 @@
         "phpunit/phpunit": "^9.0|^10.0|^11.0"
     },
     "config": {
-        "preferred-install": "dist",
-        "sort-packages": true,
-        "optimize-autoloader": true
+        "sort-packages": true
     },
     "autoload": {
         "psr-4": {
@@ -54,5 +52,11 @@
     },
     "support": {
         "issues": "https://github.com/aporat/store-receipt-validator/issues"
-    }
+    },
+    "scripts": {
+    "test": "phpunit --colors=always",
+    "test:ci": "phpunit --colors=always --coverage-text --coverage-clover=coverage.xml"
+},
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
