@@ -31,8 +31,7 @@
         "guzzlehttp/guzzle": "^6.3|^7.0",
         "nesbot/carbon": "^1.0|^2.0|^3.0",
         "google/apiclient": "^2.10",
-        "google/apiclient-services": "~0.249",
-        "robrichards/xmlseclibs": "^3.0.4"
+        "google/apiclient-services": "~0.249"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0|^11.0"
