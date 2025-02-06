@@ -4,11 +4,9 @@ namespace ReceiptValidator\Tests\Amazon;
 
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Response;
-use ReceiptValidator\RuntimeException;
 
 class AmazonResponseTest extends TestCase
 {
-
     public function testInvalidReceipt(): void
     {
         $response = new Response(Response::RESULT_INTERNAL_ERROR, ['']);
