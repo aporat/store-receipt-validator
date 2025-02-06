@@ -46,19 +46,19 @@ class Acknowledger
      * Acknowledger constructor.
      *
      * @param AndroidPublisher $googleServiceAndroidPublisher
-     * @param string $packageName
-     * @param string $purchaseToken
-     * @param string $productId
-     * @param string $strategy
+     * @param string           $packageName
+     * @param string           $purchaseToken
+     * @param string           $productId
+     * @param string           $strategy
      *
      * @throws RunTimeException
      */
     public function __construct(
         AndroidPublisher $googleServiceAndroidPublisher,
-        string           $packageName,
-        string           $productId,
-        string           $purchaseToken,
-        string           $strategy = self::ACKNOWLEDGE_STRATEGY_EXPLICIT
+        string $packageName,
+        string $productId,
+        string $purchaseToken,
+        string $strategy = self::ACKNOWLEDGE_STRATEGY_EXPLICIT
     ) {
         if (!in_array($strategy, [self::ACKNOWLEDGE_STRATEGY_EXPLICIT, self::ACKNOWLEDGE_STRATEGY_IMPLICIT])) {
             throw new RuntimeException(sprintf('Invalid strategy provided %s', $strategy));
