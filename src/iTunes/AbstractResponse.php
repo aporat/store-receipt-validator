@@ -96,7 +96,7 @@ abstract class AbstractResponse
      *
      * @var bool
      */
-    protected $is_retryable = false;
+    protected bool $is_retryable = false;
 
     /**
      * Response constructor.

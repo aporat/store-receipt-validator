@@ -72,14 +72,14 @@ class PurchaseItem implements ArrayAccess
     protected ?Carbon $cancellation_date;
 
     /**
-     * For a subscription, whether or not it is in the free trial period.
+     * For a subscription, whether it is in the free trial period.
      *
      * @var bool|null
      */
     protected ?bool $is_trial_period;
 
     /**
-     * For an auto-renewable subscription, whether or not it is in the introductory price period.
+     * For an auto-renewable subscription, whether it is in the introductory price period.
      *
      * @var bool|null
      */
