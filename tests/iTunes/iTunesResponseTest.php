@@ -10,9 +10,6 @@ use ReceiptValidator\iTunes\ResponseInterface;
 use ReceiptValidator\iTunes\SandboxResponse;
 use ReceiptValidator\RunTimeException;
 
-/**
- * @group library
- */
 class iTunesResponseTest extends TestCase
 {
     public function testInvalidOptionsToConstructor(): void

@@ -8,9 +8,6 @@ use ReceiptValidator\iTunes\PendingRenewalInfo;
 use ReceiptValidator\RunTimeException;
 use TypeError;
 
-/**
- * @group library
- */
 class iTunesPendingRenewalInfoTest extends TestCase
 {
     public function testInvalidOptionsToConstructor(): void

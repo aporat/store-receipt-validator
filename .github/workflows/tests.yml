@@ -1,104 +1,67 @@
-# https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+name: Tests
 
 on:
-  pull_request:
-  push:
-    branches:
-      - "master"
-    tags:
-      - "**"
-
-name: "Tests"
+    push:
+    pull_request:
+    release:
+        types:
+            - published
+    schedule:
+        - cron: '0 0 * * *'
 
 jobs:
-  tests:
-    name: "Tests"
+    php-tests:
+        runs-on: ${{ matrix.os }}
 
-    runs-on: "ubuntu-latest"
+        strategy:
+            fail-fast: false
+            matrix:
+                php: [7.3, 7.4, 8.2, 8.3, 8.4]
+                os: [ubuntu-latest]
+                coverage: [none]
+                include:
+                    - php: 8.3
+                      os: ubuntu-latest
+                      coverage: xdebug
 
-    strategy:
-      matrix:
-        php-version:
-          - "7.3"
-          - "7.4"
-          - "8.0"
-          - "8.1"
-          - "8.2"
-          - "8.3"
+        name: '[P${{ matrix.php }}] [L${{ matrix.laravel }}] [${{ matrix.coverage }}]'
 
-    steps:
-      - name: "Checkout"
-        uses: "actions/checkout@v2"
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
 
-      - name: "Install PHP with extensions"
-        uses: "shivammathur/setup-php@v2"
-        with:
-          coverage: "none"
-          extensions: "intl"
-          ini-values: "memory_limit=-1"
-          php-version: "${{ matrix.php-version }}"
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  extensions: mbstring json openssl xdebug
+                  ini-values: memory_limit=-1
+                  tools: composer:v2
+                  coverage: ${{ matrix.coverage }}
+              env:
+                  update: true
 
-      - name: "Determine composer cache directory"
-        id: "determine-composer-cache-directory"
-        run: "echo \"::set-output name=directory::$(composer config cache-dir)\""
+            - name: Cache dependencies
+              uses: actions/cache@v3
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: "php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-${{ hashFiles('**/composer.json') }}"
+                  restore-keys: "php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-${{ hashFiles('**/composer.json') }}"
 
-      - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
-        with:
-          path: "${{ steps.determine-composer-cache-directory.outputs.directory }}"
-          key: "php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.json') }}"
-          restore-keys: "php-${{ matrix.php-version }}-composer-"
+            - name: Install Dependencies
+              run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --ignore-platform-reqs
 
-      - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+            - name: Execute tests (Unit and Feature tests) via PHPUnit
+              if: matrix.coverage == 'none'
+              run: composer test
 
-      - name: "Run tests with phpunit/phpunit"
-        run: "vendor/bin/phpunit"
+            - name: Execute tests (Unit and Feature tests) via PHPUnit
+              if: matrix.coverage == 'xdebug'
+              run: composer test:ci
 
-  code-coverage:
-    name: "Code Coverage"
-
-    runs-on: "ubuntu-latest"
-
-    strategy:
-      matrix:
-        php-version:
-          - "7.3"
-
-    steps:
-      - name: "Checkout"
-        uses: "actions/checkout@v2"
-
-      - name: "Install PHP with extensions"
-        uses: "shivammathur/setup-php@v2"
-        with:
-          coverage: "xdebug"
-          extensions: "intl"
-          ini-values: "memory_limit=-1"
-          php-version: "${{ matrix.php-version }}"
-
-      - name: "Determine composer cache directory"
-        id: "determine-composer-cache-directory"
-        run: "echo \"::set-output name=directory::$(composer config cache-dir)\""
-
-      - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
-        with:
-          path: "${{ steps.determine-composer-cache-directory.outputs.directory }}"
-          key: "php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.json') }}"
-          restore-keys: "php-${{ matrix.php-version }}-composer-"
-
-      - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
-
-      - name: "Create build directory"
-        run: "mkdir -p .build/logs"
-
-      - name: "Collect code coverage with Xdebug and phpunit/phpunit"
-        run: "vendor/bin/phpunit --coverage-clover=.build/logs/clover.xml"
-
-      - name: "Scrutinizer Code Coverage"
-        run: "wget https://scrutinizer-ci.com/ocular.phar"
-
-      - name: "Scrutinizer Code Coverage Upload"
-        run: "php ocular.phar code-coverage:upload --format=php-clover .build/logs/clover.xml"
+            - name: Upload coverage reports to Codecov
+              uses: codecov/codecov-action@v5
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  if: matrix.coverage == 'xdebug'
+                  slug: aporat/store-receipt-validator

@@ -7,9 +7,6 @@ use ReceiptValidator\iTunes\PurchaseItem;
 use ReceiptValidator\RunTimeException;
 use TypeError;
 
-/**
- * @group library
- */
 class PurchaseItemTest extends TestCase
 {
     public function testInvalidOptionsToConstructor(): void
