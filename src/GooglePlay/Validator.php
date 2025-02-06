@@ -121,6 +121,7 @@ class Validator
         } else {
             $result = $this->validateSubscription();
         }
+
         return $result;
     }
 
