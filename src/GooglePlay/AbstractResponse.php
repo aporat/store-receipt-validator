@@ -36,7 +36,7 @@ abstract class AbstractResponse
     /**
      * @return array|string
      */
-    public function getDeveloperPayload()
+    public function getDeveloperPayload(): array|string
     {
         return $this->response->getDeveloperPayload();
     }
@@ -44,7 +44,7 @@ abstract class AbstractResponse
     /**
      * @return int
      */
-    public function getAcknowledgementState()
+    public function getAcknowledgementState(): int
     {
         return $this->response->acknowledgementState;
     }
@@ -60,7 +60,7 @@ abstract class AbstractResponse
     /**
      * @return string
      */
-    public function getKind()
+    public function getKind(): string
     {
         return $this->response->kind;
     }

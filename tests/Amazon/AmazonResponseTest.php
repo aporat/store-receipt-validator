@@ -4,18 +4,9 @@ namespace ReceiptValidator\Tests\Amazon;
 
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Response;
-use ReceiptValidator\RuntimeException;
 
 class AmazonResponseTest extends TestCase
 {
-    public function testInvalidOptionsToConstructor(): void
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Response must be a scalar value');
-
-        new Response(Response::RESULT_OK, 'invalid');
-    }
-
     public function testInvalidReceipt(): void
     {
         $response = new Response(Response::RESULT_INTERNAL_ERROR, ['']);

@@ -1,9 +1,9 @@
 <?php
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$root = realpath(dirname(dirname(__FILE__)));
+$root = realpath(dirname(__FILE__, 2));
 $library = "$root/library";
 
 $path = [$library, get_include_path()];
@@ -11,6 +11,7 @@ set_include_path(implode(PATH_SEPARATOR, $path));
 
 require_once $root.'/vendor/autoload.php';
 
+use Google\Service\AndroidPublisher;
 use ReceiptValidator\GooglePlay\Validator as PlayValidator;
 
 // google authentication
@@ -28,7 +29,7 @@ $client->setApplicationName($applicationName);
 $client->setAuthConfig($configLocation);
 $client->setScopes($scope);
 
-$validator = new PlayValidator(new \Google\Service\AndroidPublisher($client));
+$validator = new PlayValidator(new AndroidPublisher($client));
 
 try {
     $response = $validator->setPackageName($packageName)->setProductId($productId)->setPurchaseToken($purchaseToken)->validatePurchase();

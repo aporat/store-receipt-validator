@@ -36,7 +36,7 @@ class PendingRenewalInfo implements ArrayAccess
     /* @var int Stopped attempting renewal */
     const RETRY_PERIOD_INACTIVE = 0;
 
-    // Auto renew status codes //
+    // Auto-renew status codes //
     /* @var int Subscription will renew */
     const AUTO_RENEW_ACTIVE = 1;
 
@@ -57,21 +57,21 @@ class PendingRenewalInfo implements ArrayAccess
      *
      * @var string
      */
-    protected $product_id = '';
+    protected string $product_id = '';
 
     /**
      * Auto Renew Product ID.
      *
      * @var string
      */
-    protected $auto_renew_product_id = '';
+    protected string $auto_renew_product_id = '';
 
     /**
      * Original Transaction ID.
      *
      * @var string
      */
-    protected $original_transaction_id = '';
+    protected string $original_transaction_id = '';
 
     /**
      * The current renewal status for the auto-renewable subscription.
@@ -81,35 +81,35 @@ class PendingRenewalInfo implements ArrayAccess
      *
      * @var bool
      */
-    protected $auto_renew_status = false;
+    protected bool $auto_renew_status = false;
 
     /**
      * Expiration Intent Code.
      *
      * @var int|null
      */
-    protected $expiration_intent;
+    protected ?int $expiration_intent = null;
 
     /**
      * he time at which the grace period for subscription renewals expires.
      *
-     * @var Carbon
+     * @var Carbon|null
      */
-    protected $grace_period_expires_date;
+    protected ?Carbon $grace_period_expires_date;
 
     /**
      * Is In Billing Retry Period Code.
      *
      * @var int|null
      */
-    protected $is_in_billing_retry_period;
+    protected ?int $is_in_billing_retry_period;
 
     /**
      * Pending renewal info.
      *
      * @var array|null
      */
-    protected $raw_data = null;
+    protected ?array $raw_data = null;
 
     /**
      * Response constructor.
@@ -118,7 +118,7 @@ class PendingRenewalInfo implements ArrayAccess
      *
      * @throws RunTimeException
      */
-    public function __construct(?array $data = null)
+    public function __construct(?array $data)
     {
         $this->raw_data = $data;
         $this->parseData();
@@ -282,7 +282,7 @@ class PendingRenewalInfo implements ArrayAccess
      * @throws RunTimeException
      */
     #[\ReturnTypeWillChange]
-    public function offsetSet($key, $value)
+    public function offsetSet($key, $value): void
     {
         $this->raw_data[$key] = $value;
         $this->parseData();
@@ -296,7 +296,7 @@ class PendingRenewalInfo implements ArrayAccess
      * @return mixed
      */
     #[\ReturnTypeWillChange]
-    public function offsetGet($key)
+    public function offsetGet($key): mixed
     {
         return $this->raw_data[$key];
     }
@@ -307,7 +307,7 @@ class PendingRenewalInfo implements ArrayAccess
      * @param $key
      */
     #[\ReturnTypeWillChange]
-    public function offsetUnset($key)
+    public function offsetUnset($key): void
     {
         unset($this->raw_data[$key]);
     }

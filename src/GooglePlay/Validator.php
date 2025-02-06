@@ -3,6 +3,7 @@
 namespace ReceiptValidator\GooglePlay;
 
 use Google\Service\AndroidPublisher;
+use Google\Service\Exception;
 
 /**
  * Class Validator.
@@ -10,30 +11,30 @@ use Google\Service\AndroidPublisher;
 class Validator
 {
     /**
-     * @var AndroidPublisher
+     * @var AndroidPublisher|null
      */
-    protected $_androidPublisherService = null;
+    protected ?AndroidPublisher $_androidPublisherService = null;
     /**
-     * @var string
+     * @var string|null
      */
-    protected $_package_name = null;
+    protected ?string $_package_name = null;
     /**
-     * @var string
+     * @var string|null
      */
-    protected $_purchase_token = null;
+    protected ?string $_purchase_token = null;
     /**
-     * @var string
+     * @var string|null
      */
-    protected $_product_id = null;
+    protected ?string $_product_id = null;
     /**
      * @var bool
      */
-    private $validationModePurchase = true;
+    private bool $validationModePurchase = true;
 
     /**
      * @var bool
      */
-    private $validationSubscriptionV2 = false;
+    private bool $validationSubscriptionV2 = false;
 
     /**
      * Validator constructor.
@@ -43,7 +44,7 @@ class Validator
      */
     public function __construct(
         AndroidPublisher $googleServiceAndroidPublisher,
-        $validationModePurchase = true
+        bool $validationModePurchase = true
     ) {
         $this->_androidPublisherService = $googleServiceAndroidPublisher;
         $this->validationModePurchase = $validationModePurchase;
@@ -54,7 +55,7 @@ class Validator
      *
      * @return $this
      */
-    public function setPackageName($package_name)
+    public function setPackageName(string $package_name): static
     {
         $this->_package_name = $package_name;
 
@@ -66,7 +67,7 @@ class Validator
      *
      * @return $this
      */
-    public function setPurchaseToken($purchase_token)
+    public function setPurchaseToken(string $purchase_token): static
     {
         $this->_purchase_token = $purchase_token;
 
@@ -78,7 +79,7 @@ class Validator
      *
      * @return $this
      */
-    public function setProductId($product_id)
+    public function setProductId(string $product_id): static
     {
         $this->_product_id = $product_id;
 
@@ -90,7 +91,7 @@ class Validator
      *
      * @return Validator
      */
-    public function setValidationModePurchase($validationModePurchase)
+    public function setValidationModePurchase(bool $validationModePurchase): static
     {
         $this->validationModePurchase = $validationModePurchase;
 
@@ -98,11 +99,11 @@ class Validator
     }
 
     /**
-     * @param bool
+     * @param bool $validationSubscriptionV2
      *
      * @return Validator
      */
-    public function setValidationSubscriptionV2(bool $validationSubscriptionV2)
+    public function setValidationSubscriptionV2(bool $validationSubscriptionV2): static
     {
         $this->validationSubscriptionV2 = $validationSubscriptionV2;
 
@@ -110,6 +111,8 @@ class Validator
     }
 
     /**
+     * @throws Exception
+     *
      * @return PurchaseResponse|SubscriptionResponse
      */
     public function validate()
@@ -126,9 +129,11 @@ class Validator
     }
 
     /**
+     * @throws Exception
+     *
      * @return PurchaseResponse
      */
-    public function validatePurchase()
+    public function validatePurchase(): PurchaseResponse
     {
         return new PurchaseResponse(
             $this->_androidPublisherService->purchases_products->get(
@@ -140,9 +145,11 @@ class Validator
     }
 
     /**
+     * @throws Exception
+     *
      * @return SubscriptionResponse
      */
-    public function validateSubscription()
+    public function validateSubscription(): SubscriptionResponse
     {
         return new SubscriptionResponse(
             $this->_androidPublisherService->purchases_subscriptions->get(
@@ -153,7 +160,7 @@ class Validator
         );
     }
 
-    public function validateSubscriptionV2()
+    public function validateSubscriptionV2(): SubscriptionV2Response
     {
         return new SubscriptionV2Response(
             $this->_androidPublisherService->purchases_subscriptionsv2->get(
@@ -164,9 +171,9 @@ class Validator
     }
 
     /**
-     * @return AndroidPublisher
+     * @return AndroidPublisher|null
      */
-    public function getPublisherService()
+    public function getPublisherService(): ?AndroidPublisher
     {
         return $this->_androidPublisherService;
     }

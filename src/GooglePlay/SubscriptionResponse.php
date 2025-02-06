@@ -17,15 +17,15 @@ class SubscriptionResponse extends AbstractResponse
     /**
      * @return bool
      */
-    public function getAutoRenewing()
+    public function getAutoRenewing(): bool
     {
-        return (bool) $this->response->getAutoRenewing();
+        return $this->response->getAutoRenewing();
     }
 
     /**
      * @return int|null
      */
-    public function getCancelReason()
+    public function getCancelReason(): ?int
     {
         return $this->response->getCancelReason();
     }
@@ -33,15 +33,15 @@ class SubscriptionResponse extends AbstractResponse
     /**
      * @return string
      */
-    public function getCountryCode()
+    public function getCountryCode(): string
     {
         return $this->response->getCountryCode();
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getPriceAmountMicros()
+    public function getPriceAmountMicros(): string
     {
         return $this->response->getPriceAmountMicros();
     }
@@ -49,7 +49,7 @@ class SubscriptionResponse extends AbstractResponse
     /**
      * @return string
      */
-    public function getPriceCurrencyCode()
+    public function getPriceCurrencyCode(): string
     {
         return $this->response->getPriceCurrencyCode();
     }
@@ -57,7 +57,7 @@ class SubscriptionResponse extends AbstractResponse
     /**
      * @return string
      */
-    public function getStartTimeMillis()
+    public function getStartTimeMillis(): string
     {
         return $this->response->getStartTimeMillis();
     }
@@ -65,7 +65,7 @@ class SubscriptionResponse extends AbstractResponse
     /**
      * @return int
      */
-    public function getExpiryTimeMillis()
+    public function getExpiryTimeMillis(): int
     {
         return $this->response->getExpiryTimeMillis();
     }
@@ -73,7 +73,7 @@ class SubscriptionResponse extends AbstractResponse
     /**
      * @return int|null
      */
-    public function getUserCancellationTimeMillis()
+    public function getUserCancellationTimeMillis(): ?int
     {
         return $this->response->getUserCancellationTimeMillis();
     }
@@ -81,7 +81,7 @@ class SubscriptionResponse extends AbstractResponse
     /**
      * @return int
      */
-    public function getPaymentState()
+    public function getPaymentState(): int
     {
         return $this->response->getPaymentState();
     }
@@ -91,15 +91,15 @@ class SubscriptionResponse extends AbstractResponse
      *
      * @deprecated Use getExpiryTimeMillis() method instead
      */
-    public function getExpiresDate()
+    public function getExpiresDate(): string
     {
         return $this->response->expiryTimeMillis;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getExternalAccountId()
+    public function getExternalAccountId(): string
     {
         return $this->response->getExternalAccountId();
     }

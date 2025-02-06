@@ -13,91 +13,91 @@ class PurchaseItem implements ArrayAccess
      *
      * @var int
      */
-    protected $quantity = 0;
+    protected int $quantity = 0;
 
     /**
      * product_id.
      *
      * @var string
      */
-    protected $product_id;
+    protected string $product_id;
 
     /**
      * web_order_line_item_id.
      *
-     * @var string
+     * @var string|null
      */
-    protected $web_order_line_item_id;
+    protected ?string $web_order_line_item_id;
 
     /**
      * transaction_id.
      *
      * @var string
      */
-    protected $transaction_id;
+    protected string $transaction_id;
 
     /**
      * original_transaction_id.
      *
      * @var string
      */
-    protected $original_transaction_id;
+    protected string $original_transaction_id;
 
     /**
      * purchase_date.
      *
      * @var Carbon
      */
-    protected $purchase_date;
+    protected Carbon $purchase_date;
 
     /**
      * original_purchase_date.
      *
      * @var Carbon
      */
-    protected $original_purchase_date;
+    protected Carbon $original_purchase_date;
 
     /**
      * expires_date.
      *
      * @var Carbon
      */
-    protected $expires_date;
+    protected Carbon $expires_date;
 
     /**
      * cancellation_date.
      *
      * @var Carbon|null
      */
-    protected $cancellation_date;
+    protected ?Carbon $cancellation_date;
 
     /**
-     * For a subscription, whether or not it is in the free trial period.
+     * For a subscription, whether it is in the free trial period.
      *
      * @var bool|null
      */
-    protected $is_trial_period;
+    protected ?bool $is_trial_period;
 
     /**
-     * For an auto-renewable subscription, whether or not it is in the introductory price period.
+     * For an auto-renewable subscription, whether it is in the introductory price period.
      *
      * @var bool|null
      */
-    protected $is_in_intro_offer_period;
+    protected ?bool $is_in_intro_offer_period;
 
     /**
      * When a subscriber redeems an offer, there is a promotional offer ID.
      *
      * @var string|null
      */
-    protected $promotional_offer_id;
+    protected ?string $promotional_offer_id;
 
     /**
      * purchase item info.
      *
      * @var array|null
      */
-    protected $raw_data;
+    protected ?array $raw_data;
 
     /**
      * PurchaseItem constructor.
@@ -106,7 +106,7 @@ class PurchaseItem implements ArrayAccess
      *
      * @throws RunTimeException
      */
-    public function __construct(?array $data = null)
+    public function __construct(?array $data)
     {
         $this->raw_data = $data;
         $this->parseData();
@@ -302,7 +302,7 @@ class PurchaseItem implements ArrayAccess
      * @throws RunTimeException
      */
     #[\ReturnTypeWillChange]
-    public function offsetSet($key, $value)
+    public function offsetSet($key, $value): void
     {
         $this->raw_data[$key] = $value;
         $this->parseData();
@@ -316,7 +316,7 @@ class PurchaseItem implements ArrayAccess
      * @return mixed
      */
     #[\ReturnTypeWillChange]
-    public function offsetGet($key)
+    public function offsetGet($key): mixed
     {
         return $this->raw_data[$key];
     }
@@ -327,7 +327,7 @@ class PurchaseItem implements ArrayAccess
      * @param $key
      */
     #[\ReturnTypeWillChange]
-    public function offsetUnset($key)
+    public function offsetUnset($key): void
     {
         unset($this->raw_data[$key]);
     }
@@ -340,7 +340,7 @@ class PurchaseItem implements ArrayAccess
      * @return bool
      */
     #[\ReturnTypeWillChange]
-    public function offsetExists($key)
+    public function offsetExists($key): bool
     {
         return isset($this->raw_data[$key]);
     }

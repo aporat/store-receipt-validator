@@ -13,7 +13,7 @@ use ReceiptValidator\RunTimeException;
  */
 class Acknowledger
 {
-    // Do acknowledge only in case if it have not done
+    // Do acknowledge only in case if it has not done
     const ACKNOWLEDGE_STRATEGY_IMPLICIT = 'strategy_implicit';
     // Try to do acknowledge directly (exception will be returned in case when acknowledge already was done)
     const ACKNOWLEDGE_STRATEGY_EXPLICIT = 'strategy_explicit';
@@ -24,23 +24,23 @@ class Acknowledger
     /**
      * @var AndroidPublisher
      */
-    protected $androidPublisherService;
+    protected AndroidPublisher $androidPublisherService;
     /**
      * @var string
      */
-    protected $packageName;
+    protected string $packageName;
     /**
      * @var string
      */
-    protected $purchaseToken;
+    protected string $purchaseToken;
     /**
      * @var string
      */
-    protected $productId;
+    protected string $productId;
     /**
      * @var string
      */
-    protected $strategy;
+    protected string $strategy;
 
     /**
      * Acknowledger constructor.
@@ -55,10 +55,10 @@ class Acknowledger
      */
     public function __construct(
         AndroidPublisher $googleServiceAndroidPublisher,
-        $packageName,
-        $productId,
-        $purchaseToken,
-        $strategy = self::ACKNOWLEDGE_STRATEGY_EXPLICIT
+        string $packageName,
+        string $productId,
+        string $purchaseToken,
+        string $strategy = self::ACKNOWLEDGE_STRATEGY_EXPLICIT
     ) {
         if (!in_array($strategy, [self::ACKNOWLEDGE_STRATEGY_EXPLICIT, self::ACKNOWLEDGE_STRATEGY_IMPLICIT])) {
             throw new RuntimeException(sprintf('Invalid strategy provided %s', $strategy));
@@ -77,7 +77,7 @@ class Acknowledger
      *
      * @return bool
      */
-    public function acknowledge(string $type = self::SUBSCRIPTION, string $developerPayload = '')
+    public function acknowledge(string $type = self::SUBSCRIPTION, string $developerPayload = ''): bool
     {
         try {
             switch ($type) {

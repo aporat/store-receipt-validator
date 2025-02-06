@@ -14,7 +14,7 @@ class PurchaseResponse extends AbstractResponse
      */
     protected $response;
 
-    protected $developerPayload = [];
+    protected mixed $developerPayload = [];
 
     public function __construct($response)
     {
@@ -27,7 +27,7 @@ class PurchaseResponse extends AbstractResponse
     /**
      * @return int
      */
-    public function getConsumptionState()
+    public function getConsumptionState(): int
     {
         return $this->response->consumptionState;
     }
@@ -35,12 +35,12 @@ class PurchaseResponse extends AbstractResponse
     /**
      * @return string
      */
-    public function getPurchaseTimeMillis()
+    public function getPurchaseTimeMillis(): string
     {
         return $this->response->purchaseTimeMillis;
     }
 
-    public function getDeveloperPayload()
+    public function getDeveloperPayload(): array|string
     {
         return $this->developerPayload;
     }
@@ -50,7 +50,7 @@ class PurchaseResponse extends AbstractResponse
      *
      * @return string
      */
-    public function getDeveloperPayloadElement($key)
+    public function getDeveloperPayloadElement(string $key): string
     {
         return (isset($this->developerPayload[$key])) ? $this->developerPayload[$key] : '';
     }
@@ -58,7 +58,7 @@ class PurchaseResponse extends AbstractResponse
     /**
      * @return string
      */
-    public function getPurchaseState()
+    public function getPurchaseState(): string
     {
         return $this->response->purchaseState;
     }
