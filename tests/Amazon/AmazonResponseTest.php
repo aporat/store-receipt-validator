@@ -6,9 +6,6 @@ use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Response;
 use ReceiptValidator\RuntimeException;
 
-/**
- * @group library
- */
 class AmazonResponseTest extends TestCase
 {
     public function testInvalidOptionsToConstructor(): void

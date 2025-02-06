@@ -12,9 +12,6 @@ use ReceiptValidator\GooglePlay\PurchaseResponse;
 use ReceiptValidator\GooglePlay\SubscriptionResponse;
 use ReceiptValidator\GooglePlay\Validator;
 
-/**
- * @group library
- */
 class GooglePlayValidatorTest extends TestCase
 {
     public function testValidate(): void

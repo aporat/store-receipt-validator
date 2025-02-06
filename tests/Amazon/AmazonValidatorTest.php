@@ -5,9 +5,6 @@ namespace ReceiptValidator\Tests\Amazon;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Validator as AmazonValidator;
 
-/**
- * @group library
- */
 class AmazonValidatorTest extends TestCase
 {
     /**

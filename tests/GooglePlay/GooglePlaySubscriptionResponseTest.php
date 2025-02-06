@@ -7,11 +7,6 @@ use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\AbstractResponse;
 use ReceiptValidator\GooglePlay\SubscriptionResponse;
 
-/**
- * @group library
- *
- * @link https://developers.google.com/android-publisher/api-ref/purchases/subscriptions
- */
 class GooglePlaySubscriptionResponseTest extends TestCase
 {
     public function testParsedResponse(): void

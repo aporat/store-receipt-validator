@@ -12,9 +12,6 @@ use Google\Service\AndroidPublisher\SubscriptionPurchasesAcknowledgeRequest;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\Acknowledger;
 
-/**
- * @group library
- */
 class GooglePlayAcknowledgerTest extends TestCase
 {
     public function testValidateWithNonAcknowledgedPurchase(): void

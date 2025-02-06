@@ -6,9 +6,6 @@ use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\AbstractResponse;
 use ReceiptValidator\GooglePlay\PurchaseResponse;
 
-/**
- * @group library
- */
 class GooglePlayPurchaseResponseTest extends TestCase
 {
     /**
