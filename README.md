@@ -1,6 +1,7 @@
 store-receipt-validator
 =======
 
+[![codecov](https://codecov.io/gh/aporat/store-receipt-validator/graph/badge.svg?token=Q3Rv2bb3SK)](https://codecov.io/gh/aporat/store-receipt-validator)
 [![StyleCI](https://github.styleci.io/repos/14928361/shield?branch=master)](https://github.styleci.io/repos/14928361)
 [![Latest Version](http://img.shields.io/packagist/v/aporat/store-receipt-validator.svg?style=flat-square&logo=composer)](https://packagist.org/packages/aporat/store-receipt-validator)
 [![Monthly Downloads](https://img.shields.io/packagist/dm/aporat/store-receipt-validator.svg?style=flat-square&logo=composer)](https://packagist.org/packages/aporat/store-receipt-validator)
