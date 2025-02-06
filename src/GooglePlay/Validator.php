@@ -40,7 +40,7 @@ class Validator
      * Validator constructor.
      *
      * @param AndroidPublisher $googleServiceAndroidPublisher
-     * @param bool $validationModePurchase
+     * @param bool             $validationModePurchase
      */
     public function __construct(
         AndroidPublisher $googleServiceAndroidPublisher,
@@ -111,8 +111,9 @@ class Validator
     }
 
     /**
-     * @return PurchaseResponse|SubscriptionResponse
      * @throws Exception
+     *
+     * @return PurchaseResponse|SubscriptionResponse
      */
     public function validate()
     {
@@ -128,8 +129,9 @@ class Validator
     }
 
     /**
-     * @return PurchaseResponse
      * @throws Exception
+     *
+     * @return PurchaseResponse
      */
     public function validatePurchase(): PurchaseResponse
     {
@@ -143,8 +145,9 @@ class Validator
     }
 
     /**
-     * @return SubscriptionResponse
      * @throws Exception
+     *
+     * @return SubscriptionResponse
      */
     public function validateSubscription(): SubscriptionResponse
     {
