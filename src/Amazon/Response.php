@@ -49,8 +49,9 @@ class Response
     /**
      * Response constructor.
      *
-     * @param int $httpStatusCode
+     * @param int        $httpStatusCode
      * @param array|null $jsonResponse
+     *
      * @throws RunTimeException
      */
     public function __construct(int $httpStatusCode = 200, ?array $jsonResponse = [])
@@ -111,9 +112,9 @@ class Response
      *
      * @param array|null $jsonResponse
      *
-     * @return $this
-     *@throws RunTimeException
+     * @throws RunTimeException
      *
+     * @return $this
      */
     public function parseJsonResponse(?array $jsonResponse): self
     {
