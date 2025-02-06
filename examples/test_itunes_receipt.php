@@ -1,9 +1,9 @@
 <?php
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$root = realpath(dirname(dirname(__FILE__)));
+$root = realpath(dirname(__FILE__, 2));
 $library = "$root/library";
 
 $path = [$library, get_include_path()];
@@ -22,7 +22,7 @@ $response = null;
 
 try {
     $response = $validator->setReceiptData($receiptBase64Data)->validate();
-} catch (\Exception $e) {
+} catch (Exception $e) {
     echo 'got error = '.$e->getMessage().PHP_EOL;
     echo $e->getTraceAsString().PHP_EOL;
     exit;

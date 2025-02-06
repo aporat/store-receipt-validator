@@ -17,21 +17,21 @@ class Validator
      *
      * @var string
      */
-    protected $endpoint;
+    protected string $endpoint;
 
     /**
      * Whether to exclude old transactions.
      *
      * @var bool
      */
-    protected $exclude_old_transactions = false;
+    protected bool $exclude_old_transactions = false;
 
     /**
      * itunes receipt data, in base64 format.
      *
      * @var string|null
      */
-    protected $receipt_data;
+    protected ?string $receipt_data = null;
 
     /**
      * The shared secret is a unique code to receive your In-App Purchase receipts.
@@ -40,21 +40,21 @@ class Validator
      *
      * @var string|null
      */
-    protected $shared_secret;
+    protected ?string $shared_secret = null;
 
     /**
      * Guzzle http client.
      *
-     * @var HttpClient
+     * @var HttpClient|null
      */
-    protected $client;
+    protected ?HttpClient $client = null;
 
     /**
      * request options.
      *
      * @var array
      */
-    protected $request_options = [];
+    protected array $request_options = [];
 
     /**
      * Validator constructor.
@@ -87,7 +87,7 @@ class Validator
      */
     public function setReceiptData(?string $receipt_data = null): self
     {
-        if (strpos($receipt_data, '{') !== false) {
+        if (str_contains($receipt_data, '{')) {
             $this->receipt_data = base64_encode($receipt_data);
         } else {
             $this->receipt_data = $receipt_data;
@@ -136,7 +136,7 @@ class Validator
     public function setEndpoint(string $endpoint): self
     {
         if ($endpoint !== self::ENDPOINT_PRODUCTION && $endpoint !== self::ENDPOINT_SANDBOX) {
-            throw new InvalidArgumentException("Invalid endpoint '{$endpoint}'");
+            throw new InvalidArgumentException("Invalid endpoint '$endpoint'");
         }
         $this->endpoint = $endpoint;
 
@@ -272,7 +272,7 @@ class Validator
      *
      * @return ProductionResponse|SandboxResponse
      */
-    private function sendRequestUsingClient(HttpClient $client)
+    private function sendRequestUsingClient(HttpClient $client): SandboxResponse|ProductionResponse
     {
         $baseUri = (string) $client->getConfig('base_uri');
 

@@ -17,29 +17,29 @@ class Validator
      *
      * @var string
      */
-    protected $endpoint;
+    protected string $endpoint;
 
     /**
      * Guzzle http client.
      *
-     * @var HttpClient
+     * @var HttpClient|null
      */
-    protected $client = null;
+    protected ?HttpClient $client = null;
 
     /**
      * @var string|null
      */
-    protected $userId = null;
+    protected ?string $userId = null;
 
     /**
      * @var string|null
      */
-    protected $receiptId = null;
+    protected ?string $receiptId = null;
 
     /**
      * @var string|null
      */
-    protected $developerSecret = null;
+    protected ?string $developerSecret = null;
 
     /**
      * Validator constructor.
@@ -51,7 +51,7 @@ class Validator
     public function __construct(string $endpoint = self::ENDPOINT_PRODUCTION)
     {
         if ($endpoint != self::ENDPOINT_PRODUCTION && $endpoint != self::ENDPOINT_SANDBOX) {
-            throw new RunTimeException("Invalid endpoint '{$endpoint}'");
+            throw new RunTimeException("Invalid endpoint '$endpoint'");
         }
 
         $this->endpoint = $endpoint;

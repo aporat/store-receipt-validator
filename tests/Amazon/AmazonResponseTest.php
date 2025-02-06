@@ -8,13 +8,6 @@ use ReceiptValidator\RuntimeException;
 
 class AmazonResponseTest extends TestCase
 {
-    public function testInvalidOptionsToConstructor(): void
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Response must be a scalar value');
-
-        new Response(Response::RESULT_OK, 'invalid');
-    }
 
     public function testInvalidReceipt(): void
     {

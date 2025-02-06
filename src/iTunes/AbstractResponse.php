@@ -12,84 +12,84 @@ abstract class AbstractResponse
      *
      * @var int
      */
-    protected $result_code;
+    protected int $result_code;
 
     /**
      * bundle_id (app) belongs to the receipt.
      *
      * @var string
      */
-    protected $bundle_id;
+    protected string $bundle_id;
 
     /**
      * item id.
      *
      * @var string
      */
-    protected $app_item_id;
+    protected string $app_item_id;
 
     /**
      * original_purchase_date.
      *
      * @var Carbon|null
      */
-    protected $original_purchase_date;
+    protected ?Carbon $original_purchase_date;
 
     /**
      * request date.
      *
      * @var Carbon|null
      */
-    protected $request_date;
+    protected ?Carbon $request_date;
 
     /**
      * The date when the app receipt was created.
      *
      * @var Carbon|null
      */
-    protected $receipt_creation_date;
+    protected ?Carbon $receipt_creation_date;
 
     /**
      * receipt info.
      *
      * @var array
      */
-    protected $receipt = [];
+    protected array $receipt = [];
 
     /**
      * latest receipt.
      *
-     * @var string
+     * @var string|null
      */
-    protected $latest_receipt;
+    protected ?string $latest_receipt = null;
 
     /**
      * latest receipt info (for auto-renewable subscriptions).
      *
      * @var PurchaseItem[]
      */
-    protected $latest_receipt_info = [];
+    protected array $latest_receipt_info = [];
 
     /**
      * purchases info.
      *
      * @var PurchaseItem[]
      */
-    protected $purchases = [];
+    protected array $purchases = [];
 
     /**
      * pending renewal info.
      *
      * @var PendingRenewalInfo[]
      */
-    protected $pending_renewal_info = [];
+    protected array $pending_renewal_info = [];
 
     /**
      * entire response of receipt.
      *
      * @var ?array
      */
-    protected $raw_data;
+    protected ?array $raw_data;
 
     /**
      * Retry validation for this receipt. Only applicable to status codes 21100-21199.
@@ -105,7 +105,7 @@ abstract class AbstractResponse
      *
      * @throws RunTimeException
      */
-    public function __construct(?array $data = null)
+    public function __construct(?array $data)
     {
         $this->raw_data = $data;
         $this->parseData();
@@ -228,7 +228,7 @@ abstract class AbstractResponse
     /**
      * Get the raw data.
      *
-     * @return array
+     * @return array|null
      */
     public function getRawData(): ?array
     {

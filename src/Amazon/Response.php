@@ -30,31 +30,30 @@ class Response
      *
      * @var int
      */
-    protected $code;
+    protected int $code;
 
     /**
      * receipt info.
      *
      * @var array
      */
-    protected $receipt = [];
+    protected array $receipt = [];
 
     /**
      * purchases info.
      *
      * @var PurchaseItem[]
      */
-    protected $purchases = [];
+    protected array $purchases = [];
 
     /**
      * Response constructor.
      *
-     * @param int        $httpStatusCode
+     * @param int $httpStatusCode
      * @param array|null $jsonResponse
-     *
      * @throws RunTimeException
      */
-    public function __construct($httpStatusCode = 200, $jsonResponse = null)
+    public function __construct(int $httpStatusCode = 200, ?array $jsonResponse = [])
     {
         $this->code = $httpStatusCode;
 
@@ -112,11 +111,11 @@ class Response
      *
      * @param array|null $jsonResponse
      *
-     * @throws RunTimeException
-     *
      * @return $this
+     *@throws RunTimeException
+     *
      */
-    public function parseJsonResponse($jsonResponse = null): self
+    public function parseJsonResponse(?array $jsonResponse): self
     {
         if (!is_array($jsonResponse)) {
             throw new RuntimeException('Response must be a scalar value');

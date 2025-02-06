@@ -12,49 +12,49 @@ class PurchaseItem
      *
      * @var array|null
      */
-    protected $raw_data;
+    protected ?array $raw_data;
 
     /**
      * quantity.
      *
      * @var int
      */
-    protected $quantity;
+    protected int $quantity;
 
     /**
      * product_id.
      *
      * @var string
      */
-    protected $product_id;
+    protected string $product_id;
 
     /**
      * transaction_id.
      *
      * @var string
      */
-    protected $transaction_id;
+    protected string $transaction_id;
 
     /**
      * purchase_date.
      *
      * @var Carbon
      */
-    protected $purchase_date;
+    protected Carbon $purchase_date;
 
     /**
      * cancellation_date.
      *
      * @var Carbon|null
      */
-    protected $cancellation_date;
+    protected ?Carbon $cancellation_date;
 
     /**
      * renewal_date.
      *
      * @var Carbon|null
      */
-    protected $renewal_date;
+    protected ?Carbon $renewal_date;
 
     /**
      * @return array|null
@@ -119,7 +119,7 @@ class PurchaseItem
      *
      * @throws RunTimeException
      */
-    public function __construct($jsonResponse = null)
+    public function __construct(?array $jsonResponse)
     {
         $this->raw_data = $jsonResponse;
         if ($this->raw_data !== null) {
