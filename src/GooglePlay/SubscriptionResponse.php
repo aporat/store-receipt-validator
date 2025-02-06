@@ -39,9 +39,9 @@ class SubscriptionResponse extends AbstractResponse
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getPriceAmountMicros(): int
+    public function getPriceAmountMicros(): string
     {
         return $this->response->getPriceAmountMicros();
     }
