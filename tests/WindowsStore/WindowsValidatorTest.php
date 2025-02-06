@@ -8,7 +8,6 @@ use ReceiptValidator\WindowsStore\Validator;
 
 class WindowsValidatorTest extends TestCase
 {
-
     public function testValidateFails(): void
     {
         $this->expectException(RunTimeException::class);
@@ -17,5 +16,4 @@ class WindowsValidatorTest extends TestCase
         $validator = new Validator();
         $validator->validate('foo bar');
     }
-
 }
