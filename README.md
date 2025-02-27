@@ -6,21 +6,25 @@ store-receipt-validator
 [![Latest Version](http://img.shields.io/packagist/v/aporat/store-receipt-validator.svg?style=flat-square&logo=composer)](https://packagist.org/packages/aporat/store-receipt-validator)
 [![Monthly Downloads](https://img.shields.io/packagist/dm/aporat/store-receipt-validator.svg?style=flat-square&logo=composer)](https://packagist.org/packages/aporat/store-receipt-validator)
 
+PHP receipt validator for Apple iTunes, Google Play, and Amazon App Store
 
+## Overview ##
 
-PHP receipt validator for Apple iTunes, Google Play and Amazon App Store
+A PHP library for validating in-app purchase receipts from Apple iTunes, Google Play, and Amazon App Store. Supports production and sandbox environments with detailed response handling.
 
 ## Requirements ##
 
 * PHP >= 8.2
 
 ## Installation ##
+Install the library using Composer with the following command:
+
 
  `composer require aporat/store-receipt-validator`
 
 ## Quick Example ##
 
-### iTunes ###
+### Apple iTunes ###
 
 ```php
 
@@ -56,7 +60,7 @@ if ($response->isValid()) {
 }
 ```
 
-### Play Store ###
+### Google Play Store ###
 
 Get the refresh token from [OAuth2 flow](https://developers.google.com/android-publisher/authorization).
 
@@ -166,3 +170,8 @@ if ($response instanceof ValidatorResponse && $response->isValid()) {
 }
 
 ```
+
+## Contributing ##
+Contributions are welcome! Fork the repository, make changes, and submit a pull request. Report issues or suggest features via GitHub Issues.
+
+
