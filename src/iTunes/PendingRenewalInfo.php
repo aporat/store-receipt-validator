@@ -95,14 +95,14 @@ class PendingRenewalInfo implements ArrayAccess
      *
      * @var Carbon|null
      */
-    protected ?Carbon $grace_period_expires_date;
+    protected ?Carbon $grace_period_expires_date = null;
 
     /**
      * Is In Billing Retry Period Code.
      *
      * @var int|null
      */
-    protected ?int $is_in_billing_retry_period;
+    protected ?int $is_in_billing_retry_period = null;
 
     /**
      * Pending renewal info.
