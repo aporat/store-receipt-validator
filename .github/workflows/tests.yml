@@ -56,7 +56,7 @@ jobs:
 
             - name: Execute tests (Unit and Feature tests) via PHPUnit
               if: matrix.coverage == 'xdebug'
-              run: composer test:ci
+              run: composer test-ci
 
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v5
