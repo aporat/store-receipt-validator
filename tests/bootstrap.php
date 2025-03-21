@@ -1,5 +1,9 @@
 <?php
 
 // Enable Composer autoloader
-/** @var \Composer\Autoload\ClassLoader $autoloader */
-require __DIR__.'/../vendor/autoload.php';
+
+/** @var ClassLoader $autoloader */
+
+use Composer\Autoload\ClassLoader;
+
+require __DIR__ . '/../vendor/autoload.php';

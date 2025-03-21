@@ -12,13 +12,6 @@ class AmazonValidatorTest extends TestCase
      */
     private $validator;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->validator = new AmazonValidator();
-    }
-
     public function testSetEndpoint(): void
     {
         $this->validator->setDeveloperSecret('SECRET');
@@ -35,5 +28,12 @@ class AmazonValidatorTest extends TestCase
         $response = $this->validator->setDeveloperSecret('NA')->setReceiptId('ID')->setUserId('ID')->validate();
 
         $this->assertFalse($response->isValid(), 'receipt must be invalid');
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->validator = new AmazonValidator();
     }
 }

@@ -2,6 +2,8 @@
 
 namespace ReceiptValidator;
 
-class RunTimeException extends \Exception
+use Exception;
+
+class RunTimeException extends Exception
 {
 }

@@ -31,11 +31,17 @@ class GooglePlayPurchaseResponseTest extends TestCase
 
         // test abstract methods
         $this->assertInstanceOf(AbstractResponse::class, $productResponse);
-        $this->assertEquals(PurchaseResponse::CONSUMPTION_STATE_YET_TO_BE_CONSUMED, $productResponse->getConsumptionState());
+        $this->assertEquals(
+            PurchaseResponse::CONSUMPTION_STATE_YET_TO_BE_CONSUMED,
+            $productResponse->getConsumptionState()
+        );
         $this->assertEquals($developerPayload, $productResponse->getDeveloperPayload());
         $this->assertEquals($kind, $productResponse->getKind());
         $this->assertEquals(PurchaseResponse::PURCHASE_STATE_CANCELED, $productResponse->getPurchaseState());
-        $this->assertEquals($developerPayload['packageName'], $productResponse->getDeveloperPayloadElement('packageName'));
+        $this->assertEquals(
+            $developerPayload['packageName'],
+            $productResponse->getDeveloperPayloadElement('packageName')
+        );
         $this->assertEquals($developerPayload['etc'], $productResponse->getDeveloperPayloadElement('etc'));
         $this->assertEquals('', $productResponse->getDeveloperPayloadElement('invalid'));
         // test own methods

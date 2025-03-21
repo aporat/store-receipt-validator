@@ -64,3 +64,9 @@ jobs:
                   token: ${{ secrets.CODECOV_TOKEN }}
                   if: matrix.coverage == 'xdebug'
                   slug: aporat/store-receipt-validator
+
+            - name: Upload test results to Codecov
+              if: matrix.coverage == 'xdebug'
+              uses: codecov/test-results-action@v1
+              with:
+                token: ${{ secrets.CODECOV_TOKEN }}

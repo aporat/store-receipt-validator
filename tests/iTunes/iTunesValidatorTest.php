@@ -20,13 +20,6 @@ class iTunesValidatorTest extends TestCase
      */
     private $validator;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->validator = new iTunesValidator(iTunesValidator::ENDPOINT_SANDBOX);
-    }
-
     public function testInvalidOptionsToConstructor(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -92,7 +85,7 @@ class iTunesValidatorTest extends TestCase
 
     public function testValidatorWithValidResponse(): void
     {
-        $json_response = file_get_contents(__DIR__.'/fixtures/inAppPurchaseResponse.json');
+        $json_response = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseResponse.json');
 
         $mock = new MockHandler([
             new Response(200, [], $json_response),
@@ -122,7 +115,7 @@ class iTunesValidatorTest extends TestCase
 
     public function testValidatorWithInvalidResponse(): void
     {
-        $json_response = file_get_contents(__DIR__.'/fixtures/inAppPurchaseInvalidReceiptResponse.json');
+        $json_response = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseInvalidReceiptResponse.json');
 
         $mock = new MockHandler([
             new Response(200, [], $json_response),
@@ -135,5 +128,12 @@ class iTunesValidatorTest extends TestCase
         $response = $this->validator->setReceiptData($this->receiptBase64Data)->validate();
         $this->assertFalse($response->isValid());
         $this->assertEquals(ResponseInterface::RESULT_DATA_MALFORMED, $response->getResultCode());
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->validator = new iTunesValidator(iTunesValidator::ENDPOINT_SANDBOX);
     }
 }

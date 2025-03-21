@@ -51,7 +51,7 @@ class GooglePlayValidatorTest extends TestCase
         $this->assertEquals(
             new SubscriptionResponse($subscriptionResponseMock),
             $googlePlayValidator
-            ->setValidationModePurchase(false)->validateSubscription()
+                ->setValidationModePurchase(false)->validateSubscription()
         );
     }
 }

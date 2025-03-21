@@ -16,7 +16,10 @@ class AmazonResponseTest extends TestCase
 
     public function testValidReceipt(): void
     {
-        $receipt = json_decode('{"betaProduct":false,"cancelDate":null,"parentProductId":null,"productId":"pack_100","productType":"CONSUMABLE","purchaseDate":1485359133060,"quantity":1,"receiptId":"M3qQCAiytxUzm3G05OworddJDiSi6ijXQGRFSK#AD=:1:11","renewalDate":null,"term":null,"termSku":null,"testTransaction":false}', true);
+        $receipt = json_decode(
+            '{"betaProduct":false,"cancelDate":null,"parentProductId":null,"productId":"pack_100","productType":"CONSUMABLE","purchaseDate":1485359133060,"quantity":1,"receiptId":"M3qQCAiytxUzm3G05OworddJDiSi6ijXQGRFSK#AD=:1:11","renewalDate":null,"term":null,"termSku":null,"testTransaction":false}',
+            true
+        );
 
         $response = new Response(Response::RESULT_OK, $receipt);
 
@@ -27,7 +30,11 @@ class AmazonResponseTest extends TestCase
 
         $purchase = $response->getPurchases()[0];
         $this->assertEquals('pack_100', $purchase->getProductId(), 'productId does not match');
-        $this->assertEquals('M3qQCAiytxUzm3G05OworddJDiSi6ijXQGRFSK#AD=:1:11', $purchase->getTransactionId(), 'transactionId does not match');
+        $this->assertEquals(
+            'M3qQCAiytxUzm3G05OworddJDiSi6ijXQGRFSK#AD=:1:11',
+            $purchase->getTransactionId(),
+            'transactionId does not match'
+        );
         $this->assertEquals(1, $purchase->getQuantity(), 'quantity does not match');
     }
 }

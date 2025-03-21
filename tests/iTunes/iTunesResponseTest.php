@@ -59,7 +59,7 @@ class iTunesResponseTest extends TestCase
     public function testResponseWithStatusExpiredReceiptIsValid(): void
     {
         $response = new ProductionResponse([
-            'status'  => ResponseInterface::RESULT_RECEIPT_VALID_BUT_SUB_EXPIRED,
+            'status' => ResponseInterface::RESULT_RECEIPT_VALID_BUT_SUB_EXPIRED,
             'receipt' => [],
         ]);
 
@@ -91,7 +91,7 @@ class iTunesResponseTest extends TestCase
 
     public function testReceiptWithLatestReceiptInfo(): void
     {
-        $jsonResponseString = file_get_contents(__DIR__.'/fixtures/inAppPurchaseResponse.json');
+        $jsonResponseString = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseResponse.json');
         $jsonResponseArray = json_decode($jsonResponseString, true);
 
         $response = new ProductionResponse($jsonResponseArray);

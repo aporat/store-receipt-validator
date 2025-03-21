@@ -28,12 +28,12 @@ class iTunesPendingRenewalInfoTest extends TestCase
     public function testData(): void
     {
         $raw = [
-            'auto_renew_product_id'      => 'Test_Subscription_1',
-            'product_id'                 => 'Test_Subscription_2',
-            'original_transaction_id'    => '1000000',
-            'auto_renew_status'          => '0',
+            'auto_renew_product_id' => 'Test_Subscription_1',
+            'product_id' => 'Test_Subscription_2',
+            'original_transaction_id' => '1000000',
+            'auto_renew_status' => '0',
             'is_in_billing_retry_period' => '1',
-            'expiration_intent'          => '1',
+            'expiration_intent' => '1',
         ];
 
         $info = new PendingRenewalInfo($raw);
@@ -72,10 +72,10 @@ class iTunesPendingRenewalInfoTest extends TestCase
     public function testComputedActiveStatus(): void
     {
         $raw = [
-            'auto_renew_product_id'   => 'Test_Subscription_1',
-            'product_id'              => 'Test_Subscription_2',
+            'auto_renew_product_id' => 'Test_Subscription_1',
+            'product_id' => 'Test_Subscription_2',
             'original_transaction_id' => '1000000',
-            'auto_renew_status'       => '1',
+            'auto_renew_status' => '1',
         ];
 
         $info = new PendingRenewalInfo($raw);
@@ -89,11 +89,11 @@ class iTunesPendingRenewalInfoTest extends TestCase
     public function testComputedPendingStatus(): void
     {
         $raw = [
-            'auto_renew_product_id'      => 'Test_Subscription_1',
-            'product_id'                 => 'Test_Subscription_2',
-            'original_transaction_id'    => '1000000',
-            'auto_renew_status'          => '1',
-            'expiration_intent'          => '5',
+            'auto_renew_product_id' => 'Test_Subscription_1',
+            'product_id' => 'Test_Subscription_2',
+            'original_transaction_id' => '1000000',
+            'auto_renew_status' => '1',
+            'expiration_intent' => '5',
             'is_in_billing_retry_period' => '1',
         ];
 
@@ -108,11 +108,11 @@ class iTunesPendingRenewalInfoTest extends TestCase
     public function testComputedExpiredStatus(): void
     {
         $raw = [
-            'auto_renew_product_id'      => 'Test_Subscription_1',
-            'product_id'                 => 'Test_Subscription_2',
-            'original_transaction_id'    => '1000000',
-            'auto_renew_status'          => '1',
-            'expiration_intent'          => '5',
+            'auto_renew_product_id' => 'Test_Subscription_1',
+            'product_id' => 'Test_Subscription_2',
+            'original_transaction_id' => '1000000',
+            'auto_renew_status' => '1',
+            'expiration_intent' => '5',
             'is_in_billing_retry_period' => '0',
         ];
 
@@ -128,14 +128,16 @@ class iTunesPendingRenewalInfoTest extends TestCase
     {
         $grace_period_expires_date = Carbon::tomorrow();
         $raw = [
-            'auto_renew_product_id'         => 'Test_Subscription_1',
-            'product_id'                    => 'Test_Subscription_2',
-            'original_transaction_id'       => '1000000',
-            'auto_renew_status'             => '1',
-            'is_in_billing_retry_period'    => '1',
-            'grace_period_expires_date'     => $grace_period_expires_date->toIso8601String().' Etc\/GMT',
-            'grace_period_expires_date_ms'  => $grace_period_expires_date->getTimestamp() * 1000,
-            'grace_period_expires_date_pst' => $grace_period_expires_date->timezone('America/Los_Angeles')->toIso8601String().'  America\/Los_Angeles',
+            'auto_renew_product_id' => 'Test_Subscription_1',
+            'product_id' => 'Test_Subscription_2',
+            'original_transaction_id' => '1000000',
+            'auto_renew_status' => '1',
+            'is_in_billing_retry_period' => '1',
+            'grace_period_expires_date' => $grace_period_expires_date->toIso8601String() . ' Etc\/GMT',
+            'grace_period_expires_date_ms' => $grace_period_expires_date->getTimestamp() * 1000,
+            'grace_period_expires_date_pst' => $grace_period_expires_date->timezone(
+                    'America/Los_Angeles'
+                )->toIso8601String() . '  America\/Los_Angeles',
         ];
 
         $grace_period_expires_date->timezone('Etc/GMT');
@@ -153,13 +155,13 @@ class iTunesPendingRenewalInfoTest extends TestCase
     public function testComputedIsNotInGracePeriod(): void
     {
         $raw = [
-            'auto_renew_product_id'         => 'Test_Subscription_1',
-            'product_id'                    => 'Test_Subscription_2',
-            'original_transaction_id'       => '1000000',
-            'auto_renew_status'             => '1',
-            'is_in_billing_retry_period'    => '0',
-            'grace_period_expires_date'     => '2019-05-24 01:06:58 Etc\/GMT',
-            'grace_period_expires_date_ms'  => 1432429618000,
+            'auto_renew_product_id' => 'Test_Subscription_1',
+            'product_id' => 'Test_Subscription_2',
+            'original_transaction_id' => '1000000',
+            'auto_renew_status' => '1',
+            'is_in_billing_retry_period' => '0',
+            'grace_period_expires_date' => '2019-05-24 01:06:58 Etc\/GMT',
+            'grace_period_expires_date_ms' => 1432429618000,
             'grace_period_expires_date_pst' => '2019-05-23 18:06:58 America\/Los_Angeles',
         ];
 

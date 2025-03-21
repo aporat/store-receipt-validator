@@ -23,16 +23,16 @@ class GooglePlaySubscriptionResponseTest extends TestCase
         $paymentState = 1;
 
         $data = [
-            'autoRenewing'               => $autoRenewing,
-            'cancelReason'               => $cancelReason,
-            'countryCode'                => $countryCode,
-            'priceAmountMicros'          => $priceAmountMicros,
-            'priceCurrencyCode'          => $priceCurrencyCode,
-            'startTimeMillis'            => $startTimeMillis,
-            'expiryTimeMillis'           => $expiryTimeMillis,
+            'autoRenewing' => $autoRenewing,
+            'cancelReason' => $cancelReason,
+            'countryCode' => $countryCode,
+            'priceAmountMicros' => $priceAmountMicros,
+            'priceCurrencyCode' => $priceCurrencyCode,
+            'startTimeMillis' => $startTimeMillis,
+            'expiryTimeMillis' => $expiryTimeMillis,
             'userCancellationTimeMillis' => $userCancellationTimeMillis,
-            'developerPayload'           => $developerPayload,
-            'paymentState'               => $paymentState,
+            'developerPayload' => $developerPayload,
+            'paymentState' => $paymentState,
         ];
 
         $subscriptionPurchase = new SubscriptionPurchase($data);
