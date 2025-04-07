@@ -5,7 +5,7 @@ store-receipt-validator
 [![Monthly Downloads](https://img.shields.io/packagist/dm/aporat/store-receipt-validator.svg?style=flat-square&logo=composer)](https://packagist.org/packages/aporat/store-receipt-validator)
 [![Codecov](https://img.shields.io/codecov/c/github/aporat/store-receipt-validator?style=flat-square)](https://codecov.io/github/aporat/store-receipt-validator)
 [![Scrutinizer build (GitHub/Bitbucket)](https://img.shields.io/scrutinizer/build/g/aporat/store-receipt-validator?style=flat-square)](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/build-status/master)
-[![Scrutinizer quality (GitHub/Bitbucket)](https://img.shields.io/scrutinizer/quality/g/aporat/store-receipt-validator?style=flat-square)](https://scrutinizer-ci.com/g/aporat/store-receipt-validator/?branch=master)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/aporat/store-receipt-validator/ci.yml?style=flat-square)
 [![License](https://img.shields.io/packagist/l/aporat/store-receipt-validator.svg?style=flat-square)](https://github.com/aporat/store-receipt-validator/blob/master/LICENSE)
 
 PHP receipt validator for Apple iTunes, Google Play, and Amazon App Store
