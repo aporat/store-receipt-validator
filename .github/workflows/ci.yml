@@ -4,8 +4,7 @@ on:
     push:
     pull_request:
     release:
-        types:
-            - published
+        types: [published]
 
 jobs:
     php-tests:
@@ -22,7 +21,7 @@ jobs:
                       os: ubuntu-latest
                       coverage: xdebug
 
-        name: '[P${{ matrix.php }}] [L${{ matrix.laravel }}] [${{ matrix.coverage }}]'
+        name: '[P${{ matrix.php }}] [${{ matrix.coverage }}]'
 
         steps:
             - name: Checkout Code
@@ -32,40 +31,38 @@ jobs:
               uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php }}
-                  extensions: mbstring json openssl xdebug
+                  extensions: mbstring, json, openssl, xdebug
                   ini-values: memory_limit=-1
                   tools: composer:v2
                   coverage: ${{ matrix.coverage }}
-              env:
-                  update: true
 
             - name: Cache dependencies
               uses: actions/cache@v4
               with:
                   path: vendor
-                  key: ${{ matrix.os }}-${{ matrix.php }}-${{ matrix.laravel }}-vendor-${{ hashFiles('**/composer.lock') }}
+                  key: ${{ matrix.os }}-${{ matrix.php }}-vendor-${{ hashFiles('**/composer.lock') }}
 
             - name: Install Dependencies
               run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --ignore-platform-reqs
 
-            - name: Execute tests (Unit and Feature tests) via PHPUnit
+            - name: Run Tests
               if: matrix.coverage == 'none'
               run: composer test
 
-            - name: Execute tests (Unit and Feature tests) via PHPUnit
+            - name: Run Tests with Coverage
               if: matrix.coverage == 'xdebug'
               run: composer test-ci
 
-            - name: Upload coverage reports to Codecov
+            - name: Upload coverage to Codecov
+              if: matrix.coverage == 'xdebug'
               uses: codecov/codecov-action@v5
               with:
                   token: ${{ secrets.CODECOV_TOKEN }}
-                  if: matrix.coverage == 'xdebug'
                   slug: ${{ github.repository }}
 
             - name: Upload test results to Codecov
               if: matrix.coverage == 'xdebug'
               uses: codecov/test-results-action@v1
               with:
-                token: ${{ secrets.CODECOV_TOKEN }}
-                slug: ${{ github.repository }}
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  slug: ${{ github.repository }}
