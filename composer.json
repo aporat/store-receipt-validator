@@ -37,6 +37,7 @@
         "google/apiclient-services": "~0.249"
     },
     "require-dev": {
+        "mockery/mockery": "^1.6",
         "phpstan/phpstan": "^1.11",
         "phpunit/phpunit": "^12.0",
         "squizlabs/php_codesniffer": "^3.6"
@@ -58,8 +59,8 @@
         "issues": "https://github.com/aporat/store-receipt-validator/issues"
     },
     "scripts": {
-        "test": "phpunit --colors=always",
-        "test-ci": "phpunit --colors=always --coverage-text --coverage-clover coverage.xml --log-junit junit.xml",
+        "test": "phpunit",
+        "test-ci": "phpunit --coverage-text --coverage-clover coverage.xml --log-junit junit.xml",
         "check": "phpcs",
         "analyze": "phpstan analyse src --level=5 --memory-limit=-1"
     },
