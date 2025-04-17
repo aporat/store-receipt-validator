@@ -2,6 +2,7 @@
 
 namespace ReceiptValidator\Tests\GooglePlay;
 
+use Google\Service\AndroidPublisher\ProductPurchase;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\AbstractResponse;
 use ReceiptValidator\GooglePlay\PurchaseResponse;

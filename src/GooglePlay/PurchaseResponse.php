@@ -3,6 +3,8 @@
 namespace ReceiptValidator\GooglePlay;
 
 use Google\Service\AndroidPublisher\ProductPurchase;
+use Google\Service\AndroidPublisher\SubscriptionPurchase;
+use Google\Service\AndroidPublisher\SubscriptionPurchaseV2;
 
 /**
  * Class PurchaseResponse.
@@ -10,9 +12,9 @@ use Google\Service\AndroidPublisher\ProductPurchase;
 class PurchaseResponse extends AbstractResponse
 {
     /**
-     * @var ProductPurchase
+     * @var ProductPurchase|SubscriptionPurchaseV2|SubscriptionPurchase
      */
-    protected $response;
+    protected ProductPurchase|SubscriptionPurchaseV2|SubscriptionPurchase $response;
 
     protected mixed $developerPayload = [];
 

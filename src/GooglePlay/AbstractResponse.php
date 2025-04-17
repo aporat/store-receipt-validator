@@ -11,17 +11,17 @@ use Google\Service\AndroidPublisher\SubscriptionPurchaseV2;
  */
 abstract class AbstractResponse
 {
-    const CONSUMPTION_STATE_YET_TO_BE_CONSUMED = 0;
-    const CONSUMPTION_STATE_CONSUMED = 1;
-    const PURCHASE_STATE_PURCHASED = 0;
-    const PURCHASE_STATE_CANCELED = 1;
-    const ACKNOWLEDGEMENT_STATE_YET_TO_BE = 0;
-    const ACKNOWLEDGEMENT_STATE_DONE = 1;
+    public const int CONSUMPTION_STATE_YET_TO_BE_CONSUMED = 0;
+    public const int CONSUMPTION_STATE_CONSUMED = 1;
+    public const int PURCHASE_STATE_PURCHASED = 0;
+    public const int PURCHASE_STATE_CANCELED = 1;
+    public const int ACKNOWLEDGEMENT_STATE_YET_TO_BE = 0;
+    public const int ACKNOWLEDGEMENT_STATE_DONE = 1;
 
     /**
      * @var ProductPurchase|SubscriptionPurchase|SubscriptionPurchaseV2
      */
-    protected $response;
+    protected ProductPurchase|SubscriptionPurchaseV2|SubscriptionPurchase $response;
 
     /**
      * Constructor.

@@ -15,42 +15,42 @@ class PendingRenewalInfo implements ArrayAccess
 
     // Expiration Intent Codes //
     /* @var int Customer Cancelled */
-    const EXPIRATION_INTENT_CANCELLED = 1;
+    public const int EXPIRATION_INTENT_CANCELLED = 1;
 
     /* @var int Billing Error */
-    const EXPIRATION_INTENT_BILLING_ERROR = 2;
+    public const int EXPIRATION_INTENT_BILLING_ERROR = 2;
 
     /* @var int Recent price increase was declined */
-    const EXPIRATION_INTENT_INCREASE_DECLINED = 3;
+    public const int EXPIRATION_INTENT_INCREASE_DECLINED = 3;
 
     /* @var int Product unavailable at time of renewal */
-    const EXPIRATION_INTENT_PRODUCT_UNAVAILABLE = 4;
+    public const int EXPIRATION_INTENT_PRODUCT_UNAVAILABLE = 4;
 
     /* @var int Unknown */
-    const EXPIRATION_INTENT_UNKNOWN = 5;
+    public const int EXPIRATION_INTENT_UNKNOWN = 5;
 
     // Retry flag codes //
     /* @var int Still attempting renewal */
-    const RETRY_PERIOD_ACTIVE = 1;
+    public const int RETRY_PERIOD_ACTIVE = 1;
 
     /* @var int Stopped attempting renewal */
-    const RETRY_PERIOD_INACTIVE = 0;
+    public const int RETRY_PERIOD_INACTIVE = 0;
 
     // Auto-renew status codes //
     /* @var int Subscription will renew */
-    const AUTO_RENEW_ACTIVE = 1;
+    public const int AUTO_RENEW_ACTIVE = 1;
 
     /* @var int Customer has turned off renewal */
-    const AUTO_RENEW_INACTIVE = 0;
+    public const int AUTO_RENEW_INACTIVE = 0;
 
     /**
      * Computed status code.
      *
      * @var string
      */
-    const STATUS_ACTIVE = 'active';
-    const STATUS_PENDING = 'pending';
-    const STATUS_EXPIRED = 'expired';
+    public const string STATUS_ACTIVE = 'active';
+    public const string STATUS_PENDING = 'pending';
+    public const string STATUS_EXPIRED = 'expired';
 
     /**
      * Product ID.

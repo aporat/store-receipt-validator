@@ -9,8 +9,8 @@ use ReceiptValidator\RunTimeException;
 
 class Validator
 {
-    const ENDPOINT_SANDBOX = 'http://localhost:8080/RVSSandbox/';
-    const ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com/version/1.0/verifyReceiptId/';
+    public const string ENDPOINT_SANDBOX = 'http://localhost:8080/RVSSandbox/';
+    public const string ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com/version/1.0/verifyReceiptId/';
 
     /**
      * endpoint url.

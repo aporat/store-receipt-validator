@@ -9,8 +9,8 @@ use ReceiptValidator\RunTimeException;
 
 class Validator
 {
-    const ENDPOINT_SANDBOX = 'https://sandbox.itunes.apple.com';
-    const ENDPOINT_PRODUCTION = 'https://buy.itunes.apple.com';
+    public const string ENDPOINT_SANDBOX = 'https://sandbox.itunes.apple.com';
+    public const string ENDPOINT_PRODUCTION = 'https://buy.itunes.apple.com';
 
     /**
      * endpoint url.

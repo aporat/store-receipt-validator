@@ -14,12 +14,12 @@ use ReceiptValidator\RunTimeException;
 class Acknowledger
 {
     // Do acknowledge only in case if it has not done
-    const ACKNOWLEDGE_STRATEGY_IMPLICIT = 'strategy_implicit';
-    // Try to do acknowledge directly (exception will be returned in case when acknowledge already was done)
-    const ACKNOWLEDGE_STRATEGY_EXPLICIT = 'strategy_explicit';
+    public const string ACKNOWLEDGE_STRATEGY_IMPLICIT = 'strategy_implicit';
+    // Try to do acknowledgement directly (exception will be returned in case when acknowledge already was done)
+    public const string ACKNOWLEDGE_STRATEGY_EXPLICIT = 'strategy_explicit';
 
-    const SUBSCRIPTION = 'SUBSCRIPTION';
-    const PRODUCT = 'PRODUCT';
+    public const string SUBSCRIPTION = 'SUBSCRIPTION';
+    public const string PRODUCT = 'PRODUCT';
 
     /**
      * @var AndroidPublisher
@@ -99,7 +99,11 @@ class Acknowledger
                             $this->purchaseToken
                         );
 
-                        if ($subscriptionPurchase->getAcknowledgementState() !== AbstractResponse::ACKNOWLEDGEMENT_STATE_DONE) {
+                        if (
+                            $subscriptionPurchase->getAcknowledgementState()
+                            !==
+                            AbstractResponse::ACKNOWLEDGEMENT_STATE_DONE
+                        ) {
                             $this->androidPublisherService->purchases_subscriptions->acknowledge(
                                 $this->packageName,
                                 $this->productId,
@@ -129,7 +133,11 @@ class Acknowledger
                             $this->purchaseToken
                         );
 
-                        if ($productPurchase->getAcknowledgementState() !== AbstractResponse::ACKNOWLEDGEMENT_STATE_DONE) {
+                        if (
+                            $productPurchase->getAcknowledgementState()
+                            !==
+                            AbstractResponse::ACKNOWLEDGEMENT_STATE_DONE
+                        ) {
                             $this->androidPublisherService->purchases_products->acknowledge(
                                 $this->packageName,
                                 $this->productId,

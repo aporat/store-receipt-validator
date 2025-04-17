@@ -173,7 +173,9 @@ class PurchaseItem implements ArrayAccess
         }
 
         if (array_key_exists('expires_date_ms', $this->raw_data)) {
-            $this->expires_date = Carbon::createFromTimestampUTC((int) round($this->raw_data['expires_date_ms'] / 1000));
+            $this->expires_date = Carbon::createFromTimestampUTC(
+                (int) round($this->raw_data['expires_date_ms'] / 1000)
+            );
         } elseif (array_key_exists('expires_date', $this->raw_data) && is_numeric($this->raw_data['expires_date'])) {
             $this->expires_date = Carbon::createFromTimestampUTC(
                 (int) round((int) $this->raw_data['expires_date'] / 1000)

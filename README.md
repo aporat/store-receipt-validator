@@ -13,7 +13,7 @@ A modern PHP library for validating in-app purchase receipts from Apple iTunes, 
 
 ## 📦 Requirements
 
-- PHP 8.2 or higher
+- PHP >= 8.3
 
 ## 📥 Installation
 

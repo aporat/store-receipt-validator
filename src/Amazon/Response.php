@@ -11,19 +11,19 @@ class Response
      *
      * @var int
      */
-    const RESULT_OK = 200;
+    public const int RESULT_OK = 200;
 
     // Amazon RVS Error: Invalid receiptID
-    const RESULT_INVALID_RECEIPT = 400;
+    public const int RESULT_INVALID_RECEIPT = 400;
 
     // Amazon RVS Error: Invalid developerSecret
-    const RESULT_INVALID_DEVELOPER_SECRET = 496;
+    public const int RESULT_INVALID_DEVELOPER_SECRET = 496;
 
     // Amazon RVS Error: Invalid userId
-    const RESULT_INVALID_USER_ID = 497;
+    public const int RESULT_INVALID_USER_ID = 497;
 
     // Amazon RVS Error: Internal Server Error
-    const RESULT_INTERNAL_ERROR = 500;
+    public const int RESULT_INTERNAL_ERROR = 500;
 
     /**
      * Result Code.
