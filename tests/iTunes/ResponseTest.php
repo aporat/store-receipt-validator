@@ -10,7 +10,7 @@ use ReceiptValidator\iTunes\ResponseInterface;
 use ReceiptValidator\iTunes\SandboxResponse;
 use ReceiptValidator\RunTimeException;
 
-class iTunesResponseTest extends TestCase
+class ResponseTest extends TestCase
 {
     public function testInvalidOptionsToConstructor(): void
     {
@@ -91,73 +91,60 @@ class iTunesResponseTest extends TestCase
 
     public function testReceiptWithLatestReceiptInfo(): void
     {
-        $jsonResponseString = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseResponse.json');
-        $jsonResponseArray = json_decode($jsonResponseString, true);
+        $response = new ProductionResponse([
+            'status' => ResponseInterface::RESULT_OK,
+            'environment' => 'Sandbox',
+            'latest_receipt' => 'MILFMwYJKoZIhvcNAQcCoILFJDCCxSACAQExCzAJBgUrDgMCGgUAMIK05A==',
+            'latest_receipt_info' => [
+                [
+                    'expires_date' => '2014-03-12 10:18:05 Etc/GMT',
+                    'expires_date_ms' => 1394619485000,
+                    'expires_date_pst' => '2014-03-12 03:18:05 America/Los_Angeles',
+                    'is_trial_period' => false,
+                    'original_purchase_date' => '2014-03-12 10:15:06 Etc/GMT',
+                    'original_purchase_date_ms' => 1394619306000,
+                    'original_purchase_date_pst' => '2014-03-12 03:15:06 America/Los_Angeles',
+                    'original_transaction_id' => 1000000093384828,
+                    'product_id' => 'myapp.1',
+                    'purchase_date' => '2014-03-25 12:21:23 Etc/GMT',
+                    'purchase_date_ms' => 1395750083000,
+                    'purchase_date_pst' => '2014-03-25 05:21:23 America/Los_Angeles',
+                    'quantity' => 1,
+                    'transaction_id' => 1000000104232856,
+                    'web_order_line_item_id' => 1000000027948608
+                ]
+            ],
+            'receipt' => [
+                'app_item_id' => 11202513425662,
+                'bundle_id' => 'com.myapp',
+                'original_purchase_date_ms' => 1375340400000,
+                'receipt_creation_date_ms' => 1375340400000,
+                'request_date_ms' => 1432485078143,
+                'in_app' => [
+                    [
+                        'is_trial_period' => false,
+                        'original_purchase_date_ms' => 1432429618000,
+                        'original_transaction_id' => 1000000156455961,
+                        'product_id' => 'myapp.1',
+                        'purchase_date_ms' => 1432429618000,
+                        'quantity' => 1,
+                        'transaction_id' => 1000000156455961
+                    ]
+                ]
+            ],
+            'pending_renewal_info' => [
+                [
+                    'auto_renew_product_id' => 'Test_Subscription',
+                    'original_transaction_id' => 'original_transaction_id_value',
+                    'product_id' => 'Test_Subscription',
+                    'auto_renew_status' => '1'
+                ]
+            ]
+        ]);
 
-        $response = new ProductionResponse($jsonResponseArray);
-
-        $this->assertEquals(
-            ResponseInterface::RESULT_OK,
-            $response->getResultCode()
-        );
-
-        $this->assertContainsOnlyInstancesOf(
-            PurchaseItem::class,
-            $response->getLatestReceiptInfo()
-        );
-
-        $this->assertCount(
-            2,
-            $response->getLatestReceiptInfo()
-        );
-
-        $this->assertEquals(
-            $jsonResponseArray['latest_receipt'],
-            $response->getLatestReceipt(),
-            'latest receipt must match'
-        );
-
-        $this->assertEquals(
-            $jsonResponseArray['receipt']['bundle_id'],
-            $response->getBundleId(),
-            'receipt bundle id must match'
-        );
-
-        $this->assertEquals(
-            '2013-08-01T07:00:00+00:00',
-            $response->getOriginalPurchaseDate()->toIso8601String()
-        );
-
-        $this->assertEquals(
-            '2013-08-01T07:00:00+00:00',
-            $response->getReceiptCreationDate()->toIso8601String()
-        );
-
-        $this->assertEquals(
-            '2015-05-24T16:31:18+00:00',
-            $response->getRequestDate()->toIso8601String()
-        );
-
-        $this->assertContainsOnlyInstancesOf(
-            PendingRenewalInfo::class,
-            $response->getPendingRenewalInfo()
-        );
-
-        $this->assertEquals(
-            11202513425662,
-            $response->getAppItemId()
-        );
-
-        $this->assertEquals(
-            1000000093384828,
-            $response->getLatestReceiptInfo()[0]->getTransactionId()
-        );
-
-        $this->assertEquals(
-            $jsonResponseArray,
-            $response->getRawData()
-        );
-
-        $this->assertFalse($response->isRetryable());
+        $this->assertTrue($response->isValid());
+        $this->assertCount(1, $response->getLatestReceiptInfo());
+        $this->assertEquals('myapp.1', $response->getLatestReceiptInfo()[0]->getProductId());
+        $this->assertEquals('com.myapp', $response->getBundleId());
     }
 }

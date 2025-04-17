@@ -20,7 +20,6 @@ class PurchaseItemTest extends TestCase
     public function testInvalidTypeToConstructor(): void
     {
         $this->expectException(TypeError::class);
-
         new PurchaseItem('invalid');
     }
 
@@ -42,35 +41,12 @@ class PurchaseItemTest extends TestCase
 
         $info = new PurchaseItem($raw_data);
 
-        $this->assertEquals(
-            $raw_data['quantity'],
-            $info->getQuantity()
-        );
-
-        $this->assertEquals(
-            $raw_data['transaction_id'],
-            $info->getTransactionId()
-        );
-
-        $this->assertEquals(
-            $raw_data['original_transaction_id'],
-            $info->getOriginalTransactionId()
-        );
-
-        $this->assertEquals(
-            $raw_data['product_id'],
-            $info->getProductId()
-        );
-
-        $this->assertEquals(
-            '2015-05-24T01:06:58+00:00',
-            $info->getPurchaseDate()->toIso8601String()
-        );
-
-        $this->assertEquals(
-            '2015-05-24T01:06:58+00:00',
-            $info->getOriginalPurchaseDate()->toIso8601String()
-        );
+        $this->assertEquals(1, $info->getQuantity());
+        $this->assertEquals(1000000156455961, $info->getTransactionId());
+        $this->assertEquals(1000000156455961, $info->getOriginalTransactionId());
+        $this->assertEquals('myapp.1', $info->getProductId());
+        $this->assertEquals('2015-05-24T01:06:58+00:00', $info->getPurchaseDate()->toIso8601String());
+        $this->assertEquals('2015-05-24T01:06:58+00:00', $info->getOriginalPurchaseDate()->toIso8601String());
     }
 
     public function testSubscriptionPurchaseData(): void
@@ -96,28 +72,11 @@ class PurchaseItemTest extends TestCase
 
         $info = new PurchaseItem($raw_data);
 
-        $this->assertEquals(
-            $raw_data['quantity'],
-            $info->getQuantity()
-        );
-
-        $this->assertEquals(
-            '2018-06-21T05:41:29+00:00',
-            $info->getExpiresDate()->toIso8601String()
-        );
-
-        $this->assertTrue(
-            $info->isTrialPeriod()
-        );
-
-        $this->assertFalse(
-            $info->isInIntroOfferPeriod()
-        );
-
-        $this->assertEquals(
-            $raw_data['web_order_line_item_id'],
-            $info->getWebOrderLineItemId()
-        );
+        $this->assertEquals(1, $info->getQuantity());
+        $this->assertEquals('2018-06-21T05:41:29+00:00', $info->getExpiresDate()->toIso8601String());
+        $this->assertTrue($info->isTrialPeriod());
+        $this->assertFalse($info->isInIntroOfferPeriod());
+        $this->assertEquals(720000062004133, $info->getWebOrderLineItemId());
     }
 
     public function testPurchaseDataWithoutWebOrderLineItemId(): void
@@ -143,28 +102,11 @@ class PurchaseItemTest extends TestCase
 
         $info = new PurchaseItem($raw_data);
 
-        $this->assertEquals(
-            $raw_data['quantity'],
-            $info->getQuantity()
-        );
-
-        $this->assertEquals(
-            '2018-06-21T05:41:29+00:00',
-            $info->getExpiresDate()->toIso8601String()
-        );
-
-        $this->assertTrue(
-            $info->isTrialPeriod()
-        );
-
-        $this->assertFalse(
-            $info->isInIntroOfferPeriod()
-        );
-
-        $this->assertEquals(
-            null,
-            $info->getWebOrderLineItemId()
-        );
+        $this->assertEquals(1, $info->getQuantity());
+        $this->assertEquals('2018-06-21T05:41:29+00:00', $info->getExpiresDate()->toIso8601String());
+        $this->assertTrue($info->isTrialPeriod());
+        $this->assertFalse($info->isInIntroOfferPeriod());
+        $this->assertNull($info->getWebOrderLineItemId());
     }
 
     public function testPurchaseDataWithPromotionalOfferId(): void
@@ -192,6 +134,23 @@ class PurchaseItemTest extends TestCase
         $info = new PurchaseItem($raw_data);
 
         $this->assertNotNull($info->getPromotionalOfferId());
-        $this->assertEquals($raw_data['promotional_offer_id'], $info->getPromotionalOfferId());
+        $this->assertEquals('PROMOOFFER', $info->getPromotionalOfferId());
+    }
+
+    public function testArrayAccessBehavior(): void
+    {
+        $raw = [
+            'product_id' => 'product.test',
+            'transaction_id' => 'tx_test',
+            'original_transaction_id' => 'tx_orig',
+            'purchase_date_ms' => 1600000000000,
+            'original_purchase_date_ms' => 1600000000000,
+            'expires_date_ms' => 1605000000000,
+            'quantity' => 1
+        ];
+
+        $item = new PurchaseItem($raw);
+
+        $this->assertSame($raw, $item->getRawResponse());
     }
 }
