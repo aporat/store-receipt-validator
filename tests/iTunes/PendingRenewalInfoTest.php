@@ -107,4 +107,34 @@ class PendingRenewalInfoTest extends TestCase
         $this->assertFalse($info->isInGracePeriod());
         $this->assertEquals('2015-05-24T01:06:58+00:00', $info->getGracePeriodExpiresDate()->toIso8601String());
     }
+
+    public function testArrayAccessBehavior(): void
+    {
+        $data = [
+            'product_id' => 'sub.test',
+            'original_transaction_id' => 'txn.test',
+            'auto_renew_product_id' => 'sub.test',
+            'auto_renew_status' => '1',
+            'expiration_intent' => '3',
+            'is_in_billing_retry_period' => '1',
+        ];
+
+        $info = new PendingRenewalInfo($data);
+
+        // offsetExists
+        $this->assertTrue(isset($info['product_id']));
+        $this->assertFalse(isset($info['non_existing']));
+
+        // offsetGet
+        $this->assertEquals('sub.test', $info['product_id']);
+        $this->assertNull($info['non_existing']);
+
+        // offsetSet
+        $info['expiration_intent'] = 4;
+        $this->assertEquals(4, $info->getExpirationIntent());
+
+        // offsetUnset
+        unset($info['expiration_intent']);
+        $this->assertNull($info['expiration_intent']);
+    }
 }

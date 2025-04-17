@@ -2,6 +2,7 @@
 
 namespace ReceiptValidator\Tests\iTunes;
 
+use Carbon\Carbon;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\iTunes\PurchaseItem;
 use ReceiptValidator\RunTimeException;
@@ -152,5 +153,93 @@ class PurchaseItemTest extends TestCase
         $item = new PurchaseItem($raw);
 
         $this->assertSame($raw, $item->getRawResponse());
+    }
+    public function testOffsetSetUpdatesRawData(): void
+    {
+        $data = [
+            'product_id' => 'com.example.app',
+            'transaction_id' => 'tx_123',
+            'original_transaction_id' => 'otx_456',
+            'purchase_date_ms' => 1600000000000,
+            'original_purchase_date_ms' => 1600000000000,
+            'expires_date_ms' => 1605000000000,
+            'quantity' => 1
+        ];
+
+        $item = new PurchaseItem($data);
+        $item['product_id'] = 'com.example.updated';
+
+        $this->assertEquals('com.example.updated', $item->getProductId());
+    }
+
+    public function testOffsetGetReturnsExpectedValue(): void
+    {
+        $data = [
+            'product_id' => 'com.example.app',
+            'transaction_id' => 'tx_123',
+            'original_transaction_id' => 'otx_456',
+            'purchase_date_ms' => 1600000000000,
+            'original_purchase_date_ms' => 1600000000000,
+            'expires_date_ms' => 1605000000000,
+            'quantity' => 1
+        ];
+
+        $item = new PurchaseItem($data);
+
+        $this->assertEquals('com.example.app', $item['product_id']);
+    }
+
+    public function testOffsetExistsReturnsTrueIfKeyExists(): void
+    {
+        $data = [
+            'product_id' => 'com.example.app',
+            'transaction_id' => 'tx_123',
+            'original_transaction_id' => 'otx_456',
+            'purchase_date_ms' => 1600000000000,
+            'original_purchase_date_ms' => 1600000000000,
+            'expires_date_ms' => 1605000000000,
+            'quantity' => 1
+        ];
+
+        $item = new PurchaseItem($data);
+
+        $this->assertTrue(isset($item['product_id']));
+        $this->assertFalse(isset($item['non_existing_key']));
+    }
+
+    public function testOffsetUnsetRemovesKey(): void
+    {
+        $data = [
+            'product_id' => 'com.example.app',
+            'transaction_id' => 'tx_123',
+            'original_transaction_id' => 'otx_456',
+            'purchase_date_ms' => 1600000000000,
+            'original_purchase_date_ms' => 1600000000000,
+            'expires_date_ms' => 1605000000000,
+            'quantity' => 1
+        ];
+
+        $item = new PurchaseItem($data);
+        unset($item['product_id']);
+
+        $this->assertFalse(isset($item['product_id']));
+    }
+
+    public function testGetCancellationDate(): void
+    {
+        $timestamp = 1606000000;
+        $data = [
+            'product_id' => 'com.example.app',
+            'transaction_id' => 'tx_123',
+            'original_transaction_id' => 'otx_456',
+            'purchase_date_ms' => 1600000000000,
+            'original_purchase_date_ms' => 1600000000000,
+            'expires_date_ms' => 1605000000000,
+            'cancellation_date_ms' => $timestamp * 1000,
+            'quantity' => 1
+        ];
+
+        $item = new PurchaseItem($data);
+        $this->assertEquals(Carbon::createFromTimestampUTC($timestamp)->toIso8601String(), $item->getCancellationDate()->toIso8601String());
     }
 }

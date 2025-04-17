@@ -273,55 +273,28 @@ class PendingRenewalInfo implements ArrayAccess
             $this->grace_period_expires_date->getTimestamp() > time();
     }
 
-    /**
-     * Update a key and reprocess object properties.
-     *
-     * @param $key
-     * @param $value
-     *
-     * @throws RunTimeException
-     */
     #[\ReturnTypeWillChange]
-    public function offsetSet($key, $value): void
+    public function offsetSet($offset, $value): void
     {
-        $this->raw_data[$key] = $value;
+        $this->raw_data[$offset] = $value;
         $this->parseData();
     }
 
-    /**
-     * Get a value.
-     *
-     * @param $key
-     *
-     * @return mixed
-     */
     #[\ReturnTypeWillChange]
-    public function offsetGet($key): mixed
+    public function offsetGet($offset): mixed
     {
-        return $this->raw_data[$key];
+        return $this->raw_data[$offset] ?? null;
     }
 
-    /**
-     * Unset a key.
-     *
-     * @param $key
-     */
     #[\ReturnTypeWillChange]
-    public function offsetUnset($key): void
+    public function offsetUnset($offset): void
     {
-        unset($this->raw_data[$key]);
+        unset($this->raw_data[$offset]);
     }
 
-    /**
-     * Check if key exists.
-     *
-     * @param $key
-     *
-     * @return bool
-     */
     #[\ReturnTypeWillChange]
-    public function offsetExists($key): bool
+    public function offsetExists($offset): bool
     {
-        return isset($this->raw_data[$key]);
+        return isset($this->raw_data[$offset]);
     }
 }
