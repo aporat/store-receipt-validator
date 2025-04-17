@@ -128,26 +128,12 @@ class Validator
     }
 
     /**
-     * returns the Guzzle client.
-     *
-     * @return HttpClient
-     */
-    protected function getClient(): HttpClient
-    {
-        if ($this->client == null) {
-            $this->client = new HttpClient(['base_uri' => $this->endpoint]);
-        }
-
-        return $this->client;
-    }
-
-    /**
      * validate the receipt data.
      *
-     * @throws RunTimeException
+     * @return Response
      * @throws GuzzleException
      *
-     * @return Response
+     * @throws RunTimeException
      */
     public function validate(): Response
     {
@@ -168,5 +154,19 @@ class Validator
         }
 
         return new Response(Response::RESULT_INVALID_RECEIPT);
+    }
+
+    /**
+     * returns the Guzzle client.
+     *
+     * @return HttpClient
+     */
+    protected function getClient(): HttpClient
+    {
+        if ($this->client == null) {
+            $this->client = new HttpClient(['base_uri' => $this->endpoint]);
+        }
+
+        return $this->client;
     }
 }

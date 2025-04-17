@@ -65,17 +65,17 @@ class SubscriptionResponse extends AbstractResponse
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getExpiryTimeMillis(): int
+    public function getExpiryTimeMillis(): string
     {
         return $this->response->getExpiryTimeMillis();
     }
 
     /**
-     * @return int|null
+     * @return string
      */
-    public function getUserCancellationTimeMillis(): ?int
+    public function getUserCancellationTimeMillis(): string
     {
         return $this->response->getUserCancellationTimeMillis();
     }

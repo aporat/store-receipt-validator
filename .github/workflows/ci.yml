@@ -13,15 +13,15 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                php: [8.2, 8.3, 8.4]
+                php: [8.3, 8.4]
                 os: [ubuntu-latest]
                 coverage: [none]
                 include:
-                    - php: 8.3
+                    - php: 8.4
                       os: ubuntu-latest
                       coverage: xdebug
 
-        name: '[P${{ matrix.php }}] [${{ matrix.coverage }}]'
+        name: PHP ${{ matrix.php }} ${{ matrix.description }}
 
         steps:
             - name: Checkout Code
@@ -52,6 +52,14 @@ jobs:
             - name: Run Tests with Coverage
               if: matrix.coverage == 'xdebug'
               run: composer test-ci
+
+            - name: Run code style check
+              if: matrix.coverage == 'xdebug'
+              run: composer check
+
+            - name: Run code analyze
+              if: matrix.coverage == 'xdebug'
+              run: composer analyze
 
             - name: Upload coverage to Codecov
               if: matrix.coverage == 'xdebug'

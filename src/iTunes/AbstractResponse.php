@@ -259,9 +259,9 @@ abstract class AbstractResponse
     /**
      * Parse Data from JSON Response.
      *
+     * @return $this
      * @throws RunTimeException
      *
-     * @return $this
      */
     public function parseData(): self
     {
@@ -313,19 +313,19 @@ abstract class AbstractResponse
 
         if (array_key_exists('original_purchase_date_ms', $this->raw_data['receipt'])) {
             $this->original_purchase_date = Carbon::createFromTimestampUTC(
-                (int) round($this->raw_data['receipt']['original_purchase_date_ms'] / 1000)
+                (int)round($this->raw_data['receipt']['original_purchase_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('request_date_ms', $this->raw_data['receipt'])) {
             $this->request_date = Carbon::createFromTimestampUTC(
-                (int) round($this->raw_data['receipt']['request_date_ms'] / 1000)
+                (int)round($this->raw_data['receipt']['request_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('receipt_creation_date_ms', $this->raw_data['receipt'])) {
             $this->receipt_creation_date = Carbon::createFromTimestampUTC(
-                (int) round($this->raw_data['receipt']['receipt_creation_date_ms'] / 1000)
+                (int)round($this->raw_data['receipt']['receipt_creation_date_ms'] / 1000)
             );
         }
 

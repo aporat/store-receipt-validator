@@ -58,9 +58,9 @@ class PurchaseResponse extends AbstractResponse
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getPurchaseState(): string
+    public function getPurchaseState(): int
     {
         return $this->response->purchaseState;
     }

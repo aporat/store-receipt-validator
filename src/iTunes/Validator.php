@@ -79,7 +79,7 @@ class Validator
     }
 
     /**
-     * Set receipt data, either in base64, or in json.
+     * Set receipt data, either in base64 or in JSON.
      *
      * @param string|null $receipt_data
      *
@@ -129,9 +129,9 @@ class Validator
     /**
      * @param string $endpoint
      *
+     * @return $this
      * @throws InvalidArgumentException
      *
-     * @return $this
      */
     public function setEndpoint(string $endpoint): self
     {
@@ -229,7 +229,7 @@ class Validator
     protected function prepareRequestData(): string
     {
         $request = [
-            'receipt-data'             => $this->getReceiptData(),
+            'receipt-data' => $this->getReceiptData(),
             'exclude-old-transactions' => $this->getExcludeOldTransactions(),
         ];
 
@@ -244,10 +244,10 @@ class Validator
      * @param null|string $receipt_data
      * @param null|string $shared_secret
      *
-     * @throws RunTimeException
+     * @return ResponseInterface
      * @throws GuzzleException
      *
-     * @return ResponseInterface
+     * @throws RunTimeException
      */
     public function validate(?string $receipt_data = null, ?string $shared_secret = null): ResponseInterface
     {
@@ -267,14 +267,14 @@ class Validator
     /**
      * @param HttpClient $client
      *
-     * @throws RunTimeException
+     * @return ProductionResponse|SandboxResponse
      * @throws GuzzleException
      *
-     * @return ProductionResponse|SandboxResponse
+     * @throws RunTimeException
      */
     private function sendRequestUsingClient(HttpClient $client): SandboxResponse|ProductionResponse
     {
-        $baseUri = (string) $client->getConfig('base_uri');
+        $baseUri = (string)$client->getConfig('base_uri');
 
         $httpResponse = $client->request('POST', '/verifyReceipt', ['body' => $this->prepareRequestData()]);
 

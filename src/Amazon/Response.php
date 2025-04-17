@@ -49,7 +49,7 @@ class Response
     /**
      * Response constructor.
      *
-     * @param int        $httpStatusCode
+     * @param int $httpStatusCode
      * @param array|null $jsonResponse
      *
      * @throws RunTimeException
@@ -61,6 +61,28 @@ class Response
         if ($jsonResponse !== null) {
             $this->parseJsonResponse($jsonResponse);
         }
+    }
+
+    /**
+     * Parse JSON Response.
+     *
+     * @param array|null $jsonResponse
+     *
+     * @return $this
+     * @throws RunTimeException
+     *
+     */
+    public function parseJsonResponse(?array $jsonResponse): self
+    {
+        if (!is_array($jsonResponse)) {
+            throw new RuntimeException('Response must be a scalar value');
+        }
+
+        $this->receipt = $jsonResponse;
+        $this->purchases = [];
+        $this->purchases[] = new PurchaseItem($jsonResponse);
+
+        return $this;
     }
 
     /**
@@ -105,27 +127,5 @@ class Response
         }
 
         return false;
-    }
-
-    /**
-     * Parse JSON Response.
-     *
-     * @param array|null $jsonResponse
-     *
-     * @throws RunTimeException
-     *
-     * @return $this
-     */
-    public function parseJsonResponse(?array $jsonResponse): self
-    {
-        if (!is_array($jsonResponse)) {
-            throw new RuntimeException('Response must be a scalar value');
-        }
-
-        $this->receipt = $jsonResponse;
-        $this->purchases = [];
-        $this->purchases[] = new PurchaseItem($jsonResponse);
-
-        return $this;
     }
 }

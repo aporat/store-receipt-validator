@@ -40,7 +40,7 @@ class Validator
      * Validator constructor.
      *
      * @param AndroidPublisher $googleServiceAndroidPublisher
-     * @param bool             $validationModePurchase
+     * @param bool $validationModePurchase
      */
     public function __construct(
         AndroidPublisher $googleServiceAndroidPublisher,
@@ -55,7 +55,7 @@ class Validator
      *
      * @return $this
      */
-    public function setPackageName(string $package_name): static
+    public function setPackageName(string $package_name): self
     {
         $this->package_name = $package_name;
 
@@ -67,7 +67,7 @@ class Validator
      *
      * @return $this
      */
-    public function setPurchaseToken(string $purchase_token): static
+    public function setPurchaseToken(string $purchase_token): self
     {
         $this->purchase_token = $purchase_token;
 
@@ -79,7 +79,7 @@ class Validator
      *
      * @return $this
      */
-    public function setProductId(string $product_id): static
+    public function setProductId(string $product_id): self
     {
         $this->product_id = $product_id;
 
@@ -91,7 +91,7 @@ class Validator
      *
      * @return Validator
      */
-    public function setValidationModePurchase(bool $validationModePurchase): static
+    public function setValidationModePurchase(bool $validationModePurchase): self
     {
         $this->validationModePurchase = $validationModePurchase;
 
@@ -103,7 +103,7 @@ class Validator
      *
      * @return Validator
      */
-    public function setValidationSubscriptionV2(bool $validationSubscriptionV2): static
+    public function setValidationSubscriptionV2(bool $validationSubscriptionV2): self
     {
         $this->validationSubscriptionV2 = $validationSubscriptionV2;
 
@@ -111,9 +111,9 @@ class Validator
     }
 
     /**
+     * @return PurchaseResponse|SubscriptionResponse
      * @throws Exception
      *
-     * @return PurchaseResponse|SubscriptionResponse
      */
     public function validate()
     {
@@ -129,9 +129,9 @@ class Validator
     }
 
     /**
+     * @return PurchaseResponse
      * @throws Exception
      *
-     * @return PurchaseResponse
      */
     public function validatePurchase(): PurchaseResponse
     {
@@ -144,10 +144,20 @@ class Validator
         );
     }
 
+    public function validateSubscriptionV2(): SubscriptionV2Response
+    {
+        return new SubscriptionV2Response(
+            $this->androidPublisherService->purchases_subscriptionsv2->get(
+                $this->package_name,
+                $this->purchase_token
+            )
+        );
+    }
+
     /**
+     * @return SubscriptionResponse
      * @throws Exception
      *
-     * @return SubscriptionResponse
      */
     public function validateSubscription(): SubscriptionResponse
     {
@@ -155,16 +165,6 @@ class Validator
             $this->androidPublisherService->purchases_subscriptions->get(
                 $this->package_name,
                 $this->product_id,
-                $this->purchase_token
-            )
-        );
-    }
-
-    public function validateSubscriptionV2(): SubscriptionV2Response
-    {
-        return new SubscriptionV2Response(
-            $this->androidPublisherService->purchases_subscriptionsv2->get(
-                $this->package_name,
                 $this->purchase_token
             )
         );

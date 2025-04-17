@@ -127,9 +127,9 @@ class PendingRenewalInfo implements ArrayAccess
     /**
      * Parse Data from JSON Response.
      *
+     * @return $this
      * @throws RunTimeException
      *
-     * @return $this
      */
     public function parseData(): self
     {
@@ -140,20 +140,20 @@ class PendingRenewalInfo implements ArrayAccess
         $this->product_id = $this->raw_data['product_id'];
         $this->original_transaction_id = $this->raw_data['original_transaction_id'];
         $this->auto_renew_product_id = $this->raw_data['auto_renew_product_id'];
-        $this->auto_renew_status = (bool) $this->raw_data['auto_renew_status'];
+        $this->auto_renew_status = (bool)$this->raw_data['auto_renew_status'];
 
         if (array_key_exists('expiration_intent', $this->raw_data)) {
-            $this->expiration_intent = (int) $this->raw_data['expiration_intent'];
+            $this->expiration_intent = (int)$this->raw_data['expiration_intent'];
         }
 
         if (array_key_exists('grace_period_expires_date_ms', $this->raw_data)) {
             $this->grace_period_expires_date = Carbon::createFromTimestampUTC(
-                (int) round($this->raw_data['grace_period_expires_date_ms'] / 1000)
+                (int)round($this->raw_data['grace_period_expires_date_ms'] / 1000)
             );
         }
 
         if (array_key_exists('is_in_billing_retry_period', $this->raw_data)) {
-            $this->is_in_billing_retry_period = (int) $this->raw_data['is_in_billing_retry_period'];
+            $this->is_in_billing_retry_period = (int)$this->raw_data['is_in_billing_retry_period'];
         }
 
         return $this;

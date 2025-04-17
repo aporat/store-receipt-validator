@@ -57,6 +57,64 @@ class PurchaseItem
     protected ?Carbon $renewal_date;
 
     /**
+     * PurchaseItem constructor.
+     *
+     * @param array|null $jsonResponse
+     *
+     * @throws RunTimeException
+     */
+    public function __construct(?array $jsonResponse)
+    {
+        $this->raw_data = $jsonResponse;
+        if ($this->raw_data !== null) {
+            $this->parseJsonResponse();
+        }
+    }
+
+    /**
+     * Parse JSON Response.
+     *
+     * @return PurchaseItem
+     * @throws RunTimeException
+     *
+     */
+    public function parseJsonResponse(): self
+    {
+        $jsonResponse = $this->raw_data;
+        if (!is_array($jsonResponse)) {
+            throw new RuntimeException('Response must be a scalar value');
+        }
+
+        if (array_key_exists('quantity', $jsonResponse)) {
+            $this->quantity = $jsonResponse['quantity'];
+        }
+
+        if (array_key_exists('receiptId', $jsonResponse)) {
+            $this->transaction_id = $jsonResponse['receiptId'];
+        }
+
+        if (array_key_exists('productId', $jsonResponse)) {
+            $this->product_id = $jsonResponse['productId'];
+        }
+
+        if (array_key_exists('purchaseDate', $jsonResponse) && !empty($jsonResponse['purchaseDate'])) {
+            $this->purchase_date = Carbon::createFromTimestampUTC(intval(round($jsonResponse['purchaseDate'] / 1000)));
+        }
+
+        if (array_key_exists('cancelDate', $jsonResponse) && !empty($jsonResponse['cancelDate'])) {
+            $this->cancellation_date = Carbon::createFromTimestampUTC(
+                intval(round($jsonResponse['cancelDate'] / 1000))
+            );
+        }
+
+        if (array_key_exists('renewalDate', $jsonResponse) && !empty($jsonResponse['renewalDate'])) {
+            $this->renewal_date = Carbon::createFromTimestampUTC(intval(round($jsonResponse['renewalDate'] / 1000)));
+        }
+
+        return $this;
+    }
+
+    /**
      * @return array|null
      */
     public function getRawResponse(): ?array
@@ -110,63 +168,5 @@ class PurchaseItem
     public function getRenewalDate(): ?Carbon
     {
         return $this->renewal_date;
-    }
-
-    /**
-     * PurchaseItem constructor.
-     *
-     * @param array|null $jsonResponse
-     *
-     * @throws RunTimeException
-     */
-    public function __construct(?array $jsonResponse)
-    {
-        $this->raw_data = $jsonResponse;
-        if ($this->raw_data !== null) {
-            $this->parseJsonResponse();
-        }
-    }
-
-    /**
-     * Parse JSON Response.
-     *
-     * @throws RunTimeException
-     *
-     * @return PurchaseItem
-     */
-    public function parseJsonResponse(): self
-    {
-        $jsonResponse = $this->raw_data;
-        if (!is_array($jsonResponse)) {
-            throw new RuntimeException('Response must be a scalar value');
-        }
-
-        if (array_key_exists('quantity', $jsonResponse)) {
-            $this->quantity = $jsonResponse['quantity'];
-        }
-
-        if (array_key_exists('receiptId', $jsonResponse)) {
-            $this->transaction_id = $jsonResponse['receiptId'];
-        }
-
-        if (array_key_exists('productId', $jsonResponse)) {
-            $this->product_id = $jsonResponse['productId'];
-        }
-
-        if (array_key_exists('purchaseDate', $jsonResponse) && !empty($jsonResponse['purchaseDate'])) {
-            $this->purchase_date = Carbon::createFromTimestampUTC(intval(round($jsonResponse['purchaseDate'] / 1000)));
-        }
-
-        if (array_key_exists('cancelDate', $jsonResponse) && !empty($jsonResponse['cancelDate'])) {
-            $this->cancellation_date = Carbon::createFromTimestampUTC(
-                intval(round($jsonResponse['cancelDate'] / 1000))
-            );
-        }
-
-        if (array_key_exists('renewalDate', $jsonResponse) && !empty($jsonResponse['renewalDate'])) {
-            $this->renewal_date = Carbon::createFromTimestampUTC(intval(round($jsonResponse['renewalDate'] / 1000)));
-        }
-
-        return $this;
     }
 }

@@ -46,10 +46,10 @@ class Acknowledger
      * Acknowledger constructor.
      *
      * @param AndroidPublisher $googleServiceAndroidPublisher
-     * @param string           $packageName
-     * @param string           $purchaseToken
-     * @param string           $productId
-     * @param string           $strategy
+     * @param string $packageName
+     * @param string $purchaseToken
+     * @param string $productId
+     * @param string $strategy
      *
      * @throws RunTimeException
      */
