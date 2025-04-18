@@ -1,0 +1,95 @@
+{
+  "environment": "Sandbox",
+  "latest_receipt": "MILFMwYJKoZIhvcNAQcCoILFJDCCxSACAQExCzAJBgUrDgMCGgUAMIK05AYJKoZIhvcNAQcBoIK01QSCtNExgrTNMAoCAQgCAQEEAhYAMAoCARICAQEEAhYAMAoCARMCAQEEAgwAMAoCARQCAQEEAgwAMAsCAQECAQEEAwIBADA",
+  "latest_receipt_info": [
+    {
+      "expires_date": "2014-03-12 10:18:05 Etc\/GMT",
+      "expires_date_ms": 1394619485000,
+      "expires_date_pst": "2014-03-12 03:18:05 America\/Los_Angeles",
+      "is_trial_period": false,
+      "original_purchase_date": "2014-03-12 10:15:06 Etc\/GMT",
+      "original_purchase_date_ms": 1394619306000,
+      "original_purchase_date_pst": "2014-03-12 03:15:06 America\/Los_Angeles",
+      "original_transaction_id": 1000000093384828,
+      "product_id": "myapp.1",
+      "purchase_date": "2014-03-25 12:21:23 Etc\/GMT",
+      "purchase_date_ms": 1395750083000,
+      "purchase_date_pst": "2014-03-25 05:21:23 America\/Los_Angeles",
+      "quantity": 1,
+      "transaction_id": 1000000104232856,
+      "web_order_line_item_id": 1000000027948608
+    },
+    {
+      "expires_date": "2013-11-14 10:23:43 Etc\/GMT",
+      "expires_date_ms": 1384424623000,
+      "expires_date_pst": "2013-11-14 02:23:43 America\/Los_Angeles",
+      "original_purchase_date": "2013-11-14 10:20:44 Etc\/GMT",
+      "original_purchase_date_ms": 1384424444000,
+      "original_purchase_date_pst": "2013-11-14 02:20:44 America\/Los_Angeles",
+      "original_transaction_id": 1000000093384828,
+      "product_id": "myapp.2",
+      "purchase_date": "2014-03-29 05:37:36 Etc\/GMT",
+      "purchase_date_ms": 1396071456569,
+      "purchase_date_pst": "2014-03-28 22:37:36 America\/Los_Angeles",
+      "quantity": 1,
+      "transaction_id": 1000000093384828,
+      "web_order_line_item_id": 1000000027562376
+    }
+  ],
+  "receipt": {
+    "adam_id": 0,
+    "app_item_id": 11202513425662,
+    "application_version": 1,
+    "bundle_id": "com.myapp",
+    "download_id": 112025169293341,
+    "original_application_version": "1.0",
+    "receipt_creation_date": "2013-08-01 07:00:00 Etc\/GMT",
+    "receipt_creation_date_ms": 1375340400000,
+    "receipt_creation_date_pst": "2013-08-01 00:00:00 America\/Los_Angeles",
+    "original_purchase_date": "2013-08-01 07:00:00 Etc\/GMT",
+    "original_purchase_date_ms": 1375340400000,
+    "original_purchase_date_pst": "2013-08-01 00:00:00 America\/Los_Angeles",
+    "receipt_type": "Sandbox",
+    "request_date": "2015-05-24 16:31:18 Etc\/GMT",
+    "request_date_ms": 1432485078143,
+    "request_date_pst": "2015-05-24 09:31:18 America\/Los_Angeles",
+    "version_external_identifier": 0,
+    "in_app": [
+      {
+        "is_trial_period": false,
+        "original_purchase_date": "2015-05-24 01:06:58 Etc\/GMT",
+        "original_purchase_date_ms": 1432429618000,
+        "original_purchase_date_pst": "2015-05-23 18:06:58 America\/Los_Angeles",
+        "original_transaction_id": 1000000156455961,
+        "product_id": "myapp.1",
+        "purchase_date": "2015-05-24 01:06:58 Etc\/GMT",
+        "purchase_date_ms": 1432429618000,
+        "purchase_date_pst": "2015-05-23 18:06:58 America\/Los_Angeles",
+        "quantity": 1,
+        "transaction_id": 1000000156455961
+      },
+      {
+        "is_trial_period": false,
+        "original_purchase_date": "2015-05-20 17:41:12 Etc\/GMT",
+        "original_purchase_date_ms": 1432143672000,
+        "original_purchase_date_pst": "2015-05-20 10:41:12 America\/Los_Angeles",
+        "original_transaction_id": 1000000156014803,
+        "product_id": "myapp.2",
+        "purchase_date": "2015-05-20 17:41:12 Etc\/GMT",
+        "purchase_date_ms": 1432143672000,
+        "purchase_date_pst": "2015-05-20 10:41:12 America\/Los_Angeles",
+        "quantity": 1,
+        "transaction_id": 1000000156014803
+      }
+    ]
+  },
+  "status": 0,
+  "pending_renewal_info": [
+      {
+          "auto_renew_product_id": "Test_Subscription",
+          "original_transaction_id": "original_transaction_id_value",
+          "product_id": "Test_Subscription",
+          "auto_renew_status": "1"
+      }
+  ]
+}

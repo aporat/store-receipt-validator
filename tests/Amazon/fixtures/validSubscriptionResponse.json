@@ -1,0 +1,16 @@
+{
+    "purchaseDate": 1558424877035,
+    "receiptId": "q1YqVrJSSs7P1UvMTazKz9PLTCwoTswtyEktM9JLrShIzCvOzM-LL04tiTdW0lFKASo2NDEwMjCwMDM2MTC0AIqVAsUsLd1c4l18jIxdfTOK_N1d8kqLLHVLc8oK83OLgtPNCit9AoJdjJ3dXG2BGkqUrAxrAQ",
+    "productId": "com.amazon.iapsamplev2.expansion_set_3",
+    "parentProductId": null,
+    "productType": "SUBSCRIPTION",
+    "renewalDate": 1561103277035,
+    "quantity": 1,
+    "betaProduct": false,
+    "testTransaction": true,
+    "term": "1 Week",
+    "termSku": "sub1-weekly",
+    "freeTrialEndDate": 1561104377023,
+    "AutoRenewing": false,
+    "GracePeriodEndDate": 1561104377013
+}

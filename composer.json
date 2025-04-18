@@ -31,8 +31,6 @@
     "require": {
         "php": "^8.3",
         "ext-json": "*",
-        "google/apiclient": "^2.10",
-        "google/apiclient-services": "~0.249",
         "guzzlehttp/guzzle": "^7.0",
         "lcobucci/jwt": "^5.5",
         "nesbot/carbon": "^2.72.6|^3.0",

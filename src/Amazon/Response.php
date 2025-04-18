@@ -2,130 +2,27 @@
 
 namespace ReceiptValidator\Amazon;
 
-use ReceiptValidator\RunTimeException;
+use ReceiptValidator\AbstractResponse;
+use ReceiptValidator\Exceptions\ValidationException;
 
-class Response
+class Response extends AbstractResponse
 {
-    /**
-     * Response Codes.
-     *
-     * @var int
-     */
-    public const int RESULT_OK = 200;
-
-    // Amazon RVS Error: Invalid receiptID
-    public const int RESULT_INVALID_RECEIPT = 400;
-
-    // Amazon RVS Error: Invalid developerSecret
-    public const int RESULT_INVALID_DEVELOPER_SECRET = 496;
-
-    // Amazon RVS Error: Invalid userId
-    public const int RESULT_INVALID_USER_ID = 497;
-
-    // Amazon RVS Error: Internal Server Error
-    public const int RESULT_INTERNAL_ERROR = 500;
 
     /**
-     * Result Code.
-     *
-     * @var int
-     */
-    protected int $code;
-
-    /**
-     * receipt info.
-     *
-     * @var array
-     */
-    protected array $receipt = [];
-
-    /**
-     * purchases info.
-     *
-     * @var PurchaseItem[]
-     */
-    protected array $purchases = [];
-
-    /**
-     * Response constructor.
-     *
-     * @param int $httpStatusCode
-     * @param array|null $jsonResponse
-     *
-     * @throws RunTimeException
-     */
-    public function __construct(int $httpStatusCode = 200, ?array $jsonResponse = [])
-    {
-        $this->code = $httpStatusCode;
-
-        if ($jsonResponse !== null) {
-            $this->parseJsonResponse($jsonResponse);
-        }
-    }
-
-    /**
-     * Parse JSON Response.
-     *
-     * @param array|null $jsonResponse
+     * Parse JSON response into receipt and purchases.
      *
      * @return $this
-     * @throws RunTimeException
-     *
+     * @throws ValidationException
      */
-    public function parseJsonResponse(?array $jsonResponse): self
+    public function parseData(): self
     {
-        if (!is_array($jsonResponse)) {
-            throw new RuntimeException('Response must be a scalar value');
+        if ($this->raw_data == null || !is_array($this->raw_data)) {
+            throw new ValidationException('Response must be an array');
         }
 
-        $this->receipt = $jsonResponse;
-        $this->purchases = [];
-        $this->purchases[] = new PurchaseItem($jsonResponse);
+        $this->purchases = [new Transaction($this->raw_data)];
 
         return $this;
     }
 
-    /**
-     * Get Result Code.
-     *
-     * @return int
-     */
-    public function getResultCode(): int
-    {
-        return $this->code;
-    }
-
-    /**
-     * Get receipt info.
-     *
-     * @return array
-     */
-    public function getReceipt(): array
-    {
-        return $this->receipt;
-    }
-
-    /**
-     * Get purchases info.
-     *
-     * @return PurchaseItem[]
-     */
-    public function getPurchases(): array
-    {
-        return $this->purchases;
-    }
-
-    /**
-     * returns if the receipt is valid or not.
-     *
-     * @return bool
-     */
-    public function isValid(): bool
-    {
-        if ($this->code == self::RESULT_OK) {
-            return true;
-        }
-
-        return false;
-    }
 }

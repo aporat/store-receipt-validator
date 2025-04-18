@@ -43,7 +43,7 @@ class ReceiptUtility
             $type = $entry['content'][0]['content'] ?? null;
             $value = $entry['content'][2]['content'] ?? null;
 
-            if ((string) $type === (string) self::IN_APP_ARRAY && is_string($value)) {
+            if ((string)$type === (string)self::IN_APP_ARRAY && is_string($value)) {
                 $inAppDecoded = ASN1::decodeBER($value);
                 $inAppSet = $inAppDecoded[0]['content'] ?? [];
 
@@ -51,7 +51,7 @@ class ReceiptUtility
                     $type = $inAppItem['content'][0]['content'] ?? null;
                     $value = $inAppItem['content'][2]['content'] ?? null;
 
-                    if ((string) $type === (string) self::TRANSACTION_IDENTIFIER && is_string($value)) {
+                    if ((string)$type === (string)self::TRANSACTION_IDENTIFIER && is_string($value)) {
                         $finalDecoded = ASN1::decodeBER($value);
                         return $finalDecoded[0]['content'] ?? null;
                     }

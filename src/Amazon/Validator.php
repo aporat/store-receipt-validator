@@ -2,87 +2,138 @@
 
 namespace ReceiptValidator\Amazon;
 
-use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
-use ReceiptValidator\RunTimeException;
+use ReceiptValidator\AbstractValidator;
+use ReceiptValidator\Environment;
+use ReceiptValidator\Exceptions\ValidationException;
 
-class Validator
+class Validator extends AbstractValidator
 {
-    public const string ENDPOINT_SANDBOX = 'http://localhost:8080/RVSSandbox/';
-    public const string ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com/version/1.0/verifyReceiptId/';
+    /**
+     * Amazon RVS Error: Invalid receiptID
+     *
+     * @var int
+     */
+    public const int RESULT_INVALID_RECEIPT = 400;
 
     /**
-     * endpoint url.
+     * Amazon RVS Error: Invalid developerSecret
+     *
+     * @var int
+     */
+    public const int RESULT_INVALID_DEVELOPER_SECRET = 496;
+
+    /**
+     * Amazon RVS Error: Invalid userId
+     *
+     * @var int
+     */
+    public const int RESULT_INVALID_USER_ID = 497;
+
+    /**
+     * Amazon RVS Error: Internal Server Error
+     *
+     * @var int
+     */
+    public const int RESULT_INTERNAL_ERROR = 500;
+
+    /**
+     * Amazon RVS sandbox endpoint.
      *
      * @var string
      */
-    protected string $endpoint;
+    public const string ENDPOINT_SANDBOX = 'https://appstore-sdk.amazon.com/sandbox';
 
     /**
-     * Guzzle http client.
+     * Amazon RVS production endpoint.
      *
-     * @var HttpClient|null
+     * @var string
      */
-    protected ?HttpClient $client = null;
+    public const string ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com';
 
     /**
+     * Error messages for known Amazon RVS response codes.
+     *
+     * @var array<int, string>
+     */
+    protected const array ERROR_MESSAGES = [
+        self::RESULT_INVALID_RECEIPT => 'Invalid receipt ID.',
+        self::RESULT_INVALID_DEVELOPER_SECRET => 'Invalid developer secret.',
+        self::RESULT_INVALID_USER_ID => 'Invalid user ID.',
+        self::RESULT_INTERNAL_ERROR => 'Internal server error.',
+    ];
+
+    /**
+     * User ID.
+     *
      * @var string|null
      */
     protected ?string $userId = null;
 
     /**
+     * Receipt ID.
+     *
      * @var string|null
      */
     protected ?string $receiptId = null;
 
     /**
+     * Developer secret.
+     *
      * @var string|null
      */
     protected ?string $developerSecret = null;
 
     /**
-     * Validator constructor.
+     * Validate the receipt by sending a request to Amazon's RVS.
      *
-     * @param string $endpoint
-     *
-     * @throws RunTimeException
+     * @return Response
+     * @throws ValidationException
      */
-    public function __construct(string $endpoint = self::ENDPOINT_PRODUCTION)
+    public function validate(): Response
     {
-        if ($endpoint != self::ENDPOINT_PRODUCTION && $endpoint != self::ENDPOINT_SANDBOX) {
-            throw new RunTimeException("Invalid endpoint '$endpoint'");
+        return $this->makeRequest();
+    }
+
+    /**
+     * Perform the HTTP request and parse the response.
+     *
+     * @return Response
+     * @throws ValidationException
+     */
+    protected function makeRequest(): Response
+    {
+        $endpoint = $this->environment === Environment::PRODUCTION
+            ? self::ENDPOINT_PRODUCTION
+            : self::ENDPOINT_SANDBOX;
+
+        try {
+            $httpResponse = $this->getClient($endpoint)->request(
+                'GET',
+                sprintf(
+                    '/version/1.0/verifyReceiptId/developer/%s/user/%s/receiptId/%s',
+                    $this->developerSecret,
+                    $this->userId,
+                    $this->receiptId
+                )
+            );
+
+            $statusCode = $httpResponse->getStatusCode();
+
+            if ($statusCode !== 200) {
+                $message = self::ERROR_MESSAGES[$statusCode] ?? 'Unexpected error occurred while validating the receipt.';
+                throw new ValidationException($message, $statusCode);
+            }
+
+            $decodedBody = json_decode($httpResponse->getBody(), true);
+            return new Response($decodedBody, $this->environment);
+        } catch (GuzzleException $e) {
+            throw new ValidationException('Amazon validation request failed', 0, $e);
         }
-
-        $this->endpoint = $endpoint;
     }
 
     /**
-     * @param string|null $userId
-     *
-     * @return self
-     */
-    public function setUserId(?string $userId = null): self
-    {
-        $this->userId = $userId;
-
-        return $this;
-    }
-
-    /**
-     * @param string|null $receiptId
-     *
-     * @return self
-     */
-    public function setReceiptId(?string $receiptId): self
-    {
-        $this->receiptId = $receiptId;
-
-        return $this;
-    }
-
-    /**
-     * get developer secret.
+     * Get the developer secret.
      *
      * @return string|null
      */
@@ -92,81 +143,38 @@ class Validator
     }
 
     /**
-     * @param string|null $developerSecret
+     * Set the developer secret.
      *
-     * @return self
+     * @param string|null $developerSecret
+     * @return $this
      */
     public function setDeveloperSecret(?string $developerSecret): self
     {
         $this->developerSecret = $developerSecret;
-
         return $this;
     }
 
     /**
-     * get endpoint.
+     * Set the user ID.
      *
-     * @return string
-     */
-    public function getEndpoint(): string
-    {
-        return $this->endpoint;
-    }
-
-    /**
-     * set endpoint.
-     *
-     * @param string $endpoint
-     *
+     * @param string|null $userId
      * @return $this
      */
-    public function setEndpoint(string $endpoint): self
+    public function setUserId(?string $userId): self
     {
-        $this->endpoint = $endpoint;
-
+        $this->userId = $userId;
         return $this;
     }
 
     /**
-     * validate the receipt data.
+     * Set the receipt ID.
      *
-     * @return Response
-     * @throws GuzzleException
-     *
-     * @throws RunTimeException
+     * @param string|null $receiptId
+     * @return $this
      */
-    public function validate(): Response
+    public function setReceiptId(?string $receiptId): self
     {
-        try {
-            $httpResponse = $this->getClient()->request(
-                'GET',
-                sprintf('developer/%s/user/%s/receiptId/%s', $this->developerSecret, $this->userId, $this->receiptId)
-            );
-
-            return new Response($httpResponse->getStatusCode(), json_decode($httpResponse->getBody(), true));
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                return new Response(
-                    $e->getResponse()->getStatusCode(),
-                    json_decode($e->getResponse()->getBody(), true)
-                );
-            }
-        }
-
-        return new Response(Response::RESULT_INVALID_RECEIPT);
-    }
-
-    /**
-     * returns the Guzzle client.
-     *
-     * @return HttpClient
-     */
-    protected function getClient(): HttpClient
-    {
-        if ($this->client == null) {
-            $this->client = new HttpClient(['base_uri' => $this->endpoint]);
-        }
-
-        return $this->client;
+        $this->receiptId = $receiptId;
+        return $this;
     }
 }

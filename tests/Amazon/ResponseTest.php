@@ -4,68 +4,47 @@ namespace ReceiptValidator\Tests\Amazon;
 
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Response;
-use ReceiptValidator\Amazon\PurchaseItem;
-use ReceiptValidator\RunTimeException;
+use ReceiptValidator\Amazon\Transaction;
+use ReceiptValidator\Environment;
+use ReceiptValidator\Exceptions\ValidationException;
 
 class ResponseTest extends TestCase
 {
-    public function testValidReceipt(): void
+    public function testParsesValidResponse(): void
     {
-        $receipt = json_decode(
-            '{
-                "betaProduct": false,
-                "cancelDate": null,
-                "parentProductId": null,
-                "productId": "pack_100",
-                "productType": "CONSUMABLE",
-                "purchaseDate": 1485359133060,
-                "quantity": 1,
-                "receiptId": "M3qQCAiytxUzm3G05OworddJDiSi6ijXQGRFSK#AD=:1:11",
-                "renewalDate": null,
-                "term": null,
-                "termSku": null,
-                "testTransaction": false
-            }',
-            true
-        );
+        $receipt = [
+            'productId' => 'com.amazon.test',
+            'receiptId' => 'txn_001',
+            'purchaseDate' => 1609459200000,
+            'quantity' => 1
+        ];
 
-        $response = new Response(Response::RESULT_OK, $receipt);
-
-        $this->assertTrue($response->isValid());
-        $this->assertEquals(Response::RESULT_OK, $response->getResultCode());
-        $this->assertEquals($receipt, $response->getReceipt());
+        $response = new Response($receipt, Environment::PRODUCTION);
+        $this->assertSame($receipt, $response->getRawData());
 
         $purchases = $response->getPurchases();
         $this->assertCount(1, $purchases);
-
-        $purchase = $purchases[0];
-        $this->assertInstanceOf(PurchaseItem::class, $purchase);
-        $this->assertEquals('pack_100', $purchase->getProductId());
-        $this->assertEquals('M3qQCAiytxUzm3G05OworddJDiSi6ijXQGRFSK#AD=:1:11', $purchase->getTransactionId());
-        $this->assertEquals(1, $purchase->getQuantity());
+        $this->assertInstanceOf(Transaction::class, $purchases[0]);
     }
 
-    public function testInvalidReceipt(): void
+    public function testThrowsExceptionOnNullData(): void
     {
-        $response = new Response(Response::RESULT_INTERNAL_ERROR, []);
-        $this->assertFalse($response->isValid());
-        $this->assertEquals(Response::RESULT_INTERNAL_ERROR, $response->getResultCode());
-        $this->assertIsArray($response->getReceipt());
-        $this->assertCount(1, $response->getPurchases());
+        $this->expectException(ValidationException::class);
+        new Response(null, Environment::SANDBOX);
     }
 
-    public function testJsonParsingThrowsOnInvalidData(): void
+    public function testSetAndGetEnvironment(): void
     {
-        $this->expectException(\TypeError::class);
-        $response = new Response();
-        $response->parseJsonResponse('not-an-array');
-    }
+        $receipt = [
+            'productId' => 'com.amazon.test',
+            'receiptId' => 'txn_002',
+            'purchaseDate' => 1609459200000
+        ];
 
-    public function testEmptyJsonStillInitializes(): void
-    {
-        $response = new Response(Response::RESULT_OK, []);
-        $this->assertTrue($response->isValid());
-        $this->assertIsArray($response->getReceipt());
-        $this->assertCount(1, $response->getPurchases());
+        $response = new Response($receipt);
+        $this->assertSame(Environment::PRODUCTION, $response->getEnvironment());
+
+        $response->setEnvironment(Environment::SANDBOX);
+        $this->assertSame(Environment::SANDBOX, $response->getEnvironment());
     }
 }
