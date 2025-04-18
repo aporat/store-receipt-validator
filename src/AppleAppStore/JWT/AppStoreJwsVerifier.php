@@ -20,23 +20,35 @@ class AppStoreJwsVerifier
         'b52cb02fd567e0359fe8fa4d4c41037970fe01b0',
     ];
 
-    private const int CHAIN_LENGTH = 3;
+    private const int EXPECTED_CHAIN_LENGTH = 3;
+    private const int EXPECTED_JWT_SEGMENTS = 3;
+    private const string EXPECTED_ALGORITHM = 'ES256';
 
     /**
      * Verifies the JWS
      *
-     * @param Jws $jws
+     * @param Jws $token
      * @return bool
      */
-    public function verify(Jws $jws): bool
+    public function verify(Jws $token): bool
     {
-        $x5c = $jws->getHeaders()['x5c'] ?? [];
 
-        if (count($x5c) !== self::CHAIN_LENGTH) {
+        $segments = explode('.', $token);
+        if (count($segments) !== self::EXPECTED_JWT_SEGMENTS) {
             return false;
         }
 
-        $chain = $this->chain($x5c);
+        $headers = $token->headers()->all();
+
+        if (($headers['alg'] ?? null) !== self::EXPECTED_ALGORITHM) {
+            return false;
+        }
+
+        if (count($headers['x5c']) !== self::EXPECTED_CHAIN_LENGTH) {
+            return false;
+        }
+
+        $chain = $this->chain($headers['x5c']);
 
         [$leaf, $intermediate, $root] = $chain;
         $fingerPrints = [
@@ -57,7 +69,7 @@ class AppStoreJwsVerifier
         }
 
         openssl_x509_export($chain[0], $exportedCertificate);
-        (new SignedWith(new Sha256(), InMemory::plainText($exportedCertificate)))->assert($jws);
+        (new SignedWith(new Sha256(), InMemory::plainText($exportedCertificate)))->assert($token);
 
         return true;
     }

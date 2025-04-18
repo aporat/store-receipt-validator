@@ -47,7 +47,7 @@ class Response extends AbstractResponse
      * @return $this
      * @throws ValidationException
      */
-    public function parseData(): self
+    public function parse(): self
     {
         if (!is_array($this->raw_data)) {
             throw new ValidationException('Transaction data must be an array');

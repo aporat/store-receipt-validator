@@ -41,7 +41,7 @@ abstract class AbstractResponse
         $this->raw_data = $data;
         $this->environment = $environment;
 
-        $this->parseData();
+        $this->parse();
     }
 
     /**
@@ -50,7 +50,7 @@ abstract class AbstractResponse
      * @return $this
      * @throws ValidationException
      */
-    abstract public function parseData(): self;
+    abstract public function parse(): self;
 
     /**
      * Get transaction array.

@@ -10,12 +10,6 @@ use ReturnTypeWillChange;
 
 class Transaction extends AbstractTransaction implements ArrayAccess
 {
-    /**
-     * Raw purchase item info.
-     *
-     * @var array|null
-     */
-    protected ?array $raw_data;
 
     /**
      * Purchase date.
@@ -73,17 +67,6 @@ class Transaction extends AbstractTransaction implements ArrayAccess
      */
     protected ?string $term_sku = null;
 
-    /**
-     * Constructor.
-     *
-     * @param array|null $jsonResponse
-     * @throws ValidationException
-     */
-    public function __construct(?array $jsonResponse)
-    {
-        $this->raw_data = $jsonResponse;
-        $this->parseJsonResponse();
-    }
 
     /**
      * Parse JSON response.
@@ -91,7 +74,7 @@ class Transaction extends AbstractTransaction implements ArrayAccess
      * @return $this
      * @throws ValidationException
      */
-    public function parseJsonResponse(): self
+    public function parse(): self
     {
         if (!is_array($this->raw_data)) {
             throw new ValidationException('Response must be a scalar value');
@@ -232,7 +215,7 @@ class Transaction extends AbstractTransaction implements ArrayAccess
     public function offsetSet($offset, $value): void
     {
         $this->raw_data[$offset] = $value;
-        $this->parseJsonResponse();
+        $this->parse();
     }
 
     #[ReturnTypeWillChange]

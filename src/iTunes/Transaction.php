@@ -74,31 +74,12 @@ class Transaction extends AbstractTransaction implements ArrayAccess
     protected ?string $promotional_offer_id = null;
 
     /**
-     * Raw transaction data.
-     *
-     * @var array|null
-     */
-    protected ?array $raw_data;
-
-    /**
-     * Constructor.
-     *
-     * @param array|null $data
-     * @throws ValidationException
-     */
-    public function __construct(?array $data)
-    {
-        $this->raw_data = $data;
-        $this->parseData();
-    }
-
-    /**
      * Parse Data from JSON Response.
      *
      * @return $this
      * @throws ValidationException
      */
-    public function parseData(): self
+    public function parse(): self
     {
         if (!is_array($this->raw_data)) {
             throw new ValidationException('Response must be an array');
@@ -139,11 +120,6 @@ class Transaction extends AbstractTransaction implements ArrayAccess
         }
 
         return $this;
-    }
-
-    public function getRawResponse(): ?array
-    {
-        return $this->raw_data;
     }
 
     public function getWebOrderLineItemId(): ?string
@@ -205,7 +181,7 @@ class Transaction extends AbstractTransaction implements ArrayAccess
     public function offsetSet($offset, $value): void
     {
         $this->raw_data[$offset] = $value;
-        $this->parseData();
+        $this->parse();
     }
 
     #[ReturnTypeWillChange]

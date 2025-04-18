@@ -98,7 +98,7 @@ class Transaction extends AbstractResponse implements ArrayAccess
     /** @var string|null The duration of the offer. */
     protected ?string $offerPeriod = null;
 
-    public function parseData(): self
+    public function parse(): self
     {
         if ($this->raw_data == null || !is_array($this->raw_data)) {
             throw new ValidationException('Response must be an array');
@@ -190,7 +190,7 @@ class Transaction extends AbstractResponse implements ArrayAccess
     #[ReturnTypeWillChange] public function offsetSet($offset, $value): void
     {
         $this->raw_data[$offset] = $value;
-        $this->parseData();
+        $this->parse();
     }
 
     #[ReturnTypeWillChange] public function offsetGet($offset): mixed

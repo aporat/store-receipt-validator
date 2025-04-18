@@ -2,8 +2,39 @@
 
 namespace ReceiptValidator;
 
+use ReceiptValidator\Exceptions\ValidationException;
+
 abstract class AbstractTransaction
 {
+    /**
+     * Constructor.
+     *
+     * @param array|null $data
+     *
+     * @throws ValidationException
+     */
+    public function __construct(?array $data = [])
+    {
+        $this->raw_data = $data;
+
+        $this->parse();
+    }
+
+    /**
+     * Parse raw data into the response.
+     *
+     * @return $this
+     * @throws ValidationException
+     */
+    abstract public function parse(): self;
+
+    /**
+     * Raw JSON data from the response.
+     *
+     * @var array|null
+     */
+    protected ?array $raw_data = null;
+
     /**
      * Quantity.
      *
@@ -24,6 +55,14 @@ abstract class AbstractTransaction
      * @var string
      */
     protected string $transaction_id;
+
+    /**
+     * Get raw response data.
+     */
+    public function getRawData(): ?array
+    {
+        return $this->raw_data;
+    }
 
     /**
      * Get quantity.
