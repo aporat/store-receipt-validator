@@ -132,11 +132,6 @@ class Response extends AbstractResponse
                 fn($data) => new Transaction($data),
                 $this->raw_data['latest_receipt_info']
             );
-
-            usort(
-                $this->latest_receipt_info,
-                fn(Transaction $a, Transaction $b) => $b->getPurchaseDate()->timestamp - $a->getPurchaseDate()->timestamp
-            );
         }
 
         if (array_key_exists('latest_receipt', $this->raw_data)) {

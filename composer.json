@@ -32,9 +32,11 @@
         "php": "^8.3",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^7.0",
+        "lcobucci/clock": "^3.3",
         "lcobucci/jwt": "^5.5",
         "nesbot/carbon": "^2.72.6|^3.0",
-        "phpseclib/phpseclib": "^3.0"
+        "phpseclib/phpseclib": "^3.0",
+        "ext-openssl": "*"
     },
     "require-dev": {
         "mockery/mockery": "^1.6",
