@@ -26,7 +26,7 @@ class ResponseTest extends TestCase
         $response = new Response($data, Environment::SANDBOX);
 
         $this->assertEquals('com.example.app', $response->getBundleId());
-        $this->assertCount(1, $response->getPurchases());
+        $this->assertCount(1, $response->getTransactions());
     }
 
     public function testHandlesMissingOptionalFields(): void
@@ -41,7 +41,7 @@ class ResponseTest extends TestCase
 
         $response = new Response($data);
 
-        $this->assertEquals([], $response->getPurchases());
+        $this->assertEquals([], $response->getTransactions());
         $this->assertEquals([], $response->getLatestReceiptInfo());
         $this->assertEquals([], $response->getPendingRenewalInfo());
     }

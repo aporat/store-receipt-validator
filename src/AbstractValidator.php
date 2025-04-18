@@ -26,14 +26,6 @@ abstract class AbstractValidator
     ];
 
     /**
-     * AbstractValidator constructor.
-     */
-    public function __construct(Environment $environment = Environment::PRODUCTION)
-    {
-        $this->setEnvironment($environment);
-    }
-
-    /**
      * Get environment.
      */
     public function getEnvironment(): Environment

@@ -9,7 +9,7 @@ class Response extends AbstractResponse
 {
 
     /**
-     * Parse JSON response into receipt and purchases.
+     * Parse JSON response into receipt and transactions.
      *
      * @return $this
      * @throws ValidationException
@@ -20,7 +20,7 @@ class Response extends AbstractResponse
             throw new ValidationException('Response must be an array');
         }
 
-        $this->purchases = [new Transaction($this->raw_data)];
+        $this->transactions = [new Transaction($this->raw_data)];
 
         return $this;
     }

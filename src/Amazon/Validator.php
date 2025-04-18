@@ -85,6 +85,18 @@ class Validator extends AbstractValidator
     protected ?string $developerSecret = null;
 
     /**
+     * Validator constructor.
+     *
+     * @param string $developerSecret
+     * @param Environment $environment
+     */
+    public function __construct(string $developerSecret, Environment $environment)
+    {
+        $this->developerSecret = $developerSecret;
+        $this->environment = $environment;
+    }
+
+    /**
      * Validate the receipt by sending a request to Amazon's RVS.
      *
      * @return Response

@@ -22,7 +22,7 @@ class ResponseTest extends TestCase
         $response = new Response($receipt, Environment::PRODUCTION);
         $this->assertSame($receipt, $response->getRawData());
 
-        $purchases = $response->getPurchases();
+        $purchases = $response->getTransactions();
         $this->assertCount(1, $purchases);
         $this->assertInstanceOf(Transaction::class, $purchases[0]);
     }

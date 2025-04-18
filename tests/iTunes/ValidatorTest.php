@@ -19,7 +19,7 @@ class ValidatorTest extends TestCase
 
     public function testSetAndGetEnvironment(): void
     {
-        $validator = new Validator(Environment::SANDBOX);
+        $validator = new Validator('secret', Environment::SANDBOX);
         $this->assertEquals(Environment::SANDBOX, $validator->getEnvironment());
 
         $validator->setEnvironment(Environment::PRODUCTION);
@@ -28,7 +28,7 @@ class ValidatorTest extends TestCase
 
     public function testSetReceiptData(): void
     {
-        $validator = new Validator();
+        $validator = new Validator('secret');
         $base64 = base64_encode('{"example":"json"}');
 
         $validator->setReceiptData('{"example":"json"}');
@@ -40,8 +40,7 @@ class ValidatorTest extends TestCase
 
     public function testSetAndGetSharedSecret(): void
     {
-        $validator = new Validator();
-        $validator->setSharedSecret('secret');
+        $validator = new Validator('secret');
         $this->assertEquals('secret', $validator->getSharedSecret());
     }
 
@@ -55,7 +54,7 @@ class ValidatorTest extends TestCase
                 'receipt' => ['app_item_id' => 123, 'in_app' => []]
             ])));
 
-        $validator = new Validator();
+        $validator = new Validator('secret');
         $validator->client = $mockClient;
         $validator->setReceiptData('abc');
 
@@ -77,7 +76,7 @@ class ValidatorTest extends TestCase
                 'receipt' => ['app_item_id' => 123, 'in_app' => []]
             ])));
 
-        $validator = new Validator(Environment::PRODUCTION);
+        $validator = new Validator('secret', Environment::PRODUCTION);
         $validator->client = $mockClient;
         $validator->setReceiptData('xyz');
 
@@ -92,7 +91,7 @@ class ValidatorTest extends TestCase
             ->once()
             ->andReturn(new GuzzleResponse(500, [], 'Server error'));
 
-        $validator = new Validator(Environment::PRODUCTION);
+        $validator = new Validator('secret', Environment::PRODUCTION);
         $validator->client = $mockClient;
         $validator->setReceiptData('test');
 
@@ -110,15 +109,15 @@ class ValidatorTest extends TestCase
             ->once()
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        $validator = new Validator(Environment::SANDBOX);
+        $validator = new Validator('secret', Environment::SANDBOX);
         $validator->client = $mockClient;
         $validator->setReceiptData('dummy-data');
 
         $response = $validator->validate();
 
         $this->assertEquals('com.myapp', $response->getBundleId());
-        $this->assertCount(2, $response->getPurchases());
-        $this->assertEquals('myapp.1', $response->getPurchases()[0]->getProductId());
+        $this->assertCount(2, $response->getTransactions());
+        $this->assertEquals('myapp.1', $response->getTransactions()[0]->getProductId());
     }
 
     public function testInAppPurchaseInvalidReceiptResponseFromFixture(): void
@@ -129,7 +128,7 @@ class ValidatorTest extends TestCase
             ->once()
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        $validator = new Validator(Environment::SANDBOX);
+        $validator = new Validator('secret', Environment::SANDBOX);
         $validator->client = $mockClient;
         $validator->setReceiptData('dummy-data');
 

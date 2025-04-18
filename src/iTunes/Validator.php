@@ -134,6 +134,18 @@ class Validator extends AbstractValidator
     protected ?string $shared_secret = null;
 
     /**
+     * Constructor.
+     *
+     * @param string|null $shared_secret
+     * @param Environment $environment
+     */
+    public function __construct(?string $shared_secret = null, Environment $environment = Environment::PRODUCTION)
+    {
+        $this->shared_secret = $shared_secret;
+        $this->environment = $environment;
+    }
+
+    /**
      * Get the shared secret.
      *
      * @return string|null

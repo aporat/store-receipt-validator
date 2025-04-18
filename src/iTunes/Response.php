@@ -99,7 +99,7 @@ class Response extends AbstractResponse
     protected function parseIOS7StyleReceipt(): void
     {
         $this->app_item_id = $this->raw_data['receipt']['app_item_id'];
-        $this->purchases = [];
+        $this->transactions = [];
 
         if (array_key_exists('original_purchase_date_ms', $this->raw_data['receipt'])) {
             $this->original_purchase_date = Carbon::createFromTimestampUTC(
@@ -120,7 +120,7 @@ class Response extends AbstractResponse
         }
 
         foreach ($this->raw_data['receipt']['in_app'] as $purchase_item_data) {
-            $this->purchases[] = new Transaction($purchase_item_data);
+            $this->transactions[] = new Transaction($purchase_item_data);
         }
 
         if (array_key_exists('bundle_id', $this->raw_data['receipt'])) {
@@ -167,7 +167,7 @@ class Response extends AbstractResponse
      */
     protected function parseIOS6StyleReceipt(): void
     {
-        $this->purchases = [new Transaction($this->raw_data['receipt'])];
+        $this->transactions = [new Transaction($this->raw_data['receipt'])];
 
         if (array_key_exists('bid', $this->raw_data['receipt'])) {
             $this->bundle_id = $this->raw_data['receipt']['bid'];

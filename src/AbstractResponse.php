@@ -12,7 +12,7 @@ abstract class AbstractResponse
      *
      * @var array
      */
-    protected array $purchases = [];
+    protected array $transactions = [];
 
     /**
      * Raw JSON data from the response.
@@ -53,11 +53,11 @@ abstract class AbstractResponse
     abstract public function parseData(): self;
 
     /**
-     * Get purchase array.
+     * Get transaction array.
      */
-    public function getPurchases(): array
+    public function getTransactions(): array
     {
-        return $this->purchases;
+        return $this->transactions;
     }
 
     /**
