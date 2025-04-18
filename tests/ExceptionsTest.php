@@ -3,14 +3,14 @@
 namespace ReceiptValidator\Tests;
 
 use PHPUnit\Framework\TestCase;
-use ReceiptValidator\RunTimeException;
+use ReceiptValidator\Exceptions\ValidationException;
 
 class ExceptionsTest extends TestCase
 {
     public function testRunTimeException(): void
     {
-        $e = new RunTimeException();
+        $e = new ValidationException();
 
-        $this->assertInstanceOf(RunTimeException::class, $e);
+        $this->assertInstanceOf(ValidationException::class, $e);
     }
 }

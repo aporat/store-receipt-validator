@@ -5,7 +5,6 @@
          cacheDirectory=".phpunit.cache"
          colors="true"
          executionOrder="depends,defects"
-         shortenArraysForExportThreshold="10"
          beStrictAboutOutputDuringTests="true"
          displayDetailsOnPhpunitDeprecations="true"
          failOnPhpunitDeprecation="true"
@@ -17,7 +16,7 @@
         </testsuite>
     </testsuites>
 
-    <source ignoreIndirectDeprecations="true" restrictNotices="true" restrictWarnings="true">
+    <source restrictNotices="true" restrictWarnings="true">
         <include>
             <directory>src</directory>
         </include>
