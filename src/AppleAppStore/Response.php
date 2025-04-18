@@ -50,7 +50,7 @@ class Response extends AbstractResponse
     public function parse(): self
     {
         if (!is_array($this->raw_data)) {
-            throw new ValidationException('Transaction data must be an array');
+            throw new ValidationException('Response must be an array');
         }
 
         $data = $this->raw_data;
@@ -78,7 +78,6 @@ class Response extends AbstractResponse
                 }
             }
         } catch (\Throwable $e) {
-
         }
 
         return $this;

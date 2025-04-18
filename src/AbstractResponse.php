@@ -6,7 +6,6 @@ use ReceiptValidator\Exceptions\ValidationException;
 
 abstract class AbstractResponse
 {
-
     /**
      * Purchases array.
      *

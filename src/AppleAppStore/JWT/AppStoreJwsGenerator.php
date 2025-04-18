@@ -2,6 +2,9 @@
 
 namespace ReceiptValidator\AppleAppStore\JWT;
 
+use Lcobucci\JWT\Token\Plain;
+use ReceiptValidator\Exceptions\ValidationException;
+
 /**
  * Generates ES256 JWT token for App Store Connect API
  */
@@ -25,12 +28,10 @@ class AppStoreJwsGenerator
     /**
      * Generate a JWT
      *
-     * @param array $claims
-     * @param array $headers
      * @return Jws
      *
      */
-    public function generate(array $claims = [], array $headers = []): Jws
+    public function generate(): Jws
     {
         $builder = $this->config->config()->builder();
         $issuer = $this->config->issuer();
@@ -45,7 +46,11 @@ class AppStoreJwsGenerator
             ->withClaim('bid', $issuer->bundle())
             ->getToken($issuer->signer(), $issuer->key());
 
-        return Jws::fromJwtPlain($token);
+        if ($token instanceof Plain) {
+            return Jws::fromJwtPlain($token);
+        }
+
+        throw new ValidationException('Invalid jwt token');
     }
 
     /**

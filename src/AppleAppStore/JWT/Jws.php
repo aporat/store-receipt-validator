@@ -3,40 +3,40 @@
 namespace ReceiptValidator\AppleAppStore\JWT;
 
 use Lcobucci\JWT\Token;
-use Lcobucci\JWT\Token\Plain;
+use Lcobucci\JWT\Token\Plain as PlainToken;
 use Lcobucci\JWT\UnencryptedToken;
 use Stringable;
 
 /**
  * Class Jws
  *
- * This is a wrapper class for Lcobucci\JWT\Token\Plain
+ * This is a wrapper class for PlainToken
  */
 final class Jws implements Stringable, UnencryptedToken
 {
     use UnEncryptedTokenConcern;
 
     /**
-     * @var Token
+     * @var PlainToken
      */
-    private Token $token;
+    private PlainToken $token;
 
     /**
-     * @param Plain $token
+     * @param PlainToken $token
      */
-    private function __construct(Token $token)
+    private function __construct(PlainToken $token)
     {
         $this->token = $token;
     }
 
     /**
-     * Creates a new instance from a Lcobucci\JWT\Token\Plain instance
+     * Creates a new instance from a PlainToken instance
      *
-     * @param Token $token
+     * @param PlainToken $token
      *
      * @return static
      */
-    public static function fromJwtPlain(Token $token): self
+    public static function fromJwtPlain(PlainToken $token): self
     {
         return new self($token);
     }

@@ -76,7 +76,7 @@ class AppStoreJwsVerifier
 
     /**
      * @param array $certificates
-     * @return array<string>
+     * @return array
      */
     private function chain(array $certificates): array
     {

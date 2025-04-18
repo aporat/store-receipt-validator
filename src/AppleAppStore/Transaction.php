@@ -100,7 +100,7 @@ class Transaction extends AbstractResponse implements ArrayAccess
 
     public function parse(): self
     {
-        if ($this->raw_data == null || !is_array($this->raw_data)) {
+        if (!is_array($this->raw_data)) {
             throw new ValidationException('Response must be an array');
         }
 
@@ -159,33 +159,114 @@ class Transaction extends AbstractResponse implements ArrayAccess
     }
 
     // Getter methods for all properties (auto-generated)
-    public function getOriginalTransactionId(): ?string { return $this->originalTransactionId; }
-    public function getTransactionId(): ?string { return $this->transactionId; }
-    public function getWebOrderLineItemId(): ?string { return $this->webOrderLineItemId; }
-    public function getBundleId(): ?string { return $this->bundleId; }
-    public function getProductId(): ?string { return $this->productId; }
-    public function getSubscriptionGroupIdentifier(): ?string { return $this->subscriptionGroupIdentifier; }
-    public function getPurchaseDate(): ?Carbon { return $this->purchaseDate; }
-    public function getOriginalPurchaseDate(): ?Carbon { return $this->originalPurchaseDate; }
-    public function getExpiresDate(): ?Carbon { return $this->expiresDate; }
-    public function getQuantity(): ?int { return $this->quantity; }
-    public function getType(): ?string { return $this->type; }
-    public function getAppAccountToken(): ?string { return $this->appAccountToken; }
-    public function getInAppOwnershipType(): ?string { return $this->inAppOwnershipType; }
-    public function getSignedDate(): ?Carbon { return $this->signedDate; }
-    public function getRevocationReason(): ?string { return $this->revocationReason; }
-    public function getRevocationDate(): ?Carbon { return $this->revocationDate; }
-    public function getIsUpgraded(): ?bool { return $this->isUpgraded; }
-    public function getOfferType(): ?string { return $this->offerType; }
-    public function getOfferIdentifier(): ?string { return $this->offerIdentifier; }
-    public function getStorefront(): ?string { return $this->storefront; }
-    public function getStorefrontId(): ?string { return $this->storefrontId; }
-    public function getTransactionReason(): ?string { return $this->transactionReason; }
-    public function getCurrency(): ?string { return $this->currency; }
-    public function getPrice(): ?int { return $this->price; }
-    public function getOfferDiscountType(): ?string { return $this->offerDiscountType; }
-    public function getAppTransactionId(): ?string { return $this->appTransactionId; }
-    public function getOfferPeriod(): ?string { return $this->offerPeriod; }
+    public function getOriginalTransactionId(): ?string
+    {
+        return $this->originalTransactionId;
+    }
+    public function getTransactionId(): ?string
+    {
+        return $this->transactionId;
+    }
+    public function getWebOrderLineItemId(): ?string
+    {
+        return $this->webOrderLineItemId;
+    }
+    public function getBundleId(): ?string
+    {
+        return $this->bundleId;
+    }
+    public function getProductId(): ?string
+    {
+        return $this->productId;
+    }
+    public function getSubscriptionGroupIdentifier(): ?string
+    {
+        return $this->subscriptionGroupIdentifier;
+    }
+    public function getPurchaseDate(): ?Carbon
+    {
+        return $this->purchaseDate;
+    }
+    public function getOriginalPurchaseDate(): ?Carbon
+    {
+        return $this->originalPurchaseDate;
+    }
+    public function getExpiresDate(): ?Carbon
+    {
+        return $this->expiresDate;
+    }
+    public function getQuantity(): ?int
+    {
+        return $this->quantity;
+    }
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+    public function getAppAccountToken(): ?string
+    {
+        return $this->appAccountToken;
+    }
+    public function getInAppOwnershipType(): ?string
+    {
+        return $this->inAppOwnershipType;
+    }
+    public function getSignedDate(): ?Carbon
+    {
+        return $this->signedDate;
+    }
+    public function getRevocationReason(): ?string
+    {
+        return $this->revocationReason;
+    }
+    public function getRevocationDate(): ?Carbon
+    {
+        return $this->revocationDate;
+    }
+    public function getIsUpgraded(): ?bool
+    {
+        return $this->isUpgraded;
+    }
+    public function getOfferType(): ?string
+    {
+        return $this->offerType;
+    }
+    public function getOfferIdentifier(): ?string
+    {
+        return $this->offerIdentifier;
+    }
+    public function getStorefront(): ?string
+    {
+        return $this->storefront;
+    }
+    public function getStorefrontId(): ?string
+    {
+        return $this->storefrontId;
+    }
+    public function getTransactionReason(): ?string
+    {
+        return $this->transactionReason;
+    }
+    public function getCurrency(): ?string
+    {
+        return $this->currency;
+    }
+    public function getPrice(): ?int
+    {
+        return $this->price;
+    }
+    public function getOfferDiscountType(): ?string
+    {
+        return $this->offerDiscountType;
+    }
+    public function getAppTransactionId(): ?string
+    {
+        return $this->appTransactionId;
+    }
+    public function getOfferPeriod(): ?string
+    {
+        return $this->offerPeriod;
+    }
 
     #[ReturnTypeWillChange] public function offsetSet($offset, $value): void
     {

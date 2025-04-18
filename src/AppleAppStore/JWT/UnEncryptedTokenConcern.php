@@ -4,13 +4,13 @@ namespace ReceiptValidator\AppleAppStore\JWT;
 
 use DateTimeInterface;
 use Lcobucci\JWT\Token\DataSet;
-use Lcobucci\JWT\Token\Plain;
+use Lcobucci\JWT\Token\Plain as PlainToken;
 use Lcobucci\JWT\Token\Signature;
 
 /**
  * Trait UnEncryptedTokenConcern
  *
- * @property Plain $token
+ * @property PlainToken $token
  */
 trait UnEncryptedTokenConcern
 {

@@ -10,7 +10,6 @@ use ReturnTypeWillChange;
 
 class Transaction extends AbstractTransaction implements ArrayAccess
 {
-
     /**
      * Purchase date.
      *

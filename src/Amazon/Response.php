@@ -7,7 +7,6 @@ use ReceiptValidator\Exceptions\ValidationException;
 
 class Response extends AbstractResponse
 {
-
     /**
      * Parse JSON response into receipt and transactions.
      *
@@ -16,7 +15,7 @@ class Response extends AbstractResponse
      */
     public function parse(): self
     {
-        if ($this->raw_data == null || !is_array($this->raw_data)) {
+        if (!is_array($this->raw_data)) {
             throw new ValidationException('Response must be an array');
         }
 
@@ -24,5 +23,4 @@ class Response extends AbstractResponse
 
         return $this;
     }
-
 }
