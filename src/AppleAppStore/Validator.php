@@ -140,6 +140,9 @@ class Validator extends AbstractValidator
                 'headers' => [
                     'Authorization' => "Bearer {$token->toString()}",
                 ],
+                'query' => [
+                    'sort' => 'DESCENDING',
+                ],
             ]);
         } catch (GuzzleException $e) {
             throw new ValidationException('Unable to connect to App Store Server API - ' . $e->getMessage(), 0, $e);
