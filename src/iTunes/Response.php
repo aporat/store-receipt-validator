@@ -74,57 +74,45 @@ class Response extends AbstractResponse
             throw new ValidationException('Response must be an array');
         }
 
-        if ($this->isIOS7StyleReceipt()) {
-            $this->parseIOS7StyleReceipt();
-        } elseif ($this->isIOS6StyleReceipt()) {
-            $this->parseIOS6StyleReceipt();
-        }
+        if (array_key_exists('receipt', $this->rawData)) {
+            if (array_key_exists('app_item_id', $this->rawData['receipt'])) {
+                $this->app_item_id = $this->rawData['receipt']['app_item_id'];
+            }
 
-        return $this;
-    }
+            $this->transactions = [];
 
-    protected function isIOS7StyleReceipt(): bool
-    {
-        return array_key_exists('receipt', $this->rawData)
-            && is_array($this->rawData['receipt'])
-            && array_key_exists('in_app', $this->rawData['receipt'])
-            && is_array($this->rawData['receipt']['in_app']);
-    }
+            if (array_key_exists('original_purchase_date_ms', $this->rawData['receipt'])) {
+                $this->original_purchase_date = Carbon::createFromTimestampUTC(
+                    (int)round($this->rawData['receipt']['original_purchase_date_ms'] / 1000)
+                );
+            }
 
-    /**
-     * Parse receipt for iOS >= 7.
-     *
-     * @throws ValidationException
-     */
-    protected function parseIOS7StyleReceipt(): void
-    {
-        $this->app_item_id = $this->rawData['receipt']['app_item_id'];
-        $this->transactions = [];
+            if (array_key_exists('request_date_ms', $this->rawData['receipt'])) {
+                $this->request_date = Carbon::createFromTimestampUTC(
+                    (int)round($this->rawData['receipt']['request_date_ms'] / 1000)
+                );
+            }
 
-        if (array_key_exists('original_purchase_date_ms', $this->rawData['receipt'])) {
-            $this->original_purchase_date = Carbon::createFromTimestampUTC(
-                (int)round($this->rawData['receipt']['original_purchase_date_ms'] / 1000)
-            );
-        }
+            if (array_key_exists('receipt_creation_date_ms', $this->rawData['receipt'])) {
+                $this->receipt_creation_date = Carbon::createFromTimestampUTC(
+                    (int)round($this->rawData['receipt']['receipt_creation_date_ms'] / 1000)
+                );
+            }
 
-        if (array_key_exists('request_date_ms', $this->rawData['receipt'])) {
-            $this->request_date = Carbon::createFromTimestampUTC(
-                (int)round($this->rawData['receipt']['request_date_ms'] / 1000)
-            );
-        }
+            if (array_key_exists('in_app', $this->rawData['receipt'])) {
+                foreach ($this->rawData['receipt']['in_app'] as $purchase_item_data) {
+                    $this->transactions[] = new Transaction($purchase_item_data);
+                }
+            } else if (array_key_exists('product_id', $this->rawData['receipt'])) {
+                $this->transactions = [new Transaction($this->rawData['receipt'])];
+            }
 
-        if (array_key_exists('receipt_creation_date_ms', $this->rawData['receipt'])) {
-            $this->receipt_creation_date = Carbon::createFromTimestampUTC(
-                (int)round($this->rawData['receipt']['receipt_creation_date_ms'] / 1000)
-            );
-        }
 
-        foreach ($this->rawData['receipt']['in_app'] as $purchase_item_data) {
-            $this->transactions[] = new Transaction($purchase_item_data);
-        }
-
-        if (array_key_exists('bundle_id', $this->rawData['receipt'])) {
-            $this->bundle_id = $this->rawData['receipt']['bundle_id'];
+            if (array_key_exists('bundle_id', $this->rawData['receipt'])) {
+                $this->bundle_id = $this->rawData['receipt']['bundle_id'];
+            } else if (array_key_exists('bid', $this->rawData['receipt'])) {
+                $this->bundle_id = $this->rawData['receipt']['bid'];
+            }
         }
 
         if (array_key_exists('latest_receipt_info', $this->rawData)) {
@@ -148,25 +136,8 @@ class Response extends AbstractResponse
         if (array_key_exists('is-retryable', $this->rawData)) {
             $this->is_retryable = true;
         }
-    }
 
-    protected function isIOS6StyleReceipt(): bool
-    {
-        return !$this->isIOS7StyleReceipt() && array_key_exists('receipt', $this->rawData);
-    }
-
-    /**
-     * Parse receipt for iOS <= 6.
-     *
-     * @throws ValidationException
-     */
-    protected function parseIOS6StyleReceipt(): void
-    {
-        $this->transactions = [new Transaction($this->rawData['receipt'])];
-
-        if (array_key_exists('bid', $this->rawData['receipt'])) {
-            $this->bundle_id = $this->rawData['receipt']['bid'];
-        }
+        return $this;
     }
 
     /**

@@ -84,6 +84,15 @@ try {
         echo "Auto Renew Status: " . ($pending->getAutoRenewStatus() ? 'active' : 'inactive') . PHP_EOL;
     }
 
+    foreach ($notification->getLatestReceipt()->getLatestReceiptInfo() as $transaction) {
+        echo 'getProductId: ' . $transaction->getProductId() . PHP_EOL;
+        echo 'getTransactionId: ' . $transaction->getTransactionId() . PHP_EOL;
+
+        if ($transaction->getPurchaseDate() != null) {
+            echo 'getPurchaseDate: ' . $transaction->getPurchaseDate()->toIso8601String() . PHP_EOL;
+        }
+    }
+
 } catch (ValidationException $e) {
     echo "Invalid notification: " . $e->getMessage() . PHP_EOL;
 }

@@ -48,6 +48,7 @@ class ResponseTest extends TestCase
         $data = [
             'receipt' => [
                 'transaction_id' => 'legacy_tx',
+                'product_id' => 'legacy_tx',
                 'bid' => 'legacy.app',
             ]
         ];
