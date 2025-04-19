@@ -56,12 +56,17 @@ class ServerNotification
     protected ?RenewalInfo $renewalInfo = null;
 
     /**
-     * @param string $signedPayload
+     * @param array<string, mixed> $data
      * @throws ValidationException
      */
-    public function __construct(string $signedPayload)
+    public function __construct(array $data)
     {
-        $token = TokenGenerator::decodeToken($signedPayload);
+
+        if (!array_key_exists('signedPayload', $data)) {
+            throw new ValidationException('signedPayload key is missing from signed payload');
+        }
+
+        $token = TokenGenerator::decodeToken($data['signedPayload']);
 
         $verifier = new TokenVerifier();
         if (!$verifier->verify($token)) {

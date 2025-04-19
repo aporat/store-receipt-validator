@@ -130,6 +130,65 @@ foreach ($response->getPurchases() as $purchase) {
 
 ```
 
+### 📬 Apple App Store Server Notifications
+
+#### 🔔 V2 Notifications (App Store Server API)
+
+```php
+use ReceiptValidator\AppleAppStore\ServerNotification;
+use ReceiptValidator\Exceptions\ValidationException;
+
+public function subscriptions(Request $request): JsonResponse {
+    
+    try {
+        $notification = new ServerNotification($request->all());
+    
+        echo 'Type: ' . $notification->getNotificationType()->value . PHP_EOL;
+        echo 'Subtype: ' . ($notification->getSubtype()?->value ?? 'N/A') . PHP_EOL;
+        echo 'Bundle: ' . $notification->getBundleId() . PHP_EOL;
+    
+        $tx = $notification->getTransaction();
+        if ($tx !== null) {
+            echo 'Transaction ID: ' . $tx->getTransactionId() . PHP_EOL;
+        }
+    
+        $renewalInfo = $notification->getRenewalInfo();
+        if ($renewalInfo !== null) {
+            echo 'Auto Renew Product: ' . $renewalInfo->getAutoRenewProductId() . PHP_EOL;
+        }
+    } catch (ValidationException $e) {
+        echo 'Invalid notification: ' . $e->getMessage();
+    }
+}
+```
+
+#### 🔔 V1 Notifications (iTunes) (Deprecated)
+
+```php
+use ReceiptValidator\iTunes\ServerNotification;
+use ReceiptValidator\Exceptions\ValidationException;
+
+public function subscriptions(Request $request): JsonResponse {
+    $sharedSecret = 'your_shared_secret';
+    
+    try {
+        $notification = new ServerNotification($request->all(), $sharedSecret);
+    
+        echo 'Type: ' . $notification->getNotificationType()->value . PHP_EOL;
+        echo 'Bundle: ' . $notification->getBundleId() . PHP_EOL;
+    
+        $latestReceipt = $notification->getLatestReceipt();
+        $transactions = $latestReceipt->getTransactions();
+    
+        foreach ($transactions as $tx) {
+            echo 'Transaction ID: ' . $tx->getTransactionId() . PHP_EOL;
+        }
+    } catch (ValidationException $e) {
+        echo 'Invalid notification: ' . $e->getMessage();
+    }
+}
+```
+
 ---
 
 ## 🧪 Testing

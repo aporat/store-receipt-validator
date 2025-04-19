@@ -16,7 +16,7 @@ class ServerNotificationTest extends TestCase
     {
         $json = file_get_contents(__DIR__ . '/fixtures/test-notification-signed-payload.json');
         $data = json_decode($json, true);
-        $notification = new ServerNotification($data['signedPayload']);
+        $notification = new ServerNotification($data);
 
         $this->assertInstanceOf(ServerNotification::class, $notification);
         $this->assertInstanceOf(ServerNotificationType::class, $notification->getNotificationType());
