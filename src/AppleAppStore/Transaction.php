@@ -4,7 +4,7 @@ namespace ReceiptValidator\AppleAppStore;
 
 use ArrayAccess;
 use Carbon\Carbon;
-use ReceiptValidator\AbstractResponse;
+use ReceiptValidator\AbstractTransaction;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 use ReturnTypeWillChange;
@@ -13,7 +13,7 @@ use ReturnTypeWillChange;
  * Represents a transaction in the Apple App Store Server API.
  * @implements ArrayAccess<string, mixed>
  */
-class Transaction extends AbstractResponse implements ArrayAccess
+class Transaction extends AbstractTransaction implements ArrayAccess
 {
     /** @var array<string, mixed>|null */
     protected ?array $rawData;
@@ -21,17 +21,11 @@ class Transaction extends AbstractResponse implements ArrayAccess
     /** @var string|null The original transaction identifier of a purchase. */
     protected ?string $originalTransactionId = null;
 
-    /** @var string|null The unique identifier for a transaction. */
-    protected ?string $transactionId = null;
-
     /** @var string|null The unique identifier of subscription-purchase events across devices. */
     protected ?string $webOrderLineItemId = null;
 
     /** @var string|null The bundle identifier of an app. */
     protected ?string $bundleId = null;
-
-    /** @var string|null The unique identifier for the product. */
-    protected ?string $productId = null;
 
     /** @var string|null The identifier of the subscription group. */
     protected ?string $subscriptionGroupIdentifier = null;
@@ -44,9 +38,6 @@ class Transaction extends AbstractResponse implements ArrayAccess
 
     /** @var Carbon|null The expiration date of an auto-renewable subscription. */
     protected ?Carbon $expiresDate = null;
-
-    /** @var int|null The number of consumable products purchased. */
-    protected ?int $quantity = null;
 
     /** @var string|null The type of the in-app purchase. */
     protected ?string $type = null;
@@ -98,6 +89,13 @@ class Transaction extends AbstractResponse implements ArrayAccess
 
     /** @var string|null The duration of the offer. */
     protected ?string $offerPeriod = null;
+
+    /**
+     * Environment in which validation was performed.
+     *
+     * @var Environment
+     */
+    protected Environment $environment;
 
     /**
      * @return array<string, mixed>|null
@@ -190,15 +188,31 @@ class Transaction extends AbstractResponse implements ArrayAccess
         return isset($this->rawData[$offset]);
     }
 
-    // Getter methods preserved below...
+    /**
+     * Get the environment used.
+     *
+     * @return Environment
+     */
+    public function getEnvironment(): Environment
+    {
+        return $this->environment;
+    }
+
+    /**
+     * Set the environment.
+     *
+     * @param Environment $environment
+     * @return $this
+     */
+    public function setEnvironment(Environment $environment): self
+    {
+        $this->environment = $environment;
+        return $this;
+    }
+
     public function getOriginalTransactionId(): ?string
     {
         return $this->originalTransactionId;
-    }
-
-    public function getTransactionId(): ?string
-    {
-        return $this->transactionId;
     }
 
     public function getWebOrderLineItemId(): ?string
@@ -209,11 +223,6 @@ class Transaction extends AbstractResponse implements ArrayAccess
     public function getBundleId(): ?string
     {
         return $this->bundleId;
-    }
-
-    public function getProductId(): ?string
-    {
-        return $this->productId;
     }
 
     public function getSubscriptionGroupIdentifier(): ?string
@@ -234,11 +243,6 @@ class Transaction extends AbstractResponse implements ArrayAccess
     public function getExpiresDate(): ?Carbon
     {
         return $this->expiresDate;
-    }
-
-    public function getQuantity(): ?int
-    {
-        return $this->quantity;
     }
 
     public function getType(): ?string
