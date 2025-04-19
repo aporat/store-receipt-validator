@@ -28,15 +28,15 @@ class Response extends AbstractResponse
 
     /**
      * bundle_id (app) belongs to the receipt.
-     * @var string
+     * @var string|null
      */
-    protected string $bundle_id;
+    protected ?string $bundle_id = null;
 
     /**
      * item id.
-     * @var string
+     * @var string|null
      */
-    protected string $app_item_id;
+    protected ?string $app_item_id = null;
 
     /**
      * original_purchase_date.
@@ -212,9 +212,9 @@ class Response extends AbstractResponse
     /**
      * Get bundle ID.
      *
-     * @return string
+     * @return string|null
      */
-    public function getBundleId(): string
+    public function getBundleId(): ?string
     {
         return $this->bundle_id;
     }
@@ -222,9 +222,9 @@ class Response extends AbstractResponse
     /**
      * Get app item ID.
      *
-     * @return string
+     * @return string|null
      */
-    public function getAppItemId(): string
+    public function getAppItemId(): ?string
     {
         return $this->app_item_id;
     }

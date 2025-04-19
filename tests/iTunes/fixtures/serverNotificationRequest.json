@@ -1,0 +1,46 @@
+{
+  "notification_type": "DID_RENEW",
+  "password": "dummy_shared_secret",
+  "environment": "PROD",
+  "auto_renew_product_id": "my.app.subscription.monthly",
+  "auto_renew_status": "true",
+  "unified_receipt": {
+    "status": 0,
+    "environment": "Production",
+    "latest_receipt_info": [
+      {
+        "quantity": "1",
+        "product_id": "my.app.subscription.monthly",
+        "transaction_id": "100000000000001",
+        "purchase_date": "2025-04-19 06:42:32 Etc/GMT",
+        "purchase_date_ms": "1745044952000",
+        "purchase_date_pst": "2025-04-18 23:42:32 America/Los_Angeles",
+        "original_purchase_date": "2025-02-12 07:42:33 Etc/GMT",
+        "original_purchase_date_ms": "1739346153000",
+        "original_purchase_date_pst": "2025-02-11 23:42:33 America/Los_Angeles",
+        "expires_date": "2025-05-19 06:42:32 Etc/GMT",
+        "expires_date_ms": "1747636952000",
+        "expires_date_pst": "2025-05-18 23:42:32 America/Los_Angeles",
+        "web_order_line_item_id": "100000000000002",
+        "is_trial_period": "false",
+        "is_in_intro_offer_period": "false",
+        "original_transaction_id": "100000000000000",
+        "in_app_ownership_type": "PURCHASED",
+        "subscription_group_identifier": "99999999"
+      }
+    ],
+    "latest_receipt": "dummy_base64_encoded_receipt",
+    "pending_renewal_info": [
+      {
+        "auto_renew_status": "1",
+        "auto_renew_product_id": "my.app.subscription.monthly",
+        "product_id": "my.app.subscription.monthly",
+        "original_transaction_id": "100000000000000"
+      }
+    ]
+  },
+  "bid": "my.app",
+  "bvrs": "1.0.0",
+  "original_transaction_id": "100000000000000",
+  "deprecation": "Mon, 1 Jan 2030 00:00:00 GMT"
+}
