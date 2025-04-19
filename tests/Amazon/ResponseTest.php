@@ -13,6 +13,7 @@ class ResponseTest extends TestCase
     public function testParsesValidResponse(): void
     {
         $receipt = [
+            'environment' => 'Production',
             'productId' => 'com.amazon.test',
             'receiptId' => 'txn_001',
             'purchaseDate' => 1609459200000,
@@ -36,6 +37,7 @@ class ResponseTest extends TestCase
     public function testSetAndGetEnvironment(): void
     {
         $receipt = [
+            'environment' => 'Production',
             'productId' => 'com.amazon.test',
             'receiptId' => 'txn_002',
             'purchaseDate' => 1609459200000

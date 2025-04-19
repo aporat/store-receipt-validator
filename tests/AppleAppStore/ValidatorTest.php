@@ -7,7 +7,6 @@ use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\AppleAppStore\Response;
-use ReceiptValidator\AppleAppStore\Transaction;
 use ReceiptValidator\AppleAppStore\Validator;
 use ReceiptValidator\Environment;
 

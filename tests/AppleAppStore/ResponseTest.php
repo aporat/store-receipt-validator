@@ -17,8 +17,7 @@ class ResponseTest extends TestCase
             'bundleId' => 'com.example.app',
             'appAppleId' => 123456789,
             'environment' => 'Production',
-            'hasMore' => true,
-            'signedTransactions' => ['jws-token'],
+            'hasMore' => true
         ];
 
         $response = new Response($data, Environment::PRODUCTION);
@@ -27,19 +26,6 @@ class ResponseTest extends TestCase
         $this->assertSame('com.example.app', $response->getBundleId());
         $this->assertSame(123456789, $response->getAppAppleId());
         $this->assertTrue($response->hasMore());
-        $this->assertSame(['jws-token'], $response->getSignedTransactions());
-        $this->assertCount(0, $response->getTransactions());
-    }
-
-    public function testParseSkipsInvalidJws(): void
-    {
-
-        $data = [
-            'environment' => 'Production',
-            'signedTransactions' => ['bad-jws'],
-        ];
-
-        $response = new Response($data, Environment::PRODUCTION);
         $this->assertCount(0, $response->getTransactions());
     }
 

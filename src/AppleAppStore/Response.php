@@ -4,12 +4,11 @@ namespace ReceiptValidator\AppleAppStore;
 
 use ArrayAccess;
 use ReceiptValidator\AbstractResponse;
-use ReceiptValidator\AppleAppStore\JWT\AppStoreJwsVerifier;
-use ReceiptValidator\AppleAppStore\JWT\Parser;
+use ReceiptValidator\AppleAppStore\JWT\TokenGenerator;
+use ReceiptValidator\AppleAppStore\JWT\TokenVerifier;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 use ReturnTypeWillChange;
-use Throwable;
 
 /**
  * Represents a decoded response from the App Store Server API.
@@ -97,16 +96,12 @@ class Response extends AbstractResponse implements ArrayAccess
         $this->hasMore = $data['hasMore'] ?? null;
         $this->signedTransactions = $data['signedTransactions'] ?? [];
 
-        foreach ($this->signedTransactions as $jwsData) {
-            try {
-                $jws = Parser::toJws($jwsData);
+        foreach ($this->signedTransactions as $signedTransaction) {
+            $token = TokenGenerator::decodeToken($signedTransaction);
 
-                $verifier = new AppStoreJwsVerifier();
-                if ($verifier->verify($jws)) {
-                    $this->transactions[] = new Transaction($jws->getClaims());
-                }
-            } catch (Throwable) {
-                // Skip any individual invalid transaction
+            $verifier = new TokenVerifier();
+            if ($verifier->verify($token)) {
+                $this->transactions[] = new Transaction($token->claims()->all());
             }
         }
 
