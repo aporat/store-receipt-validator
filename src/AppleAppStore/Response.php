@@ -11,25 +11,29 @@ use ReceiptValidator\Exceptions\ValidationException;
 use ReturnTypeWillChange;
 use Throwable;
 
+/**
+ * Represents a decoded response from the App Store Server API.
+ * @implements ArrayAccess<string, mixed>
+ */
 class Response extends AbstractResponse implements ArrayAccess
 {
-    /** @var array|null */
-    protected ?array $raw_data;
+    /** @var array<string, mixed>|null Raw transaction data */
+    protected ?array $rawData;
 
-    /** @var string|null */
+    /** @var string|null The latest revision string */
     protected ?string $revision = null;
 
-    /** @var string|null */
-    protected ?string $bundle_id = null;
+    /** @var string|null The bundle ID of the app */
+    protected ?string $bundleId = null;
 
-    /** @var int|null */
-    protected ?int $app_apple_id = null;
+    /** @var int|null The App Store app ID */
+    protected ?int $appAppleId = null;
 
-    /** @var bool|null */
-    protected ?bool $has_more = null;
+    /** @var bool|null Indicates if more transactions are available */
+    protected ?bool $hasMore = null;
 
-    /** @var array */
-    protected array $signed_transactions = [];
+    /** @var array<string> Signed transactions (JWS strings) */
+    protected array $signedTransactions = [];
 
     /** @return string|null */
     public function getRevision(): ?string
@@ -40,31 +44,31 @@ class Response extends AbstractResponse implements ArrayAccess
     /** @return string|null */
     public function getBundleId(): ?string
     {
-        return $this->bundle_id;
+        return $this->bundleId;
     }
 
     /** @return int|null */
     public function getAppAppleId(): ?int
     {
-        return $this->app_apple_id;
+        return $this->appAppleId;
     }
 
     /** @return bool|null */
     public function hasMore(): ?bool
     {
-        return $this->has_more;
+        return $this->hasMore;
     }
 
-    /** @return array */
+    /** @return array<string> */
     public function getSignedTransactions(): array
     {
-        return $this->signed_transactions;
+        return $this->signedTransactions;
     }
 
     #[ReturnTypeWillChange]
     public function offsetSet($offset, $value): void
     {
-        $this->raw_data[$offset] = $value;
+        $this->rawData[$offset] = $value;
         $this->parse();
     }
 
@@ -76,37 +80,33 @@ class Response extends AbstractResponse implements ArrayAccess
      */
     public function parse(): self
     {
-        if (!is_array($this->raw_data)) {
+        if (!is_array($this->rawData)) {
             throw new ValidationException('Response must be an array');
         }
 
-        $data = $this->raw_data;
+        $data = $this->rawData;
 
         $this->revision = $data['revision'] ?? null;
-        $this->bundle_id = $data['bundleId'] ?? null;
-        $this->app_apple_id = $data['appAppleId'] ?? null;
+        $this->bundleId = $data['bundleId'] ?? null;
+        $this->appAppleId = $data['appAppleId'] ?? null;
 
-        if (($data['environment'] ?? null) === 'Production') {
-            $this->environment = Environment::PRODUCTION;
-        } else {
-            $this->environment = Environment::SANDBOX;
-        }
+        $this->environment = ($data['environment'] ?? null) === 'Production'
+            ? Environment::PRODUCTION
+            : Environment::SANDBOX;
 
-        $this->has_more = $data['hasMore'] ?? null;
-        $this->signed_transactions = $data['signedTransactions'] ?? [];
+        $this->hasMore = $data['hasMore'] ?? null;
+        $this->signedTransactions = $data['signedTransactions'] ?? [];
 
-        if (!empty($this->signed_transactions)) {
-            foreach ($this->signed_transactions as $purchase_item_data) {
-                try {
-                    $jws = Parser::toJws($purchase_item_data);
+        foreach ($this->signedTransactions as $jwsData) {
+            try {
+                $jws = Parser::toJws($jwsData);
 
-                    $verifier = new AppStoreJwsVerifier();
-                    if ($verifier->verify($jws)) {
-                        $this->transactions[] = new Transaction($jws->getClaims());
-                    }
-                } catch (Throwable) {
-                    // Ignore individual failure
+                $verifier = new AppStoreJwsVerifier();
+                if ($verifier->verify($jws)) {
+                    $this->transactions[] = new Transaction($jws->getClaims());
                 }
+            } catch (Throwable) {
+                // Skip any individual invalid transaction
             }
         }
 
@@ -116,18 +116,18 @@ class Response extends AbstractResponse implements ArrayAccess
     #[ReturnTypeWillChange]
     public function offsetGet($offset): mixed
     {
-        return $this->raw_data[$offset] ?? null;
+        return $this->rawData[$offset] ?? null;
     }
 
     #[ReturnTypeWillChange]
     public function offsetUnset($offset): void
     {
-        unset($this->raw_data[$offset]);
+        unset($this->rawData[$offset]);
     }
 
     #[ReturnTypeWillChange]
     public function offsetExists($offset): bool
     {
-        return isset($this->raw_data[$offset]);
+        return isset($this->rawData[$offset]);
     }
 }

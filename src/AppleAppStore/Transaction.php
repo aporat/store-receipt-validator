@@ -11,11 +11,12 @@ use ReturnTypeWillChange;
 
 /**
  * Represents a transaction in the Apple App Store Server API.
+ * @implements ArrayAccess<string, mixed>
  */
 class Transaction extends AbstractResponse implements ArrayAccess
 {
-    /** @var array|null */
-    protected ?array $raw_data;
+    /** @var array<string, mixed>|null */
+    protected ?array $rawData;
 
     /** @var string|null The original transaction identifier of a purchase. */
     protected ?string $originalTransactionId = null;
@@ -98,13 +99,28 @@ class Transaction extends AbstractResponse implements ArrayAccess
     /** @var string|null The duration of the offer. */
     protected ?string $offerPeriod = null;
 
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getRawData(): ?array
+    {
+        return $this->rawData;
+    }
+
+    #[ReturnTypeWillChange]
+    public function offsetSet($offset, $value): void
+    {
+        $this->rawData[$offset] = $value;
+        $this->parse();
+    }
+
     public function parse(): self
     {
-        if (!is_array($this->raw_data)) {
+        if (!is_array($this->rawData)) {
             throw new ValidationException('Response must be an array');
         }
 
-        $data = $this->raw_data;
+        $data = $this->rawData;
 
         $this->originalTransactionId = $data['originalTransactionId'] ?? null;
         $this->transactionId = $data['transactionId'] ?? null;
@@ -129,11 +145,9 @@ class Transaction extends AbstractResponse implements ArrayAccess
         $this->appTransactionId = $data['appTransactionId'] ?? null;
         $this->offerPeriod = $data['offerPeriod'] ?? null;
 
-        if ($data['environment'] == 'Production') {
-            $this->environment = Environment::PRODUCTION;
-        } else {
-            $this->environment = Environment::SANDBOX;
-        }
+        $this->environment = $data['environment'] === 'Production'
+            ? Environment::PRODUCTION
+            : Environment::SANDBOX;
 
         if (!empty($data['purchaseDate'])) {
             $this->purchaseDate = Carbon::createFromTimestampMs($data['purchaseDate']);
@@ -158,134 +172,157 @@ class Transaction extends AbstractResponse implements ArrayAccess
         return $this;
     }
 
-    // Getter methods for all properties (auto-generated)
+    #[ReturnTypeWillChange]
+    public function offsetGet($offset): mixed
+    {
+        return $this->rawData[$offset] ?? null;
+    }
+
+    #[ReturnTypeWillChange]
+    public function offsetUnset($offset): void
+    {
+        unset($this->rawData[$offset]);
+    }
+
+    #[ReturnTypeWillChange]
+    public function offsetExists($offset): bool
+    {
+        return isset($this->rawData[$offset]);
+    }
+
+    // Getter methods preserved below...
     public function getOriginalTransactionId(): ?string
     {
         return $this->originalTransactionId;
     }
+
     public function getTransactionId(): ?string
     {
         return $this->transactionId;
     }
+
     public function getWebOrderLineItemId(): ?string
     {
         return $this->webOrderLineItemId;
     }
+
     public function getBundleId(): ?string
     {
         return $this->bundleId;
     }
+
     public function getProductId(): ?string
     {
         return $this->productId;
     }
+
     public function getSubscriptionGroupIdentifier(): ?string
     {
         return $this->subscriptionGroupIdentifier;
     }
+
     public function getPurchaseDate(): ?Carbon
     {
         return $this->purchaseDate;
     }
+
     public function getOriginalPurchaseDate(): ?Carbon
     {
         return $this->originalPurchaseDate;
     }
+
     public function getExpiresDate(): ?Carbon
     {
         return $this->expiresDate;
     }
+
     public function getQuantity(): ?int
     {
         return $this->quantity;
     }
+
     public function getType(): ?string
     {
         return $this->type;
     }
+
     public function getAppAccountToken(): ?string
     {
         return $this->appAccountToken;
     }
+
     public function getInAppOwnershipType(): ?string
     {
         return $this->inAppOwnershipType;
     }
+
     public function getSignedDate(): ?Carbon
     {
         return $this->signedDate;
     }
+
     public function getRevocationReason(): ?string
     {
         return $this->revocationReason;
     }
+
     public function getRevocationDate(): ?Carbon
     {
         return $this->revocationDate;
     }
+
     public function getIsUpgraded(): ?bool
     {
         return $this->isUpgraded;
     }
+
     public function getOfferType(): ?string
     {
         return $this->offerType;
     }
+
     public function getOfferIdentifier(): ?string
     {
         return $this->offerIdentifier;
     }
+
     public function getStorefront(): ?string
     {
         return $this->storefront;
     }
+
     public function getStorefrontId(): ?string
     {
         return $this->storefrontId;
     }
+
     public function getTransactionReason(): ?string
     {
         return $this->transactionReason;
     }
+
     public function getCurrency(): ?string
     {
         return $this->currency;
     }
+
     public function getPrice(): ?int
     {
         return $this->price;
     }
+
     public function getOfferDiscountType(): ?string
     {
         return $this->offerDiscountType;
     }
+
     public function getAppTransactionId(): ?string
     {
         return $this->appTransactionId;
     }
+
     public function getOfferPeriod(): ?string
     {
         return $this->offerPeriod;
-    }
-
-    #[ReturnTypeWillChange] public function offsetSet($offset, $value): void
-    {
-        $this->raw_data[$offset] = $value;
-        $this->parse();
-    }
-
-    #[ReturnTypeWillChange] public function offsetGet($offset): mixed
-    {
-        return $this->raw_data[$offset] ?? null;
-    }
-
-    #[ReturnTypeWillChange] public function offsetUnset($offset): void
-    {
-        unset($this->raw_data[$offset]);
-    }
-
-    #[ReturnTypeWillChange] public function offsetExists($offset): bool
-    {
-        return isset($this->raw_data[$offset]);
     }
 }

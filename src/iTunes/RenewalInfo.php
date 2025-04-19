@@ -7,13 +7,14 @@ use Carbon\Carbon;
 use ReceiptValidator\Exceptions\ValidationException;
 use ReturnTypeWillChange;
 
+/**
+ * Represents the renewal info section of the iTunes receipt.
+ *
+ * @implements ArrayAccess<string, mixed>
+ * @link https://developer.apple.com/library/content/releasenotes/General/ValidateAppStoreReceipt/Chapters/ReceiptFields.html
+ */
 class RenewalInfo implements ArrayAccess
 {
-    /**
-     * Developer friendly field codes
-     * @link https://developer.apple.com/library/content/releasenotes/General/ValidateAppStoreReceipt/Chapters/ReceiptFields.html
-     */
-
     // Expiration Intent Codes
     public const int EXPIRATION_INTENT_CANCELLED = 1;
     public const int EXPIRATION_INTENT_BILLING_ERROR = 2;
@@ -34,22 +35,53 @@ class RenewalInfo implements ArrayAccess
     public const string STATUS_PENDING = 'pending';
     public const string STATUS_EXPIRED = 'expired';
 
-    protected string $product_id = '';
-    protected string $auto_renew_product_id = '';
-    protected string $original_transaction_id = '';
-    protected bool $auto_renew_status = false;
-    protected ?int $expiration_intent = null;
-    protected ?Carbon $grace_period_expires_date = null;
-    protected ?int $is_in_billing_retry_period = null;
-    protected ?array $raw_data = null;
+    /**
+     * @var string
+     */
+    protected string $productId = '';
 
     /**
-     * @param array|null $data
+     * @var string
+     */
+    protected string $autoRenewProductId = '';
+
+    /**
+     * @var string
+     */
+    protected string $originalTransactionId = '';
+
+    /**
+     * @var bool
+     */
+    protected bool $autoRenewStatus = false;
+
+    /**
+     * @var int|null
+     */
+    protected ?int $expirationIntent = null;
+
+    /**
+     * @var Carbon|null
+     */
+    protected ?Carbon $gracePeriodExpiresDate = null;
+
+    /**
+     * @var int|null
+     */
+    protected ?int $isInBillingRetryPeriod = null;
+
+    /**
+     * @var array<string, mixed>|null
+     */
+    protected ?array $rawData = null;
+
+    /**
+     * @param array<string, mixed>|null $data
      * @throws ValidationException
      */
     public function __construct(?array $data)
     {
-        $this->raw_data = $data;
+        $this->rawData = $data;
         $this->parseData();
     }
 
@@ -59,110 +91,137 @@ class RenewalInfo implements ArrayAccess
      */
     public function parseData(): self
     {
-        if (!is_array($this->raw_data)) {
+        if (!is_array($this->rawData)) {
             throw new ValidationException('Response must be a scalar value');
         }
 
-        $this->product_id = $this->raw_data['product_id'] ?? '';
-        $this->original_transaction_id = $this->raw_data['original_transaction_id'] ?? '';
-        $this->auto_renew_product_id = $this->raw_data['auto_renew_product_id'] ?? '';
-        $this->auto_renew_status = (bool)($this->raw_data['auto_renew_status'] ?? false);
+        $this->productId = $this->rawData['product_id'] ?? '';
+        $this->originalTransactionId = $this->rawData['original_transaction_id'] ?? '';
+        $this->autoRenewProductId = $this->rawData['auto_renew_product_id'] ?? '';
+        $this->autoRenewStatus = (bool)($this->rawData['auto_renew_status'] ?? false);
 
-        if (array_key_exists('expiration_intent', $this->raw_data)) {
-            $this->expiration_intent = (int)$this->raw_data['expiration_intent'];
+        if (array_key_exists('expiration_intent', $this->rawData)) {
+            $this->expirationIntent = (int)$this->rawData['expiration_intent'];
         }
 
-        if (array_key_exists('grace_period_expires_date_ms', $this->raw_data)) {
-            $this->grace_period_expires_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['grace_period_expires_date_ms'] / 1000)
+        if (array_key_exists('grace_period_expires_date_ms', $this->rawData)) {
+            $this->gracePeriodExpiresDate = Carbon::createFromTimestampUTC(
+                (int)round($this->rawData['grace_period_expires_date_ms'] / 1000)
             );
         }
 
-        if (array_key_exists('is_in_billing_retry_period', $this->raw_data)) {
-            $this->is_in_billing_retry_period = (int)$this->raw_data['is_in_billing_retry_period'];
+        if (array_key_exists('is_in_billing_retry_period', $this->rawData)) {
+            $this->isInBillingRetryPeriod = (int)$this->rawData['is_in_billing_retry_period'];
         }
 
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getProductId(): string
     {
-        return $this->product_id;
+        return $this->productId;
     }
 
+    /**
+     * @return string
+     */
     public function getAutoRenewProductId(): string
     {
-        return $this->auto_renew_product_id;
+        return $this->autoRenewProductId;
     }
 
+    /**
+     * @return bool
+     */
     public function getAutoRenewStatus(): bool
     {
-        return $this->auto_renew_status;
+        return $this->autoRenewStatus;
     }
 
+    /**
+     * @return string
+     */
     public function getOriginalTransactionId(): string
     {
-        return $this->original_transaction_id;
+        return $this->originalTransactionId;
     }
 
+    /**
+     * @return int|null
+     */
     public function getExpirationIntent(): ?int
     {
-        return $this->expiration_intent;
+        return $this->expirationIntent;
     }
 
+    /**
+     * @return int|null
+     */
     public function isInBillingRetryPeriod(): ?int
     {
-        return $this->is_in_billing_retry_period;
+        return $this->isInBillingRetryPeriod;
     }
 
+    /**
+     * @return string|null
+     */
     public function getStatus(): ?string
     {
-        if ($this->expiration_intent === null) {
+        if ($this->expirationIntent === null) {
             return self::STATUS_ACTIVE;
         }
-        if ($this->is_in_billing_retry_period === self::RETRY_PERIOD_ACTIVE) {
+        if ($this->isInBillingRetryPeriod === self::RETRY_PERIOD_ACTIVE) {
             return self::STATUS_PENDING;
         }
-        if ($this->is_in_billing_retry_period === self::RETRY_PERIOD_INACTIVE) {
+        if ($this->isInBillingRetryPeriod === self::RETRY_PERIOD_INACTIVE) {
             return self::STATUS_EXPIRED;
         }
         return null;
     }
 
+    /**
+     * @return Carbon|null
+     */
     public function getGracePeriodExpiresDate(): ?Carbon
     {
-        return $this->grace_period_expires_date;
+        return $this->gracePeriodExpiresDate;
     }
 
+    /**
+     * @return bool
+     */
     public function isInGracePeriod(): bool
     {
-        return $this->is_in_billing_retry_period === self::RETRY_PERIOD_ACTIVE
-            && $this->grace_period_expires_date !== null
-            && $this->grace_period_expires_date->getTimestamp() > time();
+        return $this->isInBillingRetryPeriod === self::RETRY_PERIOD_ACTIVE
+            && $this->gracePeriodExpiresDate !== null
+            && $this->gracePeriodExpiresDate->getTimestamp() > time();
     }
 
     #[ReturnTypeWillChange]
     public function offsetSet($offset, $value): void
     {
-        $this->raw_data[$offset] = $value;
+        $this->rawData[$offset] = $value;
         $this->parseData();
     }
 
     #[ReturnTypeWillChange]
     public function offsetGet($offset): mixed
     {
-        return $this->raw_data[$offset] ?? null;
+        return $this->rawData[$offset] ?? null;
     }
 
     #[ReturnTypeWillChange]
     public function offsetUnset($offset): void
     {
-        unset($this->raw_data[$offset]);
+        unset($this->rawData[$offset]);
     }
 
     #[ReturnTypeWillChange]
     public function offsetExists($offset): bool
     {
-        return isset($this->raw_data[$offset]);
+        return isset($this->rawData[$offset]);
     }
 }

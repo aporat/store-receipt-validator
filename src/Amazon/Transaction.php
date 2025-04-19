@@ -8,230 +8,148 @@ use ReceiptValidator\AbstractTransaction;
 use ReceiptValidator\Exceptions\ValidationException;
 use ReturnTypeWillChange;
 
+/**
+ * Represents a transaction in Amazon receipt validation.
+ * @implements ArrayAccess<string, mixed>
+ */
 class Transaction extends AbstractTransaction implements ArrayAccess
 {
-    /**
-     * Purchase date.
-     *
-     * @var Carbon
-     */
-    protected Carbon $purchase_date;
+    /** @var Carbon Purchase date. */
+    protected Carbon $purchaseDate;
 
-    /**
-     * Cancellation date.
-     *
-     * @var Carbon|null
-     */
-    protected ?Carbon $cancellation_date = null;
+    /** @var Carbon|null Cancellation date. */
+    protected ?Carbon $cancellationDate = null;
 
-    /**
-     * Renewal date.
-     *
-     * @var Carbon|null
-     */
-    protected ?Carbon $renewal_date = null;
+    /** @var Carbon|null Renewal date. */
+    protected ?Carbon $renewalDate = null;
 
-    /**
-     * Grace period end date.
-     *
-     * @var Carbon|null
-     */
-    protected ?Carbon $grace_period_end_date = null;
+    /** @var Carbon|null Grace period end date. */
+    protected ?Carbon $gracePeriodEndDate = null;
 
-    /**
-     * Free trial end date.
-     *
-     * @var Carbon|null
-     */
-    protected ?Carbon $free_trial_end_date = null;
+    /** @var Carbon|null Free trial end date. */
+    protected ?Carbon $freeTrialEndDate = null;
 
-    /**
-     * Auto renewing status.
-     *
-     * @var bool|null
-     */
-    protected ?bool $auto_renewing = null;
+    /** @var bool|null Auto-renewing status. */
+    protected ?bool $autoRenewing = null;
 
-    /**
-     * Term duration of the subscription.
-     *
-     * @var string|null
-     */
+    /** @var string|null Subscription term duration. */
     protected ?string $term = null;
 
-    /**
-     * Term SKU of the subscription.
-     *
-     * @var string|null
-     */
-    protected ?string $term_sku = null;
-
+    /** @var string|null Subscription term SKU. */
+    protected ?string $termSku = null;
 
     /**
-     * Parse JSON response.
+     * Parses raw transaction data.
      *
      * @return $this
      * @throws ValidationException
      */
     public function parse(): self
     {
-        if (!is_array($this->raw_data)) {
-            throw new ValidationException('Response must be a scalar value');
+        if (!is_array($this->rawData)) {
+            throw new ValidationException('Response must be an array');
         }
 
-        $data = $this->raw_data;
+        $data = $this->rawData;
 
-        $this->setQuantity(isset($data['quantity']) ? (int)$data['quantity'] : 0);
+        $this->setQuantity((int)($data['quantity'] ?? 0));
         $this->setTransactionId($data['receiptId'] ?? '');
         $this->setProductId($data['productId'] ?? '');
 
         if (!empty($data['purchaseDate'])) {
-            $this->purchase_date = Carbon::createFromTimestampUTC((int)round($data['purchaseDate'] / 1000));
+            $this->purchaseDate = Carbon::createFromTimestampUTC((int)($data['purchaseDate'] / 1000));
         }
 
         if (!empty($data['cancelDate'])) {
-            $this->cancellation_date = Carbon::createFromTimestampUTC((int)round($data['cancelDate'] / 1000));
+            $this->cancellationDate = Carbon::createFromTimestampUTC((int)($data['cancelDate'] / 1000));
         }
 
         if (!empty($data['renewalDate'])) {
-            $this->renewal_date = Carbon::createFromTimestampUTC((int)round($data['renewalDate'] / 1000));
+            $this->renewalDate = Carbon::createFromTimestampUTC((int)($data['renewalDate'] / 1000));
         }
 
         if (!empty($data['GracePeriodEndDate'])) {
-            $this->grace_period_end_date = Carbon::createFromTimestampUTC((int)round($data['GracePeriodEndDate'] / 1000));
+            $this->gracePeriodEndDate = Carbon::createFromTimestampUTC((int)($data['GracePeriodEndDate'] / 1000));
         }
 
         if (!empty($data['freeTrialEndDate'])) {
-            $this->free_trial_end_date = Carbon::createFromTimestampUTC((int)round($data['freeTrialEndDate'] / 1000));
+            $this->freeTrialEndDate = Carbon::createFromTimestampUTC((int)($data['freeTrialEndDate'] / 1000));
         }
 
-        if (isset($data['AutoRenewing'])) {
-            $this->auto_renewing = (bool)$data['AutoRenewing'];
-        }
-
-        if (isset($data['term'])) {
-            $this->term = $data['term'];
-        }
-
-        if (isset($data['termSku'])) {
-            $this->term_sku = $data['termSku'];
-        }
+        $this->autoRenewing = isset($data['AutoRenewing']) ? (bool)$data['AutoRenewing'] : null;
+        $this->term = $data['term'] ?? null;
+        $this->termSku = $data['termSku'] ?? null;
 
         return $this;
     }
 
-    /**
-     * Get raw data.
-     *
-     * @return array|null
-     */
     public function getRawData(): ?array
     {
-        return $this->raw_data;
+        return $this->rawData;
     }
 
-    /**
-     * Get purchase date.
-     *
-     * @return Carbon
-     */
     public function getPurchaseDate(): Carbon
     {
-        return $this->purchase_date;
+        return $this->purchaseDate;
     }
 
-    /**
-     * Get cancellation date.
-     *
-     * @return Carbon|null
-     */
     public function getCancellationDate(): ?Carbon
     {
-        return $this->cancellation_date;
+        return $this->cancellationDate;
     }
 
-    /**
-     * Get grace period end date.
-     *
-     * @return Carbon|null
-     */
+    public function getRenewalDate(): ?Carbon
+    {
+        return $this->renewalDate;
+    }
+
     public function getGracePeriodEndDate(): ?Carbon
     {
-        return $this->grace_period_end_date;
+        return $this->gracePeriodEndDate;
     }
 
-    /**
-     * Get free trial end date.
-     *
-     * @return Carbon|null
-     */
     public function getFreeTrialEndDate(): ?Carbon
     {
-        return $this->free_trial_end_date;
+        return $this->freeTrialEndDate;
     }
 
-    /**
-     * Get auto renewing status.
-     *
-     * @return bool|null
-     */
     public function isAutoRenewing(): ?bool
     {
-        return $this->auto_renewing;
+        return $this->autoRenewing;
     }
 
-    /**
-     * Get the term of the subscription.
-     *
-     * @return string|null
-     */
     public function getTerm(): ?string
     {
         return $this->term;
     }
 
-    /**
-     * Get the term SKU of the subscription.
-     *
-     * @return string|null
-     */
     public function getTermSku(): ?string
     {
-        return $this->term_sku;
-    }
-
-    /**
-     * Get renewal date.
-     *
-     * @return Carbon|null
-     */
-    public function getRenewalDate(): ?Carbon
-    {
-        return $this->renewal_date;
+        return $this->termSku;
     }
 
     #[ReturnTypeWillChange]
     public function offsetSet($offset, $value): void
     {
-        $this->raw_data[$offset] = $value;
+        $this->rawData[$offset] = $value;
         $this->parse();
     }
 
     #[ReturnTypeWillChange]
     public function offsetGet($offset): mixed
     {
-        return $this->raw_data[$offset] ?? null;
+        return $this->rawData[$offset] ?? null;
     }
 
     #[ReturnTypeWillChange]
     public function offsetUnset($offset): void
     {
-        unset($this->raw_data[$offset]);
+        unset($this->rawData[$offset]);
     }
 
     #[ReturnTypeWillChange]
     public function offsetExists($offset): bool
     {
-        return isset($this->raw_data[$offset]);
+        return isset($this->rawData[$offset]);
     }
 }

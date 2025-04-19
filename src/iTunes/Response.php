@@ -70,7 +70,7 @@ class Response extends AbstractResponse
      */
     public function parse(): self
     {
-        if (!is_array($this->raw_data)) {
+        if (!is_array($this->rawData)) {
             throw new ValidationException('Response must be an array');
         }
 
@@ -85,10 +85,10 @@ class Response extends AbstractResponse
 
     protected function isIOS7StyleReceipt(): bool
     {
-        return array_key_exists('receipt', $this->raw_data)
-            && is_array($this->raw_data['receipt'])
-            && array_key_exists('in_app', $this->raw_data['receipt'])
-            && is_array($this->raw_data['receipt']['in_app']);
+        return array_key_exists('receipt', $this->rawData)
+            && is_array($this->rawData['receipt'])
+            && array_key_exists('in_app', $this->rawData['receipt'])
+            && is_array($this->rawData['receipt']['in_app']);
     }
 
     /**
@@ -98,61 +98,61 @@ class Response extends AbstractResponse
      */
     protected function parseIOS7StyleReceipt(): void
     {
-        $this->app_item_id = $this->raw_data['receipt']['app_item_id'];
+        $this->app_item_id = $this->rawData['receipt']['app_item_id'];
         $this->transactions = [];
 
-        if (array_key_exists('original_purchase_date_ms', $this->raw_data['receipt'])) {
+        if (array_key_exists('original_purchase_date_ms', $this->rawData['receipt'])) {
             $this->original_purchase_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['receipt']['original_purchase_date_ms'] / 1000)
+                (int)round($this->rawData['receipt']['original_purchase_date_ms'] / 1000)
             );
         }
 
-        if (array_key_exists('request_date_ms', $this->raw_data['receipt'])) {
+        if (array_key_exists('request_date_ms', $this->rawData['receipt'])) {
             $this->request_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['receipt']['request_date_ms'] / 1000)
+                (int)round($this->rawData['receipt']['request_date_ms'] / 1000)
             );
         }
 
-        if (array_key_exists('receipt_creation_date_ms', $this->raw_data['receipt'])) {
+        if (array_key_exists('receipt_creation_date_ms', $this->rawData['receipt'])) {
             $this->receipt_creation_date = Carbon::createFromTimestampUTC(
-                (int)round($this->raw_data['receipt']['receipt_creation_date_ms'] / 1000)
+                (int)round($this->rawData['receipt']['receipt_creation_date_ms'] / 1000)
             );
         }
 
-        foreach ($this->raw_data['receipt']['in_app'] as $purchase_item_data) {
+        foreach ($this->rawData['receipt']['in_app'] as $purchase_item_data) {
             $this->transactions[] = new Transaction($purchase_item_data);
         }
 
-        if (array_key_exists('bundle_id', $this->raw_data['receipt'])) {
-            $this->bundle_id = $this->raw_data['receipt']['bundle_id'];
+        if (array_key_exists('bundle_id', $this->rawData['receipt'])) {
+            $this->bundle_id = $this->rawData['receipt']['bundle_id'];
         }
 
-        if (array_key_exists('latest_receipt_info', $this->raw_data)) {
+        if (array_key_exists('latest_receipt_info', $this->rawData)) {
             $this->latest_receipt_info = array_map(
                 fn($data) => new Transaction($data),
-                $this->raw_data['latest_receipt_info']
+                $this->rawData['latest_receipt_info']
             );
         }
 
-        if (array_key_exists('latest_receipt', $this->raw_data)) {
-            $this->latest_receipt = $this->raw_data['latest_receipt'];
+        if (array_key_exists('latest_receipt', $this->rawData)) {
+            $this->latest_receipt = $this->rawData['latest_receipt'];
         }
 
-        if (array_key_exists('pending_renewal_info', $this->raw_data)) {
+        if (array_key_exists('pending_renewal_info', $this->rawData)) {
             $this->pending_renewal_info = array_map(
                 fn($data) => new RenewalInfo($data),
-                $this->raw_data['pending_renewal_info']
+                $this->rawData['pending_renewal_info']
             );
         }
 
-        if (array_key_exists('is-retryable', $this->raw_data)) {
+        if (array_key_exists('is-retryable', $this->rawData)) {
             $this->is_retryable = true;
         }
     }
 
     protected function isIOS6StyleReceipt(): bool
     {
-        return !$this->isIOS7StyleReceipt() && array_key_exists('receipt', $this->raw_data);
+        return !$this->isIOS7StyleReceipt() && array_key_exists('receipt', $this->rawData);
     }
 
     /**
@@ -162,10 +162,10 @@ class Response extends AbstractResponse
      */
     protected function parseIOS6StyleReceipt(): void
     {
-        $this->transactions = [new Transaction($this->raw_data['receipt'])];
+        $this->transactions = [new Transaction($this->rawData['receipt'])];
 
-        if (array_key_exists('bid', $this->raw_data['receipt'])) {
-            $this->bundle_id = $this->raw_data['receipt']['bid'];
+        if (array_key_exists('bid', $this->rawData['receipt'])) {
+            $this->bundle_id = $this->rawData['receipt']['bid'];
         }
     }
 

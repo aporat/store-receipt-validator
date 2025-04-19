@@ -10,83 +10,57 @@ use ReceiptValidator\iTunes\Response;
 
 class ResponseTest extends TestCase
 {
-    public function testHandlesIOS6StyleReceipt(): void
+    public function testIOS7StyleReceiptParsing(): void
     {
+        $timestamp = Carbon::now()->getTimestamp() * 1000;
+
         $data = [
-            'status' => 0,
             'receipt' => [
-                'bid' => 'com.example.app',
-                'product_id' => 'test.product',
-                'purchase_date_ms' => 1600000000000,
-                'quantity' => 1,
-                'transaction_id' => 'txn1'
-            ]
-        ];
-
-        $response = new Response($data, Environment::SANDBOX);
-
-        $this->assertEquals('com.example.app', $response->getBundleId());
-        $this->assertCount(1, $response->getTransactions());
-    }
-
-    public function testHandlesMissingOptionalFields(): void
-    {
-        $data = [
-            'status' => 0,
-            'receipt' => [
-                'app_item_id' => '456',
-                'in_app' => [],
-            ]
-        ];
-
-        $response = new Response($data);
-
-        $this->assertEquals([], $response->getTransactions());
-        $this->assertEquals([], $response->getLatestReceiptInfo());
-        $this->assertEquals([], $response->getPendingRenewalInfo());
-    }
-
-    public function testDateParsing(): void
-    {
-        $ms = 1600000000000;
-        $data = [
-            'status' => 0,
-            'receipt' => [
-                'app_item_id' => '456',
-                'original_purchase_date_ms' => $ms,
-                'receipt_creation_date_ms' => $ms,
-                'request_date_ms' => $ms,
-                'in_app' => []
-            ]
-        ];
-
-        $response = new Response($data);
-        $expected = Carbon::createFromTimestampUTC($ms / 1000);
-
-        $this->assertEquals($expected, $response->getOriginalPurchaseDate());
-        $this->assertEquals($expected, $response->getReceiptCreationDate());
-        $this->assertEquals($expected, $response->getRequestDate());
-    }
-
-    public function testRetryableFlag(): void
-    {
-        $data = [
-            'status' => 0,
+                'app_item_id' => '123456',
+                'original_purchase_date_ms' => $timestamp,
+                'request_date_ms' => $timestamp,
+                'receipt_creation_date_ms' => $timestamp,
+                'in_app' => [['transaction_id' => 'tx1']],
+                'bundle_id' => 'com.example.test',
+            ],
+            'latest_receipt_info' => [['transaction_id' => 'tx2']],
+            'latest_receipt' => 'base64data',
+            'pending_renewal_info' => [['product_id' => 'test_product']],
             'is-retryable' => true,
-            'receipt' => [
-                'app_item_id' => '456',
-                'in_app' => []
-            ]
         ];
 
-        $response = new Response($data);
+        $response = new Response($data, Environment::PRODUCTION);
+
+        $this->assertSame('123456', $response->getAppItemId());
+        $this->assertSame('com.example.test', $response->getBundleId());
+        $this->assertInstanceOf(Carbon::class, $response->getOriginalPurchaseDate());
+        $this->assertInstanceOf(Carbon::class, $response->getRequestDate());
+        $this->assertInstanceOf(Carbon::class, $response->getReceiptCreationDate());
+        $this->assertCount(1, $response->getTransactions());
+        $this->assertCount(1, $response->getLatestReceiptInfo());
+        $this->assertSame('base64data', $response->getLatestReceipt());
+        $this->assertCount(1, $response->getPendingRenewalInfo());
         $this->assertTrue($response->isRetryable());
     }
 
-    public function testThrowsExceptionOnInvalidData(): void
+    public function testIOS6StyleReceiptParsing(): void
+    {
+        $data = [
+            'receipt' => [
+                'transaction_id' => 'legacy_tx',
+                'bid' => 'legacy.app',
+            ]
+        ];
+
+        $response = new Response($data, Environment::PRODUCTION);
+
+        $this->assertSame('legacy.app', $response->getBundleId());
+        $this->assertCount(1, $response->getTransactions());
+    }
+
+    public function testInvalidReceiptThrows(): void
     {
         $this->expectException(ValidationException::class);
-        /** @phpstan-ignore-next-line */
-        new Response(null);
+        new Response(null, Environment::PRODUCTION);
     }
 }

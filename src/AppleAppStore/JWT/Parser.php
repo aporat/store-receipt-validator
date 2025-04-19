@@ -29,11 +29,11 @@ class Parser
     /**
      * A helper method to parse a JWS string into a Jws object
      *
-     * @param $signedPayload
+     * @param string $signedPayload
      *
      * @return Jws
      */
-    public static function toJws($signedPayload): Jws
+    public static function toJws(string $signedPayload): Jws
     {
         return (new self(new JwtParser(new JoseEncoder())))->parse($signedPayload);
     }

@@ -9,16 +9,16 @@ abstract class AbstractResponse
     /**
      * Purchases array.
      *
-     * @var array
+     * @var array<AbstractTransaction>
      */
     protected array $transactions = [];
 
     /**
      * Raw JSON data from the response.
      *
-     * @var array|null
+     * @var array<string, mixed>|null
      */
-    protected ?array $raw_data = null;
+    protected ?array $rawData = null;
 
     /**
      * Environment in which validation was performed.
@@ -30,14 +30,14 @@ abstract class AbstractResponse
     /**
      * Constructor.
      *
-     * @param array|null $data
+     * @param array<string, mixed>|null $data
      * @param Environment $environment
      *
      * @throws ValidationException
      */
     public function __construct(?array $data = [], Environment $environment = Environment::PRODUCTION)
     {
-        $this->raw_data = $data;
+        $this->rawData = $data;
         $this->environment = $environment;
 
         $this->parse();
@@ -53,6 +53,8 @@ abstract class AbstractResponse
 
     /**
      * Get transaction array.
+     *
+     * @return array<AbstractTransaction>
      */
     public function getTransactions(): array
     {
@@ -61,14 +63,18 @@ abstract class AbstractResponse
 
     /**
      * Get raw response data.
+     *
+     * @return array<string, mixed>|null
      */
     public function getRawData(): ?array
     {
-        return $this->raw_data;
+        return $this->rawData;
     }
 
     /**
      * Get the environment used.
+     *
+     * @return Environment
      */
     public function getEnvironment(): Environment
     {
@@ -77,6 +83,9 @@ abstract class AbstractResponse
 
     /**
      * Set the environment.
+     *
+     * @param Environment $environment
+     * @return $this
      */
     public function setEnvironment(Environment $environment): self
     {

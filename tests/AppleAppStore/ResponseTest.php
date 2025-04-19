@@ -1,49 +1,69 @@
 <?php
 
-namespace ReceiptValidator\AppleAppStore\Tests;
+namespace ReceiptValidator\Tests\AppleAppStore;
 
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\AppleAppStore\Response;
 use ReceiptValidator\Environment;
+use ReceiptValidator\Exceptions\ValidationException;
 
 class ResponseTest extends TestCase
 {
-    public function testParseSetsPropertiesCorrectly()
+    public function testParseWithValidTransaction(): void
     {
-        $fixture = [
-            'revision' => 'rev-123',
+
+        $data = [
+            'revision' => 'rev-1',
             'bundleId' => 'com.example.app',
             'appAppleId' => 123456789,
             'environment' => 'Production',
-            'hasMore' => false,
-            'signedTransactions' => []
+            'hasMore' => true,
+            'signedTransactions' => ['jws-token'],
         ];
 
-        $response = new Response($fixture);
-        $response->parse();
+        $response = new Response($data, Environment::PRODUCTION);
 
-        $this->assertSame('rev-123', $response->getRevision());
+        $this->assertSame('rev-1', $response->getRevision());
         $this->assertSame('com.example.app', $response->getBundleId());
         $this->assertSame(123456789, $response->getAppAppleId());
-        $this->assertSame(Environment::PRODUCTION, $response->getEnvironment());
-        $this->assertFalse($response->hasMore());
-        $this->assertIsArray($response->getSignedTransactions());
-        $this->assertCount(0, $response->getSignedTransactions());
+        $this->assertTrue($response->hasMore());
+        $this->assertSame(['jws-token'], $response->getSignedTransactions());
+        $this->assertCount(0, $response->getTransactions());
     }
 
-    public function testOffsetAccess()
+    public function testParseSkipsInvalidJws(): void
     {
-        $fixture = ['revision' => 'rev-456'];
-        $response = new Response($fixture);
-        $response->parse();
 
-        $this->assertTrue(isset($response['revision']));
-        $this->assertEquals('rev-456', $response['revision']);
+        $data = [
+            'environment' => 'Production',
+            'signedTransactions' => ['bad-jws'],
+        ];
 
-        $response['revision'] = 'rev-789';
-        $this->assertEquals('rev-789', $response['revision']);
+        $response = new Response($data, Environment::PRODUCTION);
+        $this->assertCount(0, $response->getTransactions());
+    }
 
-        unset($response['revision']);
-        $this->assertFalse(isset($response['revision']));
+    public function testArrayAccessMethods(): void
+    {
+        $data = [
+            'revision' => 'abc',
+            'environment' => 'Sandbox',
+        ];
+
+        $response = new Response($data, Environment::SANDBOX);
+        $this->assertSame('abc', $response['revision']);
+
+        $response['foo'] = 'bar';
+        $this->assertTrue(isset($response['foo']));
+        $this->assertSame('bar', $response['foo']);
+
+        unset($response['foo']);
+        $this->assertFalse(isset($response['foo']));
+    }
+
+    public function testInvalidRawDataThrows(): void
+    {
+        $this->expectException(ValidationException::class);
+        new Response(null, Environment::PRODUCTION);
     }
 }

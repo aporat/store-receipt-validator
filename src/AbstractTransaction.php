@@ -7,33 +7,11 @@ use ReceiptValidator\Exceptions\ValidationException;
 abstract class AbstractTransaction
 {
     /**
-     * Constructor.
-     *
-     * @param array|null $data
-     *
-     * @throws ValidationException
-     */
-    public function __construct(?array $data = [])
-    {
-        $this->raw_data = $data;
-
-        $this->parse();
-    }
-
-    /**
-     * Parse raw data into the response.
-     *
-     * @return $this
-     * @throws ValidationException
-     */
-    abstract public function parse(): self;
-
-    /**
      * Raw JSON data from the response.
      *
-     * @var array|null
+     * @var array<string, mixed>|null
      */
-    protected ?array $raw_data = null;
+    protected ?array $rawData = null;
 
     /**
      * Quantity.
@@ -47,27 +25,49 @@ abstract class AbstractTransaction
      *
      * @var string
      */
-    protected string $product_id;
+    protected string $productId;
 
     /**
      * Transaction ID.
      *
      * @var string
      */
-    protected string $transaction_id;
+    protected string $transactionId;
+
+    /**
+     * Constructor.
+     *
+     * @param array<string, mixed>|null $data
+     *
+     * @throws ValidationException
+     */
+    public function __construct(?array $data = [])
+    {
+        $this->rawData = $data;
+
+        $this->parse();
+    }
+
+    /**
+     * Parse raw data into the response.
+     *
+     * @return $this
+     * @throws ValidationException
+     */
+    abstract public function parse(): self;
 
     /**
      * Get raw response data.
+     *
+     * @return array<string, mixed>|null
      */
     public function getRawData(): ?array
     {
-        return $this->raw_data;
+        return $this->rawData;
     }
 
     /**
      * Get quantity.
-     *
-     * @return int
      */
     public function getQuantity(): int
     {
@@ -76,9 +76,6 @@ abstract class AbstractTransaction
 
     /**
      * Set quantity.
-     *
-     * @param int $quantity
-     * @return $this
      */
     public function setQuantity(int $quantity): self
     {
@@ -88,45 +85,35 @@ abstract class AbstractTransaction
 
     /**
      * Get product ID.
-     *
-     * @return string
      */
     public function getProductId(): string
     {
-        return $this->product_id;
+        return $this->productId;
     }
 
     /**
      * Set product ID.
-     *
-     * @param string $product_id
-     * @return $this
      */
-    public function setProductId(string $product_id): self
+    public function setProductId(string $productId): self
     {
-        $this->product_id = $product_id;
+        $this->productId = $productId;
         return $this;
     }
 
     /**
      * Get transaction ID.
-     *
-     * @return string
      */
     public function getTransactionId(): string
     {
-        return $this->transaction_id;
+        return $this->transactionId;
     }
 
     /**
      * Set transaction ID.
-     *
-     * @param string $transaction_id
-     * @return $this
      */
-    public function setTransactionId(string $transaction_id): self
+    public function setTransactionId(string $transactionId): self
     {
-        $this->transaction_id = $transaction_id;
+        $this->transactionId = $transactionId;
         return $this;
     }
 }

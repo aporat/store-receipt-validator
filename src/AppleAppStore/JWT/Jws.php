@@ -44,7 +44,7 @@ final class Jws implements Stringable, UnencryptedToken
     /**
      * Get list of headers
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function getHeaders(): array
     {
@@ -54,7 +54,7 @@ final class Jws implements Stringable, UnencryptedToken
     /**
      * Get list of claims
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function getClaims(): array
     {

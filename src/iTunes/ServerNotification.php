@@ -69,7 +69,7 @@ class ServerNotification
     protected ?RenewalInfo $pendingRenewalInfo = null;
 
     /**
-     * @param array $data
+     * @param array<string, mixed> $data
      * @param string|null $sharedSecret
      * @throws ValidationException
      */

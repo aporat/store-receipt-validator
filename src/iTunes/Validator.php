@@ -124,24 +124,24 @@ class Validator extends AbstractValidator
      *
      * @var string|null
      */
-    protected ?string $receipt_data = null;
+    protected ?string $receiptData = null;
 
     /**
      * The shared secret for auto-renewable subscriptions.
      *
      * @var string|null
      */
-    protected ?string $shared_secret = null;
+    protected ?string $sharedSecret = null;
 
     /**
      * Constructor.
      *
-     * @param string|null $shared_secret
+     * @param string|null $sharedSecret
      * @param Environment $environment
      */
-    public function __construct(?string $shared_secret = null, Environment $environment = Environment::PRODUCTION)
+    public function __construct(?string $sharedSecret = null, Environment $environment = Environment::PRODUCTION)
     {
-        $this->shared_secret = $shared_secret;
+        $this->sharedSecret = $sharedSecret;
         $this->environment = $environment;
     }
 
@@ -152,33 +152,32 @@ class Validator extends AbstractValidator
      */
     public function getSharedSecret(): ?string
     {
-        return $this->shared_secret;
+        return $this->sharedSecret;
     }
 
     /**
      * Set the shared secret.
      *
-     * @param string|null $shared_secret
+     * @param string|null $sharedSecret
      * @return $this
      */
-    public function setSharedSecret(?string $shared_secret = null): self
+    public function setSharedSecret(?string $sharedSecret = null): self
     {
-        $this->shared_secret = $shared_secret;
-
+        $this->sharedSecret = $sharedSecret;
         return $this;
     }
 
     /**
      * Validate the receipt.
      *
-     * @param string|null $receipt_data
+     * @param string|null $receiptData
      * @return Response
      * @throws ValidationException
      */
-    public function validate(?string $receipt_data = null): Response
+    public function validate(?string $receiptData = null): Response
     {
-        if ($receipt_data !== null) {
-            $this->setReceiptData($receipt_data);
+        if ($receiptData !== null) {
+            $this->setReceiptData($receiptData);
         }
 
         return $this->makeRequest();
@@ -244,8 +243,8 @@ class Validator extends AbstractValidator
             'receipt-data' => $this->getReceiptData()
         ];
 
-        if ($this->shared_secret !== null) {
-            $request['password'] = $this->shared_secret;
+        if ($this->sharedSecret !== null) {
+            $request['password'] = $this->sharedSecret;
         }
 
         return json_encode($request);
@@ -258,21 +257,21 @@ class Validator extends AbstractValidator
      */
     public function getReceiptData(): ?string
     {
-        return $this->receipt_data;
+        return $this->receiptData;
     }
 
     /**
      * Set receipt data, either in base64 or in JSON.
      *
-     * @param string $receipt_data
+     * @param string $receiptData
      * @return $this
      */
-    public function setReceiptData(string $receipt_data = ''): self
+    public function setReceiptData(string $receiptData = ''): self
     {
-        if (str_contains($receipt_data, '{')) {
-            $this->receipt_data = base64_encode($receipt_data);
+        if (str_contains($receiptData, '{')) {
+            $this->receiptData = base64_encode($receiptData);
         } else {
-            $this->receipt_data = $receipt_data;
+            $this->receiptData = $receiptData;
         }
 
         return $this;

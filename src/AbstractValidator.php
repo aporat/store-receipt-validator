@@ -16,8 +16,11 @@ abstract class AbstractValidator
      * Environment (sandbox or production).
      */
     protected Environment $environment = Environment::PRODUCTION;
+
     /**
      * Guzzle client options.
+     *
+     * @var array<string, mixed>
      */
     protected array $client_options = [
         RequestOptions::TIMEOUT => 30,

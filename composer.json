@@ -64,7 +64,7 @@
         "test": "phpunit",
         "test-ci": "phpunit --coverage-text --coverage-clover coverage.xml --log-junit junit.xml",
         "check": "phpcs",
-        "analyze": "phpstan analyse src --level=5 --memory-limit=-1"
+        "analyze": "phpstan analyse src --level=6 --memory-limit=-1"
     },
     "extra": {
         "google/apiclient-services": [

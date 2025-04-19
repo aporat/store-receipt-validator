@@ -75,8 +75,8 @@ class AppStoreJwsVerifier
     }
 
     /**
-     * @param array $certificates
-     * @return array
+     * @param array<string> $certificates
+     * @return array<OpenSSLCertificate>
      */
     private function chain(array $certificates): array
     {

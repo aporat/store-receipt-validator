@@ -15,11 +15,11 @@ class Response extends AbstractResponse
      */
     public function parse(): self
     {
-        if (!is_array($this->raw_data)) {
+        if (!is_array($this->rawData)) {
             throw new ValidationException('Response must be an array');
         }
 
-        $this->transactions = [new Transaction($this->raw_data)];
+        $this->transactions = [new Transaction($this->rawData)];
 
         return $this;
     }
