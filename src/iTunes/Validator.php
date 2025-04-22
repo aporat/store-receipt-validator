@@ -236,6 +236,7 @@ class Validator extends AbstractValidator
      * Prepare request data (json).
      *
      * @return string
+     * @throws ValidationException
      */
     protected function prepareRequestData(): string
     {
@@ -247,7 +248,13 @@ class Validator extends AbstractValidator
             $request['password'] = $this->sharedSecret;
         }
 
-        return json_encode($request);
+        $data = json_encode($request);
+
+        if ($data === false) {
+            throw new ValidationException('Unable to encode data to iTunes server');
+        }
+
+        return $data;
     }
 
     /**

@@ -44,13 +44,18 @@ class TokenGenerator
         $issuer = $this->config->issuer();
         $clock = $this->config->clock();
 
+        $issuerId = $issuer->id();
+        if ($issuerId === '') {
+            throw new ValidationException('Issuer ID must not be empty');
+        }
+
         try {
             $issuedAt = $clock->now();
             $expiresAt = $issuedAt->modify('+' . self::EXPIRATION_MINUTES . ' minutes');
 
             $token = $builder
                 ->withHeader('kid', $issuer->key()->kid())
-                ->issuedBy($issuer->id())
+                ->issuedBy($issuerId)
                 ->issuedAt($issuedAt)
                 ->expiresAt($expiresAt)
                 ->permittedFor(self::AUDIENCE)
@@ -78,6 +83,11 @@ class TokenGenerator
     {
         try {
             $parser = new JwtParser(new JoseEncoder());
+
+            if ($signedPayload === '') {
+                throw new ValidationException('Cannot parse empty JWT payload');
+            }
+
             $token = $parser->parse($signedPayload);
 
             if (!$token instanceof Token) {

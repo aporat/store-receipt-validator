@@ -172,10 +172,16 @@ class Validator extends AbstractValidator
     private function generateToken(): Token
     {
         try {
+            $signingKey = $this->signingKey;
+
+            if ($signingKey === '') {
+                throw new ValidationException('Cannot generate a token without a signing key.');
+            }
+
             $issuer = new TokenIssuer(
                 $this->issuerId,
                 $this->bundleId,
-                new TokenKey($this->keyId, InMemory::plainText($this->signingKey)),
+                new TokenKey($this->keyId, InMemory::plainText($signingKey)),
                 new Sha256()
             );
 
