@@ -98,7 +98,7 @@ class ValidatorTest extends TestCase
         $validator->setUserId('user123')->setReceiptId('receipt123');
         $validator->client = $mockClient;
 
-        $response = $validator->validate();
+        $response = $validator->setDeveloperSecret('secret123')->validate();
 
         $this->assertEquals('pack_100', $response->getTransactions()[0]->getProductId());
         $this->assertEquals('txn_abc', $response->getTransactions()[0]->getTransactionId());

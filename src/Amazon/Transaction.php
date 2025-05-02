@@ -128,6 +128,9 @@ class Transaction extends AbstractTransaction implements ArrayAccess
         return $this->termSku;
     }
 
+    /**
+     * @throws ValidationException
+     */
     #[ReturnTypeWillChange]
     public function offsetSet($offset, $value): void
     {

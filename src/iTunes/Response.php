@@ -201,7 +201,7 @@ class Response extends AbstractResponse
     }
 
     /**
-     * Get original purchase date.
+     * Get the original purchase date.
      *
      * @return Carbon|null
      */

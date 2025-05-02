@@ -38,7 +38,7 @@ class Validator extends AbstractValidator
     protected ?string $transactionId = null;
 
     /**
-     * App Store Connect private key.
+     * App Store Connect's private key.
      *
      * @var string
      */

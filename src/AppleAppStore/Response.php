@@ -64,6 +64,18 @@ class Response extends AbstractResponse implements ArrayAccess
         return $this->signedTransactions;
     }
 
+    /**
+     * @return array<Transaction>
+     */
+    public function getTransactions(): array
+    {
+        /** @var array<Transaction> */
+        return parent::getTransactions();
+    }
+
+    /**
+     * @throws ValidationException
+     */
     #[ReturnTypeWillChange]
     public function offsetSet($offset, $value): void
     {

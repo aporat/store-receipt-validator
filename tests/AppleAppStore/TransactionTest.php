@@ -45,7 +45,7 @@ class TransactionTest extends TestCase
             'revocationDate' => $now + 2000,
         ];
 
-        $transaction = new Transaction($data, Environment::PRODUCTION);
+        $transaction = new Transaction($data);
 
         $this->assertSame($data['originalTransactionId'], $transaction->getOriginalTransactionId());
         $this->assertSame($data['transactionId'], $transaction->getTransactionId());
@@ -87,6 +87,6 @@ class TransactionTest extends TestCase
     public function testInvalidRawDataThrows(): void
     {
         $this->expectException(ValidationException::class);
-        new Transaction(null, Environment::PRODUCTION);
+        new Transaction(null);
     }
 }

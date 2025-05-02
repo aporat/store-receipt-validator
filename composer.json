@@ -66,11 +66,6 @@
         "check": "phpcs",
         "analyze": "phpstan analyse src --level=8 --memory-limit=-1"
     },
-    "extra": {
-        "google/apiclient-services": [
-            "AndroidPublisher"
-        ]
-    },
     "suggest": {
         "codecov/codecov-php": "Helps send coverage reports to codecov.io"
     },

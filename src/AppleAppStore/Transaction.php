@@ -84,7 +84,7 @@ class Transaction extends AbstractTransaction implements ArrayAccess
     /** @var string|null Payment mode for an offer. */
     protected ?string $offerDiscountType = null;
 
-    /** @var string|null The app download transaction identifier. */
+    /** @var string|null The app transaction identifier. */
     protected ?string $appTransactionId = null;
 
     /** @var string|null The duration of the offer. */

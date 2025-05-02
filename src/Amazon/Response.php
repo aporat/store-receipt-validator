@@ -23,4 +23,13 @@ class Response extends AbstractResponse
 
         return $this;
     }
+
+    /**
+     * @return array<Transaction>
+     */
+    public function getTransactions(): array
+    {
+        /** @var array<Transaction> */
+        return parent::getTransactions();
+    }
 }

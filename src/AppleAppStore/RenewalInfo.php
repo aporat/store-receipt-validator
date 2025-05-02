@@ -129,7 +129,7 @@ class RenewalInfo implements ArrayAccess
     protected ?string $appAccountToken = null;
 
     /**
-     * List of eligible win-back offer identifiers.
+     * The list of eligible win-back offer identifiers.
      *
      * @var string[]|null
      */
@@ -163,6 +163,7 @@ class RenewalInfo implements ArrayAccess
 
     /**
      * @param array<string, mixed> $data
+     * @throws ValidationException
      */
     public function __construct(array $data)
     {
@@ -325,6 +326,9 @@ class RenewalInfo implements ArrayAccess
         return $this->renewalDate;
     }
 
+    /**
+     * @throws ValidationException
+     */
     #[ReturnTypeWillChange]
     public function offsetSet($offset, $value): void
     {
