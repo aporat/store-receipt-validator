@@ -10,85 +10,32 @@ use ReceiptValidator\Exceptions\ValidationException;
 class Validator extends AbstractValidator
 {
     /**
-     * Amazon RVS Error: Invalid receiptID
-     *
-     * @var int
-     */
-    public const int RESULT_INVALID_RECEIPT = 400;
-
-    /**
-     * Amazon RVS Error: Invalid developerSecret
-     *
-     * @var int
-     */
-    public const int RESULT_INVALID_DEVELOPER_SECRET = 496;
-
-    /**
-     * Amazon RVS Error: Invalid userId
-     *
-     * @var int
-     */
-    public const int RESULT_INVALID_USER_ID = 497;
-
-    /**
-     * Amazon RVS Error: Internal Server Error
-     *
-     * @var int
-     */
-    public const int RESULT_INTERNAL_ERROR = 500;
-
-    /**
      * Amazon RVS sandbox endpoint.
-     *
-     * @var string
      */
     public const string ENDPOINT_SANDBOX = 'https://appstore-sdk.amazon.com/sandbox';
 
     /**
      * Amazon RVS production endpoint.
-     *
-     * @var string
      */
     public const string ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com';
 
     /**
-     * Error messages for known Amazon RVS response codes.
-     *
-     * @var array<int, string>
-     */
-    protected const array ERROR_MESSAGES = [
-        self::RESULT_INVALID_RECEIPT => 'Invalid receipt ID.',
-        self::RESULT_INVALID_DEVELOPER_SECRET => 'Invalid developer secret.',
-        self::RESULT_INVALID_USER_ID => 'Invalid user ID.',
-        self::RESULT_INTERNAL_ERROR => 'Internal server error.',
-    ];
-
-    /**
      * User ID.
-     *
-     * @var string|null
      */
     protected ?string $userId = null;
 
     /**
      * Receipt ID.
-     *
-     * @var string|null
      */
     protected ?string $receiptId = null;
 
     /**
      * Developer secret.
-     *
-     * @var string|null
      */
     protected ?string $developerSecret = null;
 
     /**
      * Validator constructor.
-     *
-     * @param string $developerSecret
-     * @param Environment $environment
      */
     public function __construct(string $developerSecret, Environment $environment)
     {
@@ -130,60 +77,44 @@ class Validator extends AbstractValidator
                 )
             );
 
-            $statusCode = $httpResponse->getStatusCode();
+            $body = (string)$httpResponse->getBody();
+            $decodedBody = json_decode($body, true);
 
-            if ($statusCode !== 200) {
-                $message = self::ERROR_MESSAGES[$statusCode] ?? 'Unexpected error occurred while validating the receipt.';
-                throw new ValidationException($message, $statusCode);
+            if ($httpResponse->getStatusCode() !== 200) {
+                $errorCode = $httpResponse->getStatusCode();
+                $messages = APIError::messages();
+                $description = array_key_exists($errorCode, $messages)
+                    ? $messages[$errorCode]
+                    : ($decodedBody['message'] ?? 'Unexpected error occurred while validating the receipt.');
+
+                $fullMessage = "Amazon API error [{$errorCode}]: {$description}";
+
+                throw new ValidationException($fullMessage, $errorCode);
             }
 
-            $decodedBody = json_decode($httpResponse->getBody(), true);
             return new Response($decodedBody, $this->environment);
         } catch (GuzzleException $e) {
             throw new ValidationException('Amazon validation request failed', 0, $e);
         }
     }
 
-    /**
-     * Get the developer secret.
-     *
-     * @return string|null
-     */
     public function getDeveloperSecret(): ?string
     {
         return $this->developerSecret;
     }
 
-    /**
-     * Set the developer secret.
-     *
-     * @param string|null $developerSecret
-     * @return $this
-     */
     public function setDeveloperSecret(?string $developerSecret): self
     {
         $this->developerSecret = $developerSecret;
         return $this;
     }
 
-    /**
-     * Set the user ID.
-     *
-     * @param string|null $userId
-     * @return $this
-     */
     public function setUserId(?string $userId): self
     {
         $this->userId = $userId;
         return $this;
     }
 
-    /**
-     * Set the receipt ID.
-     *
-     * @param string|null $receiptId
-     * @return $this
-     */
     public function setReceiptId(?string $receiptId): self
     {
         $this->receiptId = $receiptId;

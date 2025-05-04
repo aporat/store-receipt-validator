@@ -129,7 +129,7 @@ class ValidatorTest extends TestCase
         $validator->client = $mockClient;
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('Invalid developer secret.');
+        $this->expectExceptionMessage('Amazon API error [496]: Invalid developerSecret');
 
         $validator->validate();
     }
