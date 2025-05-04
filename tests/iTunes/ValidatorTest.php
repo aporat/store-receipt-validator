@@ -137,4 +137,23 @@ class ValidatorTest extends TestCase
 
         $response = $validator->validate();
     }
+
+    public function testThrowsValidationExceptionWithFormattedMessage(): void
+    {
+        $mockClient = Mockery::mock(Client::class);
+        $mockClient->shouldReceive('request')
+            ->once()
+            ->andReturn(new GuzzleResponse(200, [], json_encode([
+                'status' => 21004,
+            ])));
+
+        $validator = new Validator('invalid-shared-secret', Environment::PRODUCTION);
+        $validator->client = $mockClient;
+        $validator->setReceiptData('dummy');
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('iTunes API error [21004]: The shared secret you provided does not match the shared secret on file for your account.');
+
+        $validator->validate();
+    }
 }

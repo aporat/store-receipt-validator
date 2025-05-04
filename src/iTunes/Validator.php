@@ -25,101 +25,6 @@ class Validator extends AbstractValidator
     public const string ENDPOINT_PRODUCTION = 'https://buy.itunes.apple.com';
 
     /**
-     * Receipt response is valid.
-     *
-     * @var int
-     */
-    public const int RESULT_OK = 0;
-
-    /**
-     * The receipt is valid, but purchased nothing.
-     *
-     * @var int
-     */
-    public const int RESULT_VALID_NO_PURCHASE = 2;
-
-    /**
-     * The App Store could not read the JSON object you provided.
-     *
-     * @var int
-     */
-    public const int RESULT_APPSTORE_CANNOT_READ = 21000;
-
-    /**
-     * The data in the receipt-data property was malformed or missing.
-     *
-     * @var int
-     */
-    public const int RESULT_DATA_MALFORMED = 21002;
-
-    /**
-     * The receipt could not be authenticated.
-     *
-     * @var int
-     */
-    public const int RESULT_RECEIPT_NOT_AUTHENTICATED = 21003;
-
-    /**
-     * The shared secret does not match.
-     *
-     * @var int
-     */
-    public const int RESULT_SHARED_SECRET_NOT_MATCH = 21004;
-
-    /**
-     * The receipt server is not currently available.
-     *
-     * @var int
-     */
-    public const int RESULT_RECEIPT_SERVER_UNAVAILABLE = 21005;
-
-    /**
-     * This receipt is valid but the subscription has expired.
-     *
-     * @var int
-     */
-    public const int RESULT_RECEIPT_VALID_BUT_SUB_EXPIRED = 21006;
-
-    /**
-     * Sandbox receipt sent to production.
-     *
-     * @var int
-     */
-    public const int RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION = 21007;
-
-    /**
-     * Production receipt sent to sandbox.
-     *
-     * @var int
-     */
-    public const int RESULT_PRODUCTION_RECEIPT_SENT_TO_SANDBOX = 21008;
-
-    /**
-     * This receipt could not be authorized.
-     *
-     * @var int
-     */
-    public const int RESULT_RECEIPT_WITHOUT_PURCHASE = 21010;
-
-    /**
-     * Apple error message map.
-     *
-     * @var array<int, string>
-     */
-    protected const array ERROR_MESSAGES = [
-        self::RESULT_APPSTORE_CANNOT_READ => 'The App Store could not read the JSON object you provided.',
-        self::RESULT_DATA_MALFORMED => 'The data in the receipt-data property was malformed.',
-        self::RESULT_RECEIPT_NOT_AUTHENTICATED => 'The receipt could not be authenticated.',
-        self::RESULT_SHARED_SECRET_NOT_MATCH => 'The shared secret you provided does not match the shared secret on file for your account.',
-        self::RESULT_RECEIPT_SERVER_UNAVAILABLE => 'The receipt server is not currently available.',
-        self::RESULT_RECEIPT_VALID_BUT_SUB_EXPIRED => 'This receipt is valid but the subscription has expired.',
-        self::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION => 'This receipt is a sandbox receipt, but it was sent to the production service for verification.',
-        self::RESULT_PRODUCTION_RECEIPT_SENT_TO_SANDBOX => 'This receipt is a production receipt, but it was sent to the sandbox service for verification.',
-        self::RESULT_VALID_NO_PURCHASE => 'The receipt is valid, but purchased nothing.',
-        self::RESULT_RECEIPT_WITHOUT_PURCHASE => 'This receipt could not be authorized. Treat this the same as if a purchase was never made.',
-    ];
-
-    /**
      * iTunes receipt data, in base64 format.
      *
      * @var string|null
@@ -215,18 +120,20 @@ class Validator extends AbstractValidator
         }
 
         $decodedBody = json_decode($httpResponse->getBody(), true);
-        $status = $decodedBody['status'] ?? self::RESULT_OK;
+        $status = $decodedBody['status'] ?? APIError::VALID;
 
         if (
             $this->environment === Environment::PRODUCTION &&
-            $status === self::RESULT_SANDBOX_RECEIPT_SENT_TO_PRODUCTION
+            $status === APIError::SANDBOX_RECEIPT_ON_PRODUCTION
         ) {
             return $this->makeRequest(Environment::SANDBOX);
         }
 
-        if ($status !== self::RESULT_OK && $status !== self::RESULT_RECEIPT_VALID_BUT_SUB_EXPIRED) {
-            $message = self::ERROR_MESSAGES[$status] ?? 'Unknown error occurred during receipt validation';
-            throw new ValidationException($message);
+        if ($status !== APIError::VALID && $status !== APIError::SUBSCRIPTION_EXPIRED) {
+            $messages = APIError::messages();
+            $description = $messages[$status] ?? 'Unknown error';
+            $fullMessage = "iTunes API error [{$status}]: {$description}";
+            throw new ValidationException($fullMessage, $status);
         }
 
         return new Response($decodedBody, $this->environment);
