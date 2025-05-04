@@ -65,11 +65,4 @@ abstract class AbstractValidator
 
         return $this->client;
     }
-
-    /**
-     * Perform request to given endpoint and return raw JSON.
-     *
-     * @throws ValidationException
-     */
-    abstract protected function makeRequest(): mixed;
 }

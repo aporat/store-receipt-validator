@@ -89,18 +89,6 @@ class Validator extends AbstractValidator
     }
 
     /**
-     * Set the transaction ID.
-     *
-     * @param string $transactionId
-     * @return $this
-     */
-    public function setTransactionId(string $transactionId): self
-    {
-        $this->transactionId = $transactionId;
-        return $this;
-    }
-
-    /**
      * Validate the transaction by calling the App Store Server API.
      *
      * @param string|null $transactionId
@@ -113,47 +101,74 @@ class Validator extends AbstractValidator
             $this->setTransactionId($transactionId);
         }
 
-        return $this->makeRequest();
+        if (empty($this->transactionId)) {
+            throw new ValidationException('Missing transaction ID for App Store Server API validation.');
+        }
+
+        $uri = sprintf('/inApps/v2/history/%s', $this->transactionId);
+
+        $queryParams = [
+            'sort' => 'DESCENDING',
+        ];
+
+        return $this->makeRequest('GET', $uri, $queryParams);
+    }
+
+    /**
+     * Set the transaction ID.
+     *
+     * @param string $transactionId
+     * @return $this
+     */
+    public function setTransactionId(string $transactionId): self
+    {
+        $this->transactionId = $transactionId;
+        return $this;
     }
 
     /**
      * Perform the HTTP request to the App Store API.
      *
+     * @param string $method
+     * @param string $uri
+     * @param array<string, mixed> $queryParams
      * @return Response
      * @throws ValidationException
      */
-    protected function makeRequest(): Response
+    protected function makeRequest(string $method, string $uri = '', array $queryParams = []): Response
     {
-        if (empty($this->transactionId)) {
-            throw new ValidationException('Missing transaction ID for App Store Server API validation.');
-        }
-
         $endpoint = $this->environment === Environment::PRODUCTION
             ? self::ENDPOINT_PRODUCTION
             : self::ENDPOINT_SANDBOX;
 
-        $url = sprintf('%s/inApps/v2/history/%s', $endpoint, $this->transactionId);
         $token = $this->generateToken();
 
         try {
-            $httpResponse = $this->getClient($endpoint)->request('GET', $url, [
+            $httpResponse = $this->getClient($endpoint)->request($method, $endpoint . $uri, [
                 'headers' => [
                     'Authorization' => "Bearer {$token->toString()}",
                 ],
-                'query' => [
-                    'sort' => 'DESCENDING',
-                ],
+                'query' => $queryParams,
             ]);
         } catch (GuzzleException $e) {
             throw new ValidationException('Unable to connect to App Store Server API - ' . $e->getMessage(), 0, $e);
         }
 
-        $body = (string) $httpResponse->getBody();
+        $body = (string)$httpResponse->getBody();
         $decoded = json_decode($body, true);
 
         if ($httpResponse->getStatusCode() !== 200) {
-            $error = $decoded['errorMessage'] ?? "Unexpected status: {$httpResponse->getStatusCode()}";
-            throw new ValidationException($error);
+            $errorMessage = match ($httpResponse->getStatusCode()) {
+                401 => 'Unauthenticated',
+                404 => 'Not Found',
+                default => $decoded['errorMessage'] ?? ($body ?: 'Unexpected error'),
+            };
+
+            $errorCode = isset($decoded['errorCode']) ? (int)$decoded['errorCode'] : $httpResponse->getStatusCode();
+
+            $fullMessage = "App Store API error [{$errorCode}]: {$errorMessage}";
+
+            throw new ValidationException($fullMessage, $errorCode);
         }
 
         if (!is_array($decoded)) {
@@ -191,5 +206,22 @@ class Validator extends AbstractValidator
         } catch (Throwable $e) {
             throw new ValidationException('JWT generation failed: ' . $e->getMessage(), 0, $e);
         }
+    }
+
+    /**
+     * Request a test notification from the App Store Server API.
+     *
+     * @return string
+     * @throws ValidationException
+     */
+    public function requestTestNotification(): string
+    {
+        $data = $this->makeRequest('POST', '/inApps/v1/notifications/test')->getRawData();
+
+        if (!is_array($data) || !isset($data['testNotificationToken'])) {
+            throw new ValidationException('Missing testNotificationToken in response.');
+        }
+
+        return $data['testNotificationToken'];
     }
 }
