@@ -144,7 +144,7 @@ class Validator extends AbstractValidator
         $token = $this->generateToken();
 
         try {
-            $httpResponse = $this->getClient($endpoint)->request($method, $endpoint . $uri, [
+            $httpResponse = $this->getClient($endpoint)->request($method, $uri, [
                 'headers' => [
                     'Authorization' => "Bearer {$token->toString()}",
                 ],
