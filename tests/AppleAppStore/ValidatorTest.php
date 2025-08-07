@@ -51,7 +51,7 @@ class ValidatorTest extends TestCase
         $mockClient = Mockery::mock(Client::class);
         $mockClient->shouldReceive('request')
             ->once()
-            ->with('POST', 'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/notifications/test', Mockery::on(function ($options) {
+            ->with('POST', '/inApps/v1/notifications/test', Mockery::on(function ($options) {
                 return isset($options['headers']['Authorization']);
             }))
             ->andReturn(new GuzzleResponse(200, [], $mockResponseBody));
