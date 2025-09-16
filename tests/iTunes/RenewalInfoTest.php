@@ -99,27 +99,4 @@ class RenewalInfoTest extends TestCase
 
         $this->assertFalse($info->isInGracePeriod());
     }
-
-    public function testArrayAccessWorks(): void
-    {
-        $data = [
-            'product_id' => 'product.test',
-            'original_transaction_id' => 'tx.test',
-            'auto_renew_product_id' => 'product.test',
-            'auto_renew_status' => '1',
-            'expiration_intent' => '3',
-            'is_in_billing_retry_period' => '1',
-        ];
-
-        $info = new RenewalInfo($data);
-
-        $this->assertTrue(isset($info['product_id']));
-        $this->assertSame('product.test', $info['product_id']);
-
-        $info['expiration_intent'] = 4;
-        $this->assertSame(4, $info->getExpirationIntent());
-
-        unset($info['expiration_intent']);
-        $this->assertNull($info['expiration_intent']);
-    }
 }

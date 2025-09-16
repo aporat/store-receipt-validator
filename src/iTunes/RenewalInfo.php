@@ -2,18 +2,15 @@
 
 namespace ReceiptValidator\iTunes;
 
-use ArrayAccess;
 use Carbon\Carbon;
 use ReceiptValidator\Exceptions\ValidationException;
-use ReturnTypeWillChange;
 
 /**
  * Represents the renewal info section of the iTunes receipt.
  *
- * @implements ArrayAccess<string, mixed>
  * @link https://developer.apple.com/library/content/releasenotes/General/ValidateAppStoreReceipt/Chapters/ReceiptFields.html
  */
-class RenewalInfo implements ArrayAccess
+class RenewalInfo
 {
     // Expiration Intent Codes
     public const int EXPIRATION_INTENT_CANCELLED = 1;
@@ -95,23 +92,29 @@ class RenewalInfo implements ArrayAccess
             throw new ValidationException('Response must be a scalar value');
         }
 
-        $this->productId = $this->rawData['product_id'] ?? '';
-        $this->originalTransactionId = $this->rawData['original_transaction_id'] ?? '';
-        $this->autoRenewProductId = $this->rawData['auto_renew_product_id'] ?? '';
-        $this->autoRenewStatus = (bool)($this->rawData['auto_renew_status'] ?? false);
+        $this->productId = (string)($this->rawData['product_id'] ?? '');
+        $this->originalTransactionId = (string)($this->rawData['original_transaction_id'] ?? '');
+        $this->autoRenewProductId = (string)($this->rawData['auto_renew_product_id'] ?? '');
+        $this->autoRenewStatus = (bool)((int)($this->rawData['auto_renew_status'] ?? false));
 
         if (array_key_exists('expiration_intent', $this->rawData)) {
             $this->expirationIntent = (int)$this->rawData['expiration_intent'];
+        } else {
+            $this->expirationIntent = null;
         }
 
         if (array_key_exists('grace_period_expires_date_ms', $this->rawData)) {
             $this->gracePeriodExpiresDate = Carbon::createFromTimestampUTC(
                 (int)round($this->rawData['grace_period_expires_date_ms'] / 1000)
             );
+        } else {
+            $this->gracePeriodExpiresDate = null;
         }
 
         if (array_key_exists('is_in_billing_retry_period', $this->rawData)) {
             $this->isInBillingRetryPeriod = (int)$this->rawData['is_in_billing_retry_period'];
+        } else {
+            $this->isInBillingRetryPeriod = null;
         }
 
         return $this;
@@ -170,16 +173,19 @@ class RenewalInfo implements ArrayAccess
      */
     public function getStatus(): ?string
     {
-        if ($this->expirationIntent === null) {
-            return self::STATUS_ACTIVE;
+        if ($this->autoRenewStatus === false) {
+            return self::STATUS_EXPIRED;
         }
+
         if ($this->isInBillingRetryPeriod === self::RETRY_PERIOD_ACTIVE) {
             return self::STATUS_PENDING;
         }
-        if ($this->isInBillingRetryPeriod === self::RETRY_PERIOD_INACTIVE) {
+
+        if ($this->expirationIntent !== null) {
             return self::STATUS_EXPIRED;
         }
-        return null;
+
+        return self::STATUS_ACTIVE;
     }
 
     /**
@@ -195,33 +201,10 @@ class RenewalInfo implements ArrayAccess
      */
     public function isInGracePeriod(): bool
     {
-        return $this->isInBillingRetryPeriod === self::RETRY_PERIOD_ACTIVE
-            && $this->gracePeriodExpiresDate !== null
-            && $this->gracePeriodExpiresDate->getTimestamp() > time();
-    }
+        if ($this->isInBillingRetryPeriod !== self::RETRY_PERIOD_ACTIVE || $this->gracePeriodExpiresDate === null) {
+            return false;
+        }
 
-    #[ReturnTypeWillChange]
-    public function offsetSet($offset, $value): void
-    {
-        $this->rawData[$offset] = $value;
-        $this->parseData();
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetGet($offset): mixed
-    {
-        return $this->rawData[$offset] ?? null;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetUnset($offset): void
-    {
-        unset($this->rawData[$offset]);
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetExists($offset): bool
-    {
-        return isset($this->rawData[$offset]);
+        return $this->gracePeriodExpiresDate->getTimestamp() > time();
     }
 }
