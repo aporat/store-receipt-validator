@@ -79,7 +79,7 @@ final class Transaction extends AbstractTransaction
         $this->gracePeriodEndDate = isset($data['GracePeriodEndDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['GracePeriodEndDate'] / 1000)) : null;
         $this->freeTrialEndDate = isset($data['freeTrialEndDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['freeTrialEndDate'] / 1000)) : null;
     }
-    
+
     public function getPurchaseDate(): ?DateTimeImmutable
     {
         return $this->purchaseDate;
