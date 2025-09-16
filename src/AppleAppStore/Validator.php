@@ -175,7 +175,7 @@ class Validator extends AbstractValidator
             throw new ValidationException('Invalid response format from App Store Server API.');
         }
 
-        return new Response($decoded, $this->environment);
+        return new Response($decoded);
     }
 
     /**
@@ -218,7 +218,7 @@ class Validator extends AbstractValidator
     {
         $data = $this->makeRequest('POST', '/inApps/v1/notifications/test')->getRawData();
 
-        if (!is_array($data) || !isset($data['testNotificationToken'])) {
+        if (!isset($data['testNotificationToken'])) {
             throw new ValidationException('Missing testNotificationToken in response.');
         }
 

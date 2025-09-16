@@ -2,139 +2,153 @@
 
 namespace ReceiptValidator\AppleAppStore;
 
-use ArrayAccess;
 use ReceiptValidator\AbstractResponse;
 use ReceiptValidator\AppleAppStore\JWT\TokenGenerator;
 use ReceiptValidator\AppleAppStore\JWT\TokenVerifier;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
-use ReturnTypeWillChange;
 
 /**
- * Represents a decoded response from the App Store Server API.
- * @implements ArrayAccess<string, mixed>
+ * Encapsulates a decoded response from the App Store Server API.
+ *
+ * This immutable data object provides structured access to the transaction history
+ * and other metadata returned by Apple's API.
+ *
+ * @see https://developer.apple.com/documentation/appstoreserverapi/transactionhistoryresponse
  */
-class Response extends AbstractResponse implements ArrayAccess
+final class Response extends AbstractResponse
 {
-    /** @var array<string, mixed>|null Raw transaction data */
-    protected ?array $rawData;
+    /**
+     * A string that indicates the version of the response.
+     */
+    public readonly ?string $revision;
 
-    /** @var string|null The latest revision string */
-    protected ?string $revision = null;
+    /**
+     * The bundle identifier of the app.
+     */
+    public readonly ?string $bundleId;
 
-    /** @var string|null The bundle ID of the app */
-    protected ?string $bundleId = null;
+    /**
+     * The unique identifier of the app in the App Store.
+     */
+    public readonly ?int $appAppleId;
 
-    /** @var int|null The App Store app ID */
-    protected ?int $appAppleId = null;
+    /**
+     * A Boolean value that indicates whether the App Store has more transaction
+     * data to send.
+     */
+    public readonly bool $hasMore;
 
-    /** @var bool|null Indicates if more transactions are available */
-    protected ?bool $hasMore = null;
+    /**
+     * An array of signed JSON Web Signature (JWS) transactions.
+     *
+     * @var array<string>
+     */
+    public readonly array $signedTransactions;
 
-    /** @var array<string> Signed transactions (JWS strings) */
-    protected array $signedTransactions = [];
+    /**
+     * Constructs the Response object and initializes its state.
+     *
+     * The definitive environment is determined from the response payload, as it is the
+     * authoritative source, overriding any environment set during the request.
+     *
+     * @param array<string, mixed> $data The raw decoded JSON data from the API response.
+     * @throws ValidationException
+     */
+    public function __construct(array $data = [])
+    {
+        // For this response type, the 'environment' field in the payload is the source of truth.
+        $definitiveEnvironment = ($data['environment'] ?? 'Sandbox') === 'Production'
+            ? Environment::PRODUCTION
+            : Environment::SANDBOX;
 
-    /** @return string|null */
+        // Initialize readonly properties that belong to this class.
+        $this->revision = $data['revision'] ?? null;
+        $this->bundleId = $data['bundleId'] ?? null;
+        $this->appAppleId = $data['appAppleId'] ?? null;
+        $this->hasMore = $data['hasMore'] ?? false;
+        $this->signedTransactions = $data['signedTransactions'] ?? [];
+
+        // Call the parent constructor first with the definitive environment.
+        parent::__construct($data, $definitiveEnvironment);
+    }
+
+    /**
+     * Parses the signed transaction data from the raw response.
+     *
+     * This method is invoked once by the parent constructor.
+     */
+    protected function parse(): void
+    {
+        $this->parseSignedTransactions();
+    }
+
+    /**
+     * Decodes and verifies the JWS-signed transactions from the response payload.
+     */
+    private function parseSignedTransactions(): void
+    {
+        $verifier = new TokenVerifier();
+
+        foreach ($this->signedTransactions as $signedTransaction) {
+            $token = TokenGenerator::decodeToken($signedTransaction);
+
+            if ($verifier->verify($token)) {
+                $this->transactions[] = new Transaction($token->claims()->all());
+            }
+        }
+    }
+
+    /**
+     * Returns the revision string from the response body.
+     */
     public function getRevision(): ?string
     {
         return $this->revision;
     }
 
-    /** @return string|null */
+    /**
+     * Returns the bundle identifier of the application.
+     */
     public function getBundleId(): ?string
     {
         return $this->bundleId;
     }
 
-    /** @return int|null */
+    /**
+     * Returns the unique identifier for the application in the App Store.
+     */
     public function getAppAppleId(): ?int
     {
         return $this->appAppleId;
     }
 
-    /** @return bool|null */
-    public function hasMore(): ?bool
+    /**
+     * Returns true if more transaction data is available from the API.
+     */
+    public function hasMore(): bool
     {
         return $this->hasMore;
     }
 
-    /** @return array<string> */
+    /**
+     * Returns the raw array of JWS-formatted signed transaction strings.
+     *
+     * @return array<string>
+     */
     public function getSignedTransactions(): array
     {
         return $this->signedTransactions;
     }
 
     /**
+     * Returns the collection of parsed transaction objects.
+     *
      * @return array<Transaction>
      */
     public function getTransactions(): array
     {
         /** @var array<Transaction> */
         return parent::getTransactions();
-    }
-
-    /**
-     * @throws ValidationException
-     */
-    #[ReturnTypeWillChange]
-    public function offsetSet($offset, $value): void
-    {
-        $this->rawData[$offset] = $value;
-        $this->parse();
-    }
-
-    /**
-     * Parse transaction data.
-     *
-     * @return $this
-     * @throws ValidationException
-     */
-    public function parse(): self
-    {
-        if (!is_array($this->rawData)) {
-            throw new ValidationException('Response must be an array');
-        }
-
-        $data = $this->rawData;
-
-        $this->revision = $data['revision'] ?? null;
-        $this->bundleId = $data['bundleId'] ?? null;
-        $this->appAppleId = $data['appAppleId'] ?? null;
-
-        $this->environment = ($data['environment'] ?? null) === 'Production'
-            ? Environment::PRODUCTION
-            : Environment::SANDBOX;
-
-        $this->hasMore = $data['hasMore'] ?? null;
-        $this->signedTransactions = $data['signedTransactions'] ?? [];
-
-        foreach ($this->signedTransactions as $signedTransaction) {
-            $token = TokenGenerator::decodeToken($signedTransaction);
-
-            $verifier = new TokenVerifier();
-            if ($verifier->verify($token)) {
-                $this->transactions[] = new Transaction($token->claims()->all());
-            }
-        }
-
-        return $this;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetGet($offset): mixed
-    {
-        return $this->rawData[$offset] ?? null;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetUnset($offset): void
-    {
-        unset($this->rawData[$offset]);
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetExists($offset): bool
-    {
-        return isset($this->rawData[$offset]);
     }
 }

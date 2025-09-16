@@ -6,14 +6,26 @@ use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Response;
 use ReceiptValidator\Amazon\Transaction;
 use ReceiptValidator\Environment;
-use ReceiptValidator\Exceptions\ValidationException;
 
+/**
+ * @group      amazon
+ * @coversDefaultClass \ReceiptValidator\Amazon\Response
+ */
 class ResponseTest extends TestCase
 {
+    /**
+     * Verifies that the constructor correctly parses a valid data array and
+     * that all getters return the expected values.
+     *
+     * @covers ::__construct
+     * @covers ::parse
+     * @covers ::getRawData
+     * @covers ::getEnvironment
+     * @covers ::getTransactions
+     */
     public function testParsesValidResponse(): void
     {
         $receipt = [
-            'environment' => 'Production',
             'productId' => 'com.amazon.test',
             'receiptId' => 'txn_001',
             'purchaseDate' => 1609459200000,
@@ -22,31 +34,25 @@ class ResponseTest extends TestCase
 
         $response = new Response($receipt, Environment::PRODUCTION);
         $this->assertSame($receipt, $response->getRawData());
+        $this->assertSame(Environment::PRODUCTION, $response->getEnvironment());
 
         $purchases = $response->getTransactions();
         $this->assertCount(1, $purchases);
         $this->assertInstanceOf(Transaction::class, $purchases[0]);
     }
 
-    public function testThrowsExceptionOnNullData(): void
+    /**
+     * Verifies that creating a response with an empty data array is a valid
+     * state and does not throw an exception.
+     *
+     * @covers ::__construct
+     * @covers ::parse
+     */
+    public function testEmptyResponseIsValid(): void
     {
-        $this->expectException(ValidationException::class);
-        new Response(null, Environment::SANDBOX);
-    }
-
-    public function testSetAndGetEnvironment(): void
-    {
-        $receipt = [
-            'environment' => 'Production',
-            'productId' => 'com.amazon.test',
-            'receiptId' => 'txn_002',
-            'purchaseDate' => 1609459200000
-        ];
-
-        $response = new Response($receipt);
-        $this->assertSame(Environment::PRODUCTION, $response->getEnvironment());
-
-        $response->setEnvironment(Environment::SANDBOX);
-        $this->assertSame(Environment::SANDBOX, $response->getEnvironment());
+        // An empty array should create a valid, empty response object without throwing an exception.
+        $response = new Response([], Environment::SANDBOX);
+        $this->assertCount(0, $response->getTransactions());
+        $this->assertNull($response->getReceiptId());
     }
 }
