@@ -37,7 +37,9 @@ $bundleId = 'com.myapp';
 
 $receiptBase64Data = '...'; // your app receipt here
 
-// Will return null if no in-app purchases have been made
+// The App Store Server API validates individual purchases via a transaction ID.
+// This utility extracts the latest transaction ID from the app receipt to be used for validation.
+// It will return null if no in-app purchases have been made.
 $transactionId = ReceiptUtility::extractTransactionIdFromAppReceipt($receiptBase64Data);
 
 $validator = new AppleValidator(

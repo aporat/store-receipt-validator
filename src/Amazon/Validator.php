@@ -81,15 +81,12 @@ class Validator extends AbstractValidator
             $decodedBody = json_decode($body, true);
 
             if ($httpResponse->getStatusCode() !== 200) {
-                $errorCode = $httpResponse->getStatusCode();
-                $messages = APIError::messages();
-                $description = array_key_exists($errorCode, $messages)
-                    ? $messages[$errorCode]
-                    : ($decodedBody['message'] ?? 'Unexpected error occurred while validating the receipt.');
+                $httpStatusCode = $httpResponse->getStatusCode();
 
-                $fullMessage = "Amazon API error [{$errorCode}]: {$description}";
+                $description = $decodedBody['message'] ?? 'An unexpected error occurred.';
+                $fullMessage = "Amazon API error [{$httpStatusCode}]: {$description}";
 
-                throw new ValidationException($fullMessage, $errorCode);
+                throw new ValidationException($fullMessage, $httpStatusCode);
             }
 
             return new Response($decodedBody, $this->environment);

@@ -119,21 +119,22 @@ class Validator extends AbstractValidator
             throw new ValidationException('Unable to get response from iTunes server');
         }
 
-        $decodedBody = json_decode($httpResponse->getBody(), true);
-        $status = $decodedBody['status'] ?? APIError::VALID;
+        $decodedBody = json_decode((string) $httpResponse->getBody(), true) ?? [];
+        $status = $decodedBody['status'] ?? APIError::VALID->value;
 
         if (
             $this->environment === Environment::PRODUCTION &&
-            $status === APIError::SANDBOX_RECEIPT_ON_PRODUCTION
+            $status === APIError::SANDBOX_RECEIPT_ON_PRODUCTION->value
         ) {
             return $this->makeRequest(Environment::SANDBOX);
         }
 
-        if ($status !== APIError::VALID && $status !== APIError::SUBSCRIPTION_EXPIRED) {
-            $messages = APIError::messages();
-            $description = $messages[$status] ?? 'Unknown error';
+        if ($status !== APIError::VALID->value && $status !== APIError::SUBSCRIPTION_EXPIRED->value) {
+            // FIX: Use the modern APIError enum for cleaner error handling
+            $errorCase = APIError::tryFrom((int)$status);
+            $description = $errorCase ? $errorCase->message() : 'An unknown error occurred.';
             $fullMessage = "iTunes API error [{$status}]: {$description}";
-            throw new ValidationException($fullMessage, $status);
+            throw new ValidationException($fullMessage, (int)$status);
         }
 
         return new Response($decodedBody, $this->environment);
@@ -147,8 +148,12 @@ class Validator extends AbstractValidator
      */
     protected function prepareRequestData(): string
     {
+        if (empty($this->receiptData)) {
+            throw new ValidationException('Receipt data must be set before validation.');
+        }
+
         $request = [
-            'receipt-data' => $this->getReceiptData()
+            'receipt-data' => $this->receiptData
         ];
 
         if ($this->sharedSecret !== null) {

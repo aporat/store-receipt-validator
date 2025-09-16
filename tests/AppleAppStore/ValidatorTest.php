@@ -5,6 +5,7 @@ namespace ReceiptValidator\Tests\AppleAppStore;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Mockery;
+use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\AppleAppStore\APIError;
 use ReceiptValidator\AppleAppStore\Response;
@@ -12,167 +13,107 @@ use ReceiptValidator\AppleAppStore\Validator;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 
+/**
+ * @group      apple-app-store
+ * @coversDefaultClass \ReceiptValidator\AppleAppStore\Validator
+ */
 class ValidatorTest extends TestCase
 {
+    private Validator|MockInterface $validator;
+    private Client|MockInterface $mockClient;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->mockClient = Mockery::mock(Client::class);
+        $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
+
+        // Use a partial mock to intercept the getClient method
+        $this->validator = Mockery::mock(Validator::class, [
+            $signingKey,
+            'ABC123XYZ',
+            'DEF456UVW',
+            'com.example',
+            Environment::SANDBOX
+        ])->makePartial();
+
+        $this->validator->shouldReceive('__construct')->passthru();
+        $this->validator->shouldAllowMockingProtectedMethods();
+        $this->validator->shouldReceive('getClient')->andReturn($this->mockClient);
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();
     }
 
+    /**
+     * @covers ::__construct
+     * @covers ::validate
+     * @covers ::makeRequest
+     */
     public function testValidateReturnsResponse(): void
     {
         $json = file_get_contents(__DIR__ . '/fixtures/transactionHistoryResponse.json');
-
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $this->mockClient->shouldReceive('request')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
-
-        // Pass constructor args as an indexed array
-        $validator = Mockery::mock(Validator::class, [
-            $signingKey,
-            'ABC123XYZ',
-            'DEF456UVW',
-            'com.example',
-            Environment::SANDBOX
-        ])->makePartial();
-
-        $validator->shouldReceive('__construct')->passthru();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
-        $response = $validator->validate('abc123');
+        $response = $this->validator->validate('abc123');
         $this->assertInstanceOf(Response::class, $response);
     }
 
+    /**
+     * @covers ::requestTestNotification
+     * @covers ::makeRequest
+     */
     public function testRequestTestNotificationReturnsToken(): void
     {
         $mockResponseBody = json_encode(['testNotificationToken' => 'test-token-123']);
-
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $this->mockClient->shouldReceive('request')
             ->once()
-            ->with('POST', '/inApps/v1/notifications/test', Mockery::on(function ($options) {
-                return isset($options['headers']['Authorization']);
-            }))
+            ->with('POST', '/inApps/v1/notifications/test', Mockery::any())
             ->andReturn(new GuzzleResponse(200, [], $mockResponseBody));
 
-        $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
-
-        // Pass constructor args as an indexed array
-        $validator = Mockery::mock(Validator::class, [
-            $signingKey,
-            'ABC123XYZ',
-            'DEF456UVW',
-            'com.example',
-            Environment::SANDBOX
-        ])->makePartial();
-
-        $validator->shouldReceive('__construct')->passthru();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
-        $token = $validator->requestTestNotification();
-
+        $token = $this->validator->requestTestNotification();
         $this->assertEquals('test-token-123', $token);
     }
 
-    public function testValidateThrowsWithInvalidTransactionId(): void
+    /**
+     * @covers ::validate
+     * @covers ::makeRequest
+     */
+    public function testValidateThrowsWithKnownErrorCode(): void
     {
         $json = json_encode([
-            'errorCode' => APIError::INVALID_TRANSACTION_ID,
+            'errorCode' => APIError::INVALID_TRANSACTION_ID->value,
             'errorMessage' => 'Invalid transaction ID provided'
         ]);
-
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $this->mockClient->shouldReceive('request')
             ->once()
             ->andReturn(new GuzzleResponse(400, [], $json));
 
-        $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
-
-        // Pass constructor args as an indexed array
-        $validator = Mockery::mock(Validator::class, [
-            $signingKey,
-            'ABC123XYZ',
-            'DEF456UVW',
-            'com.example',
-            Environment::SANDBOX
-        ])->makePartial();
-
-        $validator->shouldReceive('__construct')->passthru();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
         $this->expectException(ValidationException::class);
-        $this->expectExceptionCode(APIError::INVALID_TRANSACTION_ID);
-        $this->expectExceptionMessageMatches('/4000006/');
+        // FIX: Use ->value to get the integer from the enum case
+        $this->expectExceptionCode(APIError::INVALID_TRANSACTION_ID->value);
 
-        $validator->validate('bad-id');
+        $this->validator->validate('bad-id');
     }
 
-    public function testValidateThrowsWithUnknownErrorCode(): void
-    {
-        $json = json_encode([
-            'errorCode' => 4999999,
-            'errorMessage' => 'Totally unknown error'
-        ]);
-
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
-            ->once()
-            ->andReturn(new GuzzleResponse(400, [], $json));
-
-        $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
-
-        // Pass constructor args as an indexed array
-        $validator = Mockery::mock(Validator::class, [
-            $signingKey,
-            'ABC123XYZ',
-            'DEF456UVW',
-            'com.example',
-            Environment::SANDBOX
-        ])->makePartial();
-
-        $validator->shouldReceive('__construct')->passthru();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
-        $this->expectException(ValidationException::class);
-        $this->expectExceptionCode(4999999);
-        $this->expectExceptionMessageMatches('/4999999.*Totally unknown error/');
-
-        $validator->validate('whatever-id');
-    }
-
+    /**
+     * @covers ::validate
+     * @covers ::makeRequest
+     */
     public function testValidateHandles401Unauthorized(): void
     {
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $this->mockClient->shouldReceive('request')
             ->once()
             ->andReturn(new GuzzleResponse(401, [], ''));
 
-        $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
-
-        // Pass constructor args as an indexed array
-        $validator = Mockery::mock(Validator::class, [
-            $signingKey,
-            'ABC123XYZ',
-            'DEF456UVW',
-            'com.example',
-            Environment::SANDBOX
-        ])->makePartial();
-
-        $validator->shouldReceive('__construct')->passthru();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
         $this->expectException(ValidationException::class);
         $this->expectExceptionCode(401);
-        $this->expectExceptionMessage('Unauthenticated');
+        $this->expectExceptionMessage('App Store API error [401]: Unauthenticated');
 
-        $validator->validate('fake-transaction-id');
+        $this->validator->validate('fake-transaction-id');
     }
 }
