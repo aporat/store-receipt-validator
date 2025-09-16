@@ -62,6 +62,8 @@ final class Response extends AbstractResponse
             ? Environment::PRODUCTION
             : Environment::SANDBOX;
 
+        parent::__construct($data, $definitiveEnvironment);
+
         // Initialize readonly properties that belong to this class.
         $this->revision = $data['revision'] ?? null;
         $this->bundleId = $data['bundleId'] ?? null;
@@ -69,17 +71,6 @@ final class Response extends AbstractResponse
         $this->hasMore = $data['hasMore'] ?? false;
         $this->signedTransactions = $data['signedTransactions'] ?? [];
 
-        // Call the parent constructor first with the definitive environment.
-        parent::__construct($data, $definitiveEnvironment);
-    }
-
-    /**
-     * Parses the signed transaction data from the raw response.
-     *
-     * This method is invoked once by the parent constructor.
-     */
-    protected function parse(): void
-    {
         $this->parseSignedTransactions();
     }
 

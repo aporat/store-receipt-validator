@@ -2,7 +2,7 @@
 
 namespace ReceiptValidator\Amazon;
 
-use DateTimeImmutable;
+use Carbon\Carbon;
 use ReceiptValidator\AbstractResponse;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
@@ -40,12 +40,12 @@ final class Response extends AbstractResponse
     /**
      * The date the purchase was initiated.
      */
-    public readonly ?DateTimeImmutable $purchaseDate;
+    public readonly ?Carbon $purchaseDate;
 
     /**
      * The date the subscription or entitlement was cancelled.
      */
-    public readonly ?DateTimeImmutable $cancelDate;
+    public readonly ?Carbon $cancellationDate;
 
     /**
      * A flag indicating if the purchase is a test transaction.
@@ -61,30 +61,32 @@ final class Response extends AbstractResponse
      */
     public function __construct(array $data = [], Environment $environment = Environment::PRODUCTION)
     {
+        parent::__construct($data, $environment);
+
         $this->receiptId = $data['receiptId'] ?? null;
         $this->productId = $data['productId'] ?? null;
         $this->userId = $data['userId'] ?? null;
         $this->productType = $data['productType'] ?? null;
         $this->testTransaction = $data['testTransaction'] ?? false;
-        $this->purchaseDate = isset($data['purchaseDate']) ? (new DateTimeImmutable())->setTimestamp((int)($data['purchaseDate'] / 1000)) : null;
-        $this->cancelDate = isset($data['cancelDate']) ? (new DateTimeImmutable())->setTimestamp((int)($data['cancelDate'] / 1000)) : null;
 
-        parent::__construct($data, $environment);
-    }
+        if (!empty($data['purchaseDate'])) {
+            $this->purchaseDate = Carbon::createFromTimestampMs($data['purchaseDate']);
+        } else {
+            $this->purchaseDate = null;
+        }
 
-    /**
-     * Parses the raw response data to create a transaction.
-     */
-    protected function parse(): void
-    {
+        if (!empty($data['cancelDate'])) {
+            $this->cancellationDate = Carbon::createFromTimestampMs($data['cancelDate']);
+        } else {
+            $this->cancellationDate = null;
+        }
+
         // For Amazon, the response itself represents a single transaction.
         // We only create it if the response data is not empty.
         if (!empty($this->rawData)) {
             $this->transactions = [new Transaction($this->rawData)];
         }
     }
-
-    // --- All existing public methods are preserved ---
 
     /**
      * @return array<Transaction>
@@ -94,8 +96,6 @@ final class Response extends AbstractResponse
         /** @var array<Transaction> */
         return parent::getTransactions();
     }
-
-    // --- New getter methods for convenience ---
 
     public function getReceiptId(): ?string
     {
@@ -117,14 +117,14 @@ final class Response extends AbstractResponse
         return $this->productType;
     }
 
-    public function getPurchaseDate(): ?DateTimeImmutable
+    public function getPurchaseDate(): ?Carbon
     {
         return $this->purchaseDate;
     }
 
-    public function getCancelDate(): ?DateTimeImmutable
+    public function getCancellationDate(): ?Carbon
     {
-        return $this->cancelDate;
+        return $this->cancellationDate;
     }
 
     public function isTestTransaction(): bool

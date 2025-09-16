@@ -59,7 +59,7 @@ class ResponseTest extends TestCase
 
         $expectedPurchaseDate = (new DateTimeImmutable())->setTimestamp(1609459200);
         $this->assertEquals($expectedPurchaseDate, $response->getPurchaseDate());
-        $this->assertNull($response->getCancelDate());
+        $this->assertNull($response->getCancellationDate());
     }
 
     public function testParsesResponseWithCancelDate(): void
@@ -83,7 +83,7 @@ class ResponseTest extends TestCase
         $expectedCancelDate = (new DateTimeImmutable())->setTimestamp(1612137600);
 
         $this->assertEquals($expectedPurchaseDate, $response->getPurchaseDate());
-        $this->assertEquals($expectedCancelDate, $response->getCancelDate());
+        $this->assertEquals($expectedCancelDate, $response->getCancellationDate());
     }
 
     /**
@@ -102,7 +102,7 @@ class ResponseTest extends TestCase
         $this->assertNull($response->getUserId());
         $this->assertNull($response->getProductType());
         $this->assertNull($response->getPurchaseDate());
-        $this->assertNull($response->getCancelDate());
+        $this->assertNull($response->getCancellationDate());
         $this->assertFalse($response->isTestTransaction());
     }
 }

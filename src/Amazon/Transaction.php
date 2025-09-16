@@ -72,33 +72,32 @@ final class Transaction extends AbstractTransaction
         $this->term = $data['term'] ?? null;
         $this->termSku = $data['termSku'] ?? null;
 
-        // Parse millisecond timestamps into immutable DateTime objects.
         if (!empty($data['purchaseDate'])) {
-            $this->purchaseDate = Carbon::createFromTimestampUTC((int)($data['purchaseDate'] / 1000));
+            $this->purchaseDate = Carbon::createFromTimestampMs($data['purchaseDate']);
         } else {
             $this->purchaseDate = null;
         }
 
         if (!empty($data['cancelDate'])) {
-            $this->cancellationDate = Carbon::createFromTimestampUTC((int)($data['cancelDate'] / 1000));
+            $this->cancellationDate = Carbon::createFromTimestampMs($data['cancelDate']);
         } else {
             $this->cancellationDate = null;
         }
 
         if (!empty($data['renewalDate'])) {
-            $this->renewalDate = Carbon::createFromTimestampUTC((int)($data['renewalDate'] / 1000));
+            $this->renewalDate = Carbon::createFromTimestampMs($data['renewalDate']);
         } else {
             $this->renewalDate = null;
         }
 
         if (!empty($data['GracePeriodEndDate'])) {
-            $this->gracePeriodEndDate = Carbon::createFromTimestampUTC((int)($data['GracePeriodEndDate'] / 1000));
+            $this->gracePeriodEndDate = Carbon::createFromTimestampMs($data['GracePeriodEndDate']);
         } else {
             $this->gracePeriodEndDate = null;
         }
 
         if (!empty($data['freeTrialEndDate'])) {
-            $this->freeTrialEndDate = Carbon::createFromTimestampUTC((int)($data['freeTrialEndDate'] / 1000));
+            $this->freeTrialEndDate = Carbon::createFromTimestampMs($data['freeTrialEndDate']);
         } else {
             $this->freeTrialEndDate = null;
         }

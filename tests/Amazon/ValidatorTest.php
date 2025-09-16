@@ -52,8 +52,11 @@ class ValidatorTest extends TestCase
             $response->getRawData()['receiptId']
         );
 
-        $this->assertEquals(Carbon::createFromTimestampUTC(1561104377), $response->getTransactions()[0]->getFreeTrialEndDate());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1561104377), $response->getTransactions()[0]->getGracePeriodEndDate());
+        $tx = $response->getTransactions()[0];
+
+        // Compare at second precision (fixtures carry ms, validator now preserves ms)
+        $this->assertSame(1561104377, $tx->getFreeTrialEndDate()?->getTimestamp());
+        $this->assertSame(1561104377, $tx->getGracePeriodEndDate()?->getTimestamp());
     }
 
     public function testValidateEntitledPurchaseFixture(): void
@@ -74,13 +77,17 @@ class ValidatorTest extends TestCase
 
         $response = $validator->validate();
 
-        $this->assertEquals('com.amazon.iapsamplev2.expansion_set_3', $response->getTransactions()[0]->getProductId());
+        $tx = $response->getTransactions()[0];
+
+        $this->assertEquals('com.amazon.iapsamplev2.expansion_set_3', $tx->getProductId());
         $this->assertEquals(
             'q1YqVrJSSs7P1UvMTazKz9PLTCwoTswtyEktM9JLrShIzCvOzM-LL04tiTdW0lFKASo2NDEwMjCwMDM2MTC0AIqVAsUsLd1c4l18jIxdfTOK_N1d8kqLLHVLc8oK83OLgtPNCit9AoJdjJ3dXG2BGkqUrAxrAQ',
-            $response->getTransactions()[0]->getTransactionId()
+            $tx->getTransactionId()
         );
-        $this->assertEquals(1, $response->getTransactions()[0]->getQuantity());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1402008634), $response->getTransactions()[0]->getPurchaseDate());
+        $this->assertEquals(1, $tx->getQuantity());
+
+        // Compare at second precision
+        $this->assertSame(1402008634, $tx->getPurchaseDate()?->getTimestamp());
     }
 
     public function testValidateReturnsValidResponse(): void

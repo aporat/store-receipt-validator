@@ -62,34 +62,53 @@ class Validator extends AbstractValidator
      */
     protected function makeRequest(): Response
     {
+        if ($this->developerSecret === null || $this->developerSecret === '') {
+            throw new ValidationException('Missing Amazon developer secret');
+        }
+        if ($this->userId === null || $this->userId === '') {
+            throw new ValidationException('Missing Amazon userId');
+        }
+        if ($this->receiptId === null || $this->receiptId === '') {
+            throw new ValidationException('Missing Amazon receiptId');
+        }
+
         $endpoint = $this->environment === Environment::PRODUCTION
             ? self::ENDPOINT_PRODUCTION
             : self::ENDPOINT_SANDBOX;
 
+        // URL-encode path segments to be safe with special characters
+        $path = sprintf(
+            '/version/1.0/verifyReceiptId/developer/%s/user/%s/receiptId/%s',
+            rawurlencode($this->developerSecret),
+            rawurlencode($this->userId),
+            rawurlencode($this->receiptId)
+        );
+
         try {
-            $httpResponse = $this->getClient($endpoint)->request(
-                'GET',
-                sprintf(
-                    '/version/1.0/verifyReceiptId/developer/%s/user/%s/receiptId/%s',
-                    $this->developerSecret,
-                    $this->userId,
-                    $this->receiptId
-                )
-            );
+            $httpResponse = $this->getClient($endpoint)->request('GET', $path);
 
-            $body = (string)$httpResponse->getBody();
-            $decodedBody = json_decode($body, true);
+            $status = $httpResponse->getStatusCode();
+            $raw    = (string) $httpResponse->getBody();
 
-            if ($httpResponse->getStatusCode() !== 200) {
-                $httpStatusCode = $httpResponse->getStatusCode();
+            $decoded = json_decode($raw, true);
 
-                $description = $decodedBody['message'] ?? 'An unexpected error occurred.';
-                $fullMessage = "Amazon API error [{$httpStatusCode}]: {$description}";
-
-                throw new ValidationException($fullMessage, $httpStatusCode);
+            // Non-JSON or empty body is an error either way
+            if (!is_array($decoded)) {
+                $jsonErr = function_exists('json_last_error_msg') ? json_last_error_msg() : 'Unknown JSON error';
+                throw new ValidationException("Amazon API returned invalid JSON: {$jsonErr}", $status);
             }
 
-            return new Response($decodedBody, $this->environment);
+            if ($status !== 200) {
+                // Amazon usually returns a string "message" like "InvalidDeveloperSecret"
+                $machine = (string) ($decoded['message'] ?? '');
+                $case    = APIError::tryFrom($machine);
+
+                // Prefer typed enum message when we recognize it; otherwise fall back to raw text
+                $human = $case?->message() ?? ($machine !== '' ? $machine : 'An unexpected error occurred.');
+                throw new ValidationException("Amazon API error [{$status}]: {$human}", $status);
+            }
+
+            return new Response($decoded, $this->environment);
         } catch (GuzzleException $e) {
             throw new ValidationException('Amazon validation request failed', 0, $e);
         }

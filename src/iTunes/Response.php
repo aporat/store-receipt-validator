@@ -75,6 +75,8 @@ final class Response extends AbstractResponse
      */
     public function __construct(array $data = [], Environment $environment = Environment::PRODUCTION)
     {
+        parent::__construct($data, $environment);
+
         // Initialize all readonly properties from the data array.
         $this->isRetryable = $data['is-retryable'] ?? false;
         $this->latestReceipt = $data['latest_receipt'] ?? null;
@@ -89,14 +91,6 @@ final class Response extends AbstractResponse
         $this->latestReceiptInfo = isset($data['latest_receipt_info']) ? array_map(fn($d) => new Transaction($d), $data['latest_receipt_info']) : [];
         $this->pendingRenewalInfo = isset($data['pending_renewal_info']) ? array_map(fn($d) => new RenewalInfo($d), $data['pending_renewal_info']) : [];
 
-        parent::__construct($data, $environment);
-    }
-
-    /**
-     * Parses the transaction data from the raw response.
-     */
-    protected function parse(): void
-    {
         $receipt = $this->rawData['receipt'] ?? [];
 
         if (isset($receipt['in_app'])) {
@@ -109,8 +103,6 @@ final class Response extends AbstractResponse
             $this->transactions[] = new Transaction($receipt);
         }
     }
-
-    // --- All existing public methods are preserved for backward compatibility ---
 
     public function isRetryable(): bool
     {

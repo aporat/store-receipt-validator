@@ -16,7 +16,7 @@ use ReceiptValidator\Exceptions\ValidationException;
 use Throwable;
 
 /**
- * App Store Server API Validator
+ * App Store Server API Validator.
  */
 class Validator extends AbstractValidator
 {
@@ -38,7 +38,7 @@ class Validator extends AbstractValidator
     protected ?string $transactionId = null;
 
     /**
-     * App Store Connect's private key.
+     * App Store Connect's private key (PEM or raw .p8 contents).
      *
      * @var string
      */
@@ -68,11 +68,11 @@ class Validator extends AbstractValidator
     /**
      * Validator constructor.
      *
-     * @param string $signingKey
-     * @param string $keyId
-     * @param string $issuerId
-     * @param string $bundleId
-     * @param Environment $environment
+     * @param string $signingKey The contents of your .p8 key
+     * @param string $keyId      The Key ID from App Store Connect
+     * @param string $issuerId   Your Issuer ID
+     * @param string $bundleId   Your app's bundle identifier
+     * @param Environment $environment Target environment (defaults to PRODUCTION)
      */
     public function __construct(
         string $signingKey,
@@ -147,6 +147,7 @@ class Validator extends AbstractValidator
             $httpResponse = $this->getClient($endpoint)->request($method, $uri, [
                 'headers' => [
                     'Authorization' => "Bearer {$token->toString()}",
+                    'Accept'        => 'application/json',
                 ],
                 'query' => $queryParams,
             ]);
@@ -154,24 +155,31 @@ class Validator extends AbstractValidator
             throw new ValidationException('Unable to connect to App Store Server API - ' . $e->getMessage(), 0, $e);
         }
 
-        $body = (string)$httpResponse->getBody();
-        $decoded = json_decode($body, true);
+        $statusCode = $httpResponse->getStatusCode();
+        $body       = (string) $httpResponse->getBody();
 
-        if ($httpResponse->getStatusCode() !== 200) {
-            $errorMessage = match ($httpResponse->getStatusCode()) {
+        // Parse JSON (if any)
+        $decoded = json_decode($body, true);
+        $isJson  = is_array($decoded);
+
+        if ($statusCode !== 200) {
+            // Friendly defaults for common auth/not-found responses
+            $errorMessage = match ($statusCode) {
                 401 => 'Unauthenticated',
                 404 => 'Not Found',
-                default => $decoded['errorMessage'] ?? ($body ?: 'Unexpected error'),
+                default => ($isJson ? ($decoded['errorMessage'] ?? null) : null) ?? ($body !== '' ? $body : 'Unexpected error'),
             };
 
-            $errorCode = isset($decoded['errorCode']) ? (int)$decoded['errorCode'] : $httpResponse->getStatusCode();
+            // Prefer Apple's machine errorCode when present; otherwise use HTTP status
+            $errorCode = $isJson && isset($decoded['errorCode'])
+                ? (int) $decoded['errorCode']
+                : $statusCode;
 
             $fullMessage = "App Store API error [{$errorCode}]: {$errorMessage}";
-
             throw new ValidationException($fullMessage, $errorCode);
         }
 
-        if (!is_array($decoded)) {
+        if (!$isJson) {
             throw new ValidationException('Invalid response format from App Store Server API.');
         }
 

@@ -170,4 +170,31 @@ class ValidatorTest extends TestCase
 
         $validator->validate();
     }
+
+    public function testRetryOnProductionErrorFromSandbox(): void
+    {
+        $mockClient = Mockery::mock(Client::class);
+
+        // First call (sandbox) replies with 21008 (production receipt sent to sandbox)
+        $mockClient->shouldReceive('request')
+            ->once()
+            ->andReturn(new GuzzleResponse(200, [], json_encode(['status' => 21008])));
+
+        // Second call (production) succeeds
+        $mockClient->shouldReceive('request')
+            ->once()
+            ->andReturn(new GuzzleResponse(200, [], json_encode([
+                'status' => 0,
+                'receipt' => ['app_item_id' => 123, 'in_app' => []],
+            ])));
+
+        $validator = Mockery::mock(Validator::class, ['secret', Environment::SANDBOX])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
+        $validator->setReceiptData('xyz');
+
+        $response = $validator->validate();
+        $this->assertIsArray($response->getRawData());
+    }
 }

@@ -44,19 +44,7 @@ abstract class AbstractResponse
     {
         $this->rawData = $data;
         $this->environment = $environment;
-
-        $this->parse();
     }
-
-    /**
-     * Parses the raw response data into structured objects.
-     *
-     * This method is responsible for interpreting the `$rawData` and populating
-     * the `$transactions` array. It is invoked once during construction.
-     *
-     * @throws ValidationException On failure to parse or interpret critical data.
-     */
-    abstract protected function parse(): void;
 
     /**
      * Returns the parsed transaction objects.

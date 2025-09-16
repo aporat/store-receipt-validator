@@ -42,7 +42,8 @@
         "mockery/mockery": "^1.6",
         "phpstan/phpstan": "^1.11 || ^2.0",
         "phpunit/phpunit": "^12.0",
-        "squizlabs/php_codesniffer": "^3.6"
+        "squizlabs/php_codesniffer": "^3.10",
+        "phpstan/phpstan-phpunit": "^1.4"
     },
     "config": {
         "sort-packages": true
@@ -64,11 +65,10 @@
         "test": "phpunit",
         "test-ci": "phpunit --coverage-text --coverage-clover coverage.xml --log-junit junit.xml",
         "check": "phpcs",
+        "format": "phpcbf",
         "analyze": "phpstan analyse src --level=8 --memory-limit=-1"
     },
     "suggest": {
         "codecov/codecov-php": "Helps send coverage reports to codecov.io"
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    }
 }

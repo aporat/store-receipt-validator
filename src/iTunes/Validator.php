@@ -89,7 +89,7 @@ class Validator extends AbstractValidator
     }
 
     /**
-     * Perform the HTTP request and handle retry logic if needed.
+     * Perform the HTTP request and handle cross-environment retry logic if needed.
      *
      * @param Environment|null $environment
      * @return Response
@@ -109,7 +109,13 @@ class Validator extends AbstractValidator
             $httpResponse = $this->getClient($endpoint)->request(
                 'POST',
                 '/verifyReceipt',
-                [RequestOptions::BODY => $this->prepareRequestData()]
+                [
+                    RequestOptions::BODY => $this->prepareRequestData(),
+                    RequestOptions::HEADERS => [
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json',
+                    ],
+                ]
             );
         } catch (GuzzleException $e) {
             throw new ValidationException('Unable to connect to iTunes server - ' . $e->getMessage(), 0, $e);
@@ -119,9 +125,24 @@ class Validator extends AbstractValidator
             throw new ValidationException('Unable to get response from iTunes server');
         }
 
-        $decodedBody = json_decode((string) $httpResponse->getBody(), true) ?? [];
+        $raw = (string) $httpResponse->getBody();
+        $decodedBody = json_decode($raw, true);
+        if (!is_array($decodedBody)) {
+            $jsonErr = function_exists('json_last_error_msg') ? json_last_error_msg() : 'Unknown JSON error';
+            throw new ValidationException('iTunes server returned invalid JSON: ' . $jsonErr);
+        }
+
         $status = $decodedBody['status'] ?? APIError::VALID->value;
 
+        // Production receipt accidentally sent to sandbox → retry on production (21008)
+        if (
+            $this->environment === Environment::SANDBOX &&
+            $status === APIError::PRODUCTION_RECEIPT_ON_SANDBOX->value
+        ) {
+            return $this->makeRequest(Environment::PRODUCTION);
+        }
+
+        // Sandbox receipt accidentally sent to production → retry on sandbox (21007)
         if (
             $this->environment === Environment::PRODUCTION &&
             $status === APIError::SANDBOX_RECEIPT_ON_PRODUCTION->value
@@ -129,19 +150,19 @@ class Validator extends AbstractValidator
             return $this->makeRequest(Environment::SANDBOX);
         }
 
+        // Non-success statuses (other than expired subscription, which is considered a valid outcome)
         if ($status !== APIError::VALID->value && $status !== APIError::SUBSCRIPTION_EXPIRED->value) {
-            // FIX: Use the modern APIError enum for cleaner error handling
-            $errorCase = APIError::tryFrom((int)$status);
+            $errorCase = APIError::tryFrom((int) $status);
             $description = $errorCase ? $errorCase->message() : 'An unknown error occurred.';
             $fullMessage = "iTunes API error [{$status}]: {$description}";
-            throw new ValidationException($fullMessage, (int)$status);
+            throw new ValidationException($fullMessage, (int) $status);
         }
 
         return new Response($decodedBody, $this->environment);
     }
 
     /**
-     * Prepare request data (json).
+     * Prepare request data (JSON).
      *
      * @return string
      * @throws ValidationException
@@ -153,7 +174,7 @@ class Validator extends AbstractValidator
         }
 
         $request = [
-            'receipt-data' => $this->receiptData
+            'receipt-data' => $this->receiptData,
         ];
 
         if ($this->sharedSecret !== null) {
@@ -161,7 +182,6 @@ class Validator extends AbstractValidator
         }
 
         $data = json_encode($request);
-
         if ($data === false) {
             throw new ValidationException('Unable to encode data to iTunes server');
         }
@@ -180,14 +200,15 @@ class Validator extends AbstractValidator
     }
 
     /**
-     * Set receipt data, either in base64 or in JSON.
+     * Set receipt data, either in base64 or as raw JSON (auto-encoded).
      *
      * @param string $receiptData
      * @return $this
      */
     public function setReceiptData(string $receiptData = ''): self
     {
-        if (str_contains($receiptData, '{')) {
+        $trimmed = ltrim($receiptData);
+        if ($trimmed !== '' && $trimmed[0] === '{') {
             $this->receiptData = base64_encode($receiptData);
         } else {
             $this->receiptData = $receiptData;
