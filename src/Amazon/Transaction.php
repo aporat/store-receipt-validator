@@ -2,113 +2,105 @@
 
 namespace ReceiptValidator\Amazon;
 
-use ArrayAccess;
-use Carbon\Carbon;
+use DateTimeImmutable;
 use ReceiptValidator\AbstractTransaction;
-use ReceiptValidator\Exceptions\ValidationException;
-use ReturnTypeWillChange;
 
 /**
- * Represents a transaction in Amazon receipt validation.
- * @implements ArrayAccess<string, mixed>
+ * Encapsulates a single transaction from an Amazon receipt.
+ *
+ * This immutable data object provides structured access to the properties of a
+ * single purchase, parsed from the Amazon RVS response.
  */
-class Transaction extends AbstractTransaction implements ArrayAccess
+final class Transaction extends AbstractTransaction
 {
-    /** @var Carbon Purchase date. */
-    protected Carbon $purchaseDate;
-
-    /** @var Carbon|null Cancellation date. */
-    protected ?Carbon $cancellationDate = null;
-
-    /** @var Carbon|null Renewal date. */
-    protected ?Carbon $renewalDate = null;
-
-    /** @var Carbon|null Grace period end date. */
-    protected ?Carbon $gracePeriodEndDate = null;
-
-    /** @var Carbon|null Free trial end date. */
-    protected ?Carbon $freeTrialEndDate = null;
-
-    /** @var bool|null Auto-renewing status. */
-    protected ?bool $autoRenewing = null;
-
-    /** @var string|null Subscription term duration. */
-    protected ?string $term = null;
-
-    /** @var string|null Subscription term SKU. */
-    protected ?string $termSku = null;
+    /**
+     * The date the purchase was initiated.
+     */
+    public readonly ?DateTimeImmutable $purchaseDate;
 
     /**
-     * Parses raw transaction data.
-     *
-     * @return $this
-     * @throws ValidationException
+     * The date the subscription or entitlement was cancelled.
      */
-    public function parse(): self
+    public readonly ?DateTimeImmutable $cancellationDate;
+
+    /**
+     * The date a subscription is scheduled to renew.
+     */
+    public readonly ?DateTimeImmutable $renewalDate;
+
+    /**
+     * The end date of a grace period for a subscription.
+     */
+    public readonly ?DateTimeImmutable $gracePeriodEndDate;
+
+    /**
+     * The end date of a free trial period.
+     */
+    public readonly ?DateTimeImmutable $freeTrialEndDate;
+
+    /**
+     * The auto-renewal status of a subscription.
+     */
+    public readonly ?bool $autoRenewing;
+
+    /**
+     * The duration of the subscription term.
+     */
+    public readonly ?string $term;
+
+    /**
+     * The SKU for the subscription term.
+     */
+    public readonly ?string $termSku;
+
+    /**
+     * Constructs the Transaction object and initializes its state.
+     *
+     * @param array<string, mixed> $data The raw data for a single transaction.
+     */
+    public function __construct(array $data = [])
     {
-        if (!is_array($this->rawData)) {
-            throw new ValidationException('Response must be an array');
-        }
+        parent::__construct($data);
 
-        $data = $this->rawData;
+        // Initialize parent's readonly properties by mapping Amazon-specific fields.
+        $this->quantity = (int) ($data['quantity'] ?? 1);
+        $this->productId = $data['productId'] ?? null;
+        $this->transactionId = $data['receiptId'] ?? null;
 
-        $this->setQuantity((int)($data['quantity'] ?? 0));
-        $this->setTransactionId($data['receiptId'] ?? '');
-        $this->setProductId($data['productId'] ?? '');
-
-        if (!empty($data['purchaseDate'])) {
-            $this->purchaseDate = Carbon::createFromTimestampUTC((int)($data['purchaseDate'] / 1000));
-        }
-
-        if (!empty($data['cancelDate'])) {
-            $this->cancellationDate = Carbon::createFromTimestampUTC((int)($data['cancelDate'] / 1000));
-        }
-
-        if (!empty($data['renewalDate'])) {
-            $this->renewalDate = Carbon::createFromTimestampUTC((int)($data['renewalDate'] / 1000));
-        }
-
-        if (!empty($data['GracePeriodEndDate'])) {
-            $this->gracePeriodEndDate = Carbon::createFromTimestampUTC((int)($data['GracePeriodEndDate'] / 1000));
-        }
-
-        if (!empty($data['freeTrialEndDate'])) {
-            $this->freeTrialEndDate = Carbon::createFromTimestampUTC((int)($data['freeTrialEndDate'] / 1000));
-        }
-
-        $this->autoRenewing = isset($data['AutoRenewing']) ? (bool)$data['AutoRenewing'] : null;
+        // Initialize properties specific to this transaction type.
+        $this->autoRenewing = isset($data['AutoRenewing']) ? (bool) $data['AutoRenewing'] : null;
         $this->term = $data['term'] ?? null;
         $this->termSku = $data['termSku'] ?? null;
 
-        return $this;
+        // Parse millisecond timestamps into immutable DateTime objects.
+        $this->purchaseDate = isset($data['purchaseDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['purchaseDate'] / 1000)) : null;
+        $this->cancellationDate = isset($data['cancelDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['cancelDate'] / 1000)) : null;
+        $this->renewalDate = isset($data['renewalDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['renewalDate'] / 1000)) : null;
+        $this->gracePeriodEndDate = isset($data['GracePeriodEndDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['GracePeriodEndDate'] / 1000)) : null;
+        $this->freeTrialEndDate = isset($data['freeTrialEndDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['freeTrialEndDate'] / 1000)) : null;
     }
-
-    public function getRawData(): ?array
-    {
-        return $this->rawData;
-    }
-
-    public function getPurchaseDate(): Carbon
+    
+    public function getPurchaseDate(): ?DateTimeImmutable
     {
         return $this->purchaseDate;
     }
 
-    public function getCancellationDate(): ?Carbon
+    public function getCancellationDate(): ?DateTimeImmutable
     {
         return $this->cancellationDate;
     }
 
-    public function getRenewalDate(): ?Carbon
+    public function getRenewalDate(): ?DateTimeImmutable
     {
         return $this->renewalDate;
     }
 
-    public function getGracePeriodEndDate(): ?Carbon
+    public function getGracePeriodEndDate(): ?DateTimeImmutable
     {
         return $this->gracePeriodEndDate;
     }
 
-    public function getFreeTrialEndDate(): ?Carbon
+    public function getFreeTrialEndDate(): ?DateTimeImmutable
     {
         return $this->freeTrialEndDate;
     }
@@ -126,33 +118,5 @@ class Transaction extends AbstractTransaction implements ArrayAccess
     public function getTermSku(): ?string
     {
         return $this->termSku;
-    }
-
-    /**
-     * @throws ValidationException
-     */
-    #[ReturnTypeWillChange]
-    public function offsetSet($offset, $value): void
-    {
-        $this->rawData[$offset] = $value;
-        $this->parse();
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetGet($offset): mixed
-    {
-        return $this->rawData[$offset] ?? null;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetUnset($offset): void
-    {
-        unset($this->rawData[$offset]);
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetExists($offset): bool
-    {
-        return isset($this->rawData[$offset]);
     }
 }

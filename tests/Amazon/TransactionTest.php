@@ -2,14 +2,23 @@
 
 namespace ReceiptValidator\Tests\Amazon;
 
-use Carbon\Carbon;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Transaction;
-use ReceiptValidator\Exceptions\ValidationException;
 
+/**
+ * @group      amazon
+ * @coversDefaultClass \ReceiptValidator\Amazon\Transaction
+ */
 class TransactionTest extends TestCase
 {
-    public function testValidPurchaseItem(): void
+    /**
+     * Verifies that all getters return the correct data from a valid, fully populated
+     * transaction payload.
+     *
+     * @covers ::__construct
+     */
+    public function testParsesFullyPopulatedData(): void
     {
         $data = [
             'productId' => 'com.amazon.sample',
@@ -30,34 +39,28 @@ class TransactionTest extends TestCase
         $this->assertEquals(1, $item->getQuantity());
         $this->assertEquals('com.amazon.sample', $item->getProductId());
         $this->assertEquals('txn123', $item->getTransactionId());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1609459200), $item->getPurchaseDate());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1612137600), $item->getCancellationDate());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1614748800), $item->getRenewalDate());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1614840000), $item->getGracePeriodEndDate());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1614930000), $item->getFreeTrialEndDate());
+        $this->assertEquals(new DateTimeImmutable('@1609459200'), $item->getPurchaseDate());
+        $this->assertEquals(new DateTimeImmutable('@1612137600'), $item->getCancellationDate());
+        $this->assertEquals(new DateTimeImmutable('@1614748800'), $item->getRenewalDate());
+        $this->assertEquals(new DateTimeImmutable('@1614840000'), $item->getGracePeriodEndDate());
+        $this->assertEquals(new DateTimeImmutable('@1614930000'), $item->getFreeTrialEndDate());
         $this->assertTrue($item->isAutoRenewing());
         $this->assertEquals('1 Month', $item->getTerm());
         $this->assertEquals('sub1-monthly', $item->getTermSku());
     }
 
-    public function testOffsetAccess(): void
+    /**
+     * Verifies that creating a transaction with an empty data array is a valid
+     * state and populates properties with their expected default values.
+     *
+     * @covers ::__construct
+     */
+    public function testEmptyDataIsValid(): void
     {
-        $data = ['productId' => 'com.amazon.sample', 'receiptId' => 'txn123', 'quantity' => 2];
-        $item = new Transaction($data);
+        $item = new Transaction([]);
 
-        $this->assertTrue(isset($item['productId']));
-        $this->assertEquals('com.amazon.sample', $item['productId']);
-
-        $item['quantity'] = 5;
-        $this->assertEquals(5, $item->getQuantity());
-
-        unset($item['quantity']);
-        $this->assertFalse(isset($item['quantity']));
-    }
-
-    public function testThrowsOnInvalidData(): void
-    {
-        $this->expectException(ValidationException::class);
-        new Transaction(null);
+        $this->assertNull($item->getProductId());
+        $this->assertNull($item->getTransactionId());
+        $this->assertEquals(1, $item->getQuantity(), 'Quantity should default to 1 for Amazon transactions');
     }
 }

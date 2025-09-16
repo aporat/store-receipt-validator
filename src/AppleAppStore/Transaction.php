@@ -2,131 +2,164 @@
 
 namespace ReceiptValidator\AppleAppStore;
 
-use ArrayAccess;
 use Carbon\Carbon;
 use ReceiptValidator\AbstractTransaction;
 use ReceiptValidator\Environment;
-use ReceiptValidator\Exceptions\ValidationException;
-use ReturnTypeWillChange;
 
 /**
- * Represents a transaction in the Apple App Store Server API.
- * @implements ArrayAccess<string, mixed>
+ * Encapsulates a single transaction from the Apple App Store Server API.
+ *
+ * This immutable data object provides structured access to the properties of a
+ * single signed transaction (JWS), as defined by Apple's API.
+ *
+ * @see https://developer.apple.com/documentation/appstoreserverapi/jwstransaction
  */
-class Transaction extends AbstractTransaction implements ArrayAccess
+final class Transaction extends AbstractTransaction
 {
-    /** @var array<string, mixed>|null */
-    protected ?array $rawData;
-
-    /** @var string|null The original transaction identifier of a purchase. */
-    protected ?string $originalTransactionId = null;
-
-    /** @var string|null The unique identifier of subscription-purchase events across devices. */
-    protected ?string $webOrderLineItemId = null;
-
-    /** @var string|null The bundle identifier of an app. */
-    protected ?string $bundleId = null;
-
-    /** @var string|null The identifier of the subscription group. */
-    protected ?string $subscriptionGroupIdentifier = null;
-
-    /** @var Carbon|null The time that the App Store charged the user's account. */
-    protected ?Carbon $purchaseDate = null;
-
-    /** @var Carbon|null The purchase date of the transaction associated with the original transaction identifier. */
-    protected ?Carbon $originalPurchaseDate = null;
-
-    /** @var Carbon|null The expiration date of an auto-renewable subscription. */
-    protected ?Carbon $expiresDate = null;
-
-    /** @var string|null The type of the in-app purchase. */
-    protected ?string $type = null;
-
-    /** @var string|null UUID to map a customer's in-app purchase with its App Store transaction. */
-    protected ?string $appAccountToken = null;
-
-    /** @var string|null Describes whether the transaction was purchased or shared via Family Sharing. */
-    protected ?string $inAppOwnershipType = null;
-
-    /** @var Carbon|null The time that the App Store signed the JWS data. */
-    protected ?Carbon $signedDate = null;
-
-    /** @var string|null The reason the App Store refunded or revoked the transaction. */
-    protected ?string $revocationReason = null;
-
-    /** @var Carbon|null The time that Apple Support refunded the transaction. */
-    protected ?Carbon $revocationDate = null;
-
-    /** @var bool|null Indicates whether the user upgraded to another subscription. */
-    protected ?bool $isUpgraded = null;
-
-    /** @var string|null Represents the promotional offer type. */
-    protected ?string $offerType = null;
-
-    /** @var string|null Identifier for the promo code or promotional offer. */
-    protected ?string $offerIdentifier = null;
-
-    /** @var string|null Three-letter code for the App Store storefront country/region. */
-    protected ?string $storefront = null;
-
-    /** @var string|null Value that identifies the App Store storefront. */
-    protected ?string $storefrontId = null;
-
-    /** @var string|null Indicates whether it's a customer purchase or a renewal. */
-    protected ?string $transactionReason = null;
-
-    /** @var string|null ISO 4217 currency code. */
-    protected ?string $currency = null;
-
-    /** @var int|null Price in milliunits. */
-    protected ?int $price = null;
-
-    /** @var string|null Payment mode for an offer. */
-    protected ?string $offerDiscountType = null;
-
-    /** @var string|null The app transaction identifier. */
-    protected ?string $appTransactionId = null;
-
-    /** @var string|null The duration of the offer. */
-    protected ?string $offerPeriod = null;
+    /**
+     * The original transaction identifier of a purchase.
+     */
+    public readonly ?string $originalTransactionId;
 
     /**
-     * Environment in which validation was performed.
+     * The unique identifier of subscription-purchase events across devices.
+     */
+    public readonly ?string $webOrderLineItemId;
+
+    /**
+     * The bundle identifier of an app.
+     */
+    public readonly ?string $bundleId;
+
+    /**
+     * The identifier of the subscription group.
+     */
+    public readonly ?string $subscriptionGroupIdentifier;
+
+    /**
+     * The time the App Store charged the user's account for the transaction.
+     */
+    public readonly ?Carbon $purchaseDate;
+
+    /**
+     * The purchase date of the transaction that corresponds to the original transaction identifier.
+     */
+    public readonly ?Carbon $originalPurchaseDate;
+
+    /**
+     * The expiration date for an auto-renewable subscription.
+     */
+    public readonly ?Carbon $expiresDate;
+
+    /**
+     * The type of the in-app purchase.
+     */
+    public readonly ?string $type;
+
+    /**
+     * A UUID that maps a customer's in-app purchase with its App Store transaction.
+     */
+    public readonly ?string $appAccountToken;
+
+    /**
+     * Describes whether the transaction was purchased or is available via Family Sharing.
+     */
+    public readonly ?string $inAppOwnershipType;
+
+    /**
+     * The time the App Store signed the JWS data.
+     */
+    public readonly ?Carbon $signedDate;
+
+    /**
+     * The reason for a refunded or revoked transaction.
+     */
+    public readonly ?string $revocationReason;
+
+    /**
+     * The time of a transaction's refund or revocation.
+     */
+    public readonly ?Carbon $revocationDate;
+
+    /**
+     * A Boolean value that indicates whether the user upgraded to another subscription.
+     */
+    public readonly ?bool $isUpgraded;
+
+    /**
+     * The type of a promotional offer.
+     */
+    public readonly ?string $offerType;
+
+    /**
+     * The identifier for a promotional offer.
+     */
+    public readonly ?string $offerIdentifier;
+
+    /**
+     * The three-letter ISO 4217 currency code for the App Store storefront.
+     */
+    public readonly ?string $storefront;
+
+    /**
+     * A value that identifies the App Store storefront.
+     */
+    public readonly ?string $storefrontId;
+
+    /**
+     * The reason for the transaction.
+     */
+    public readonly ?string $transactionReason;
+
+    /**
+     * The ISO 4217 currency code for the price.
+     */
+    public readonly ?string $currency;
+
+    /**
+     * The price, in milliunits, of the in-app purchase.
+     */
+    public readonly ?int $price;
+
+    /**
+     * The payment mode for a promotional offer.
+     */
+    public readonly ?string $offerDiscountType;
+
+    /**
+     * The server environment that signed the transaction.
+     */
+    public readonly Environment $environment;
+
+    /**
+     * The unique identifier for the app purchase transaction.
+     */
+    public readonly ?string $appTransactionId;
+
+    /**
+     * The duration of the promotional offer.
+     */
+    public readonly ?string $offerPeriod;
+
+    /**
+     * Constructs the Transaction object and initializes its state from raw JWS claims.
      *
-     * @var Environment
+     * @param array<string, mixed> $data The decoded claims from a JWS transaction.
      */
-    protected Environment $environment;
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    public function getRawData(): ?array
+    public function __construct(array $data = [])
     {
-        return $this->rawData;
-    }
+        parent::__construct($data);
 
-    #[ReturnTypeWillChange]
-    public function offsetSet($offset, $value): void
-    {
-        $this->rawData[$offset] = $value;
-        $this->parse();
-    }
-
-    public function parse(): self
-    {
-        if (!is_array($this->rawData)) {
-            throw new ValidationException('Response must be an array');
-        }
-
-        $data = $this->rawData;
-
-        $this->originalTransactionId = $data['originalTransactionId'] ?? null;
+        // Initialize parent's readonly properties from Apple-specific fields
+        $this->quantity = (int) ($data['quantity'] ?? 0);
+        $this->productId = $data['productId'] ?? null;
         $this->transactionId = $data['transactionId'] ?? null;
+
+        // Initialize all other properties from the raw data
+        $this->originalTransactionId = $data['originalTransactionId'] ?? null;
         $this->webOrderLineItemId = $data['webOrderLineItemId'] ?? null;
         $this->bundleId = $data['bundleId'] ?? null;
-        $this->productId = $data['productId'] ?? null;
         $this->subscriptionGroupIdentifier = $data['subscriptionGroupIdentifier'] ?? null;
-        $this->quantity = $data['quantity'] ?? null;
         $this->type = $data['type'] ?? null;
         $this->appAccountToken = $data['appAccountToken'] ?? null;
         $this->inAppOwnershipType = $data['inAppOwnershipType'] ?? null;
@@ -142,191 +175,215 @@ class Transaction extends AbstractTransaction implements ArrayAccess
         $this->offerDiscountType = $data['offerDiscountType'] ?? null;
         $this->appTransactionId = $data['appTransactionId'] ?? null;
         $this->offerPeriod = $data['offerPeriod'] ?? null;
+        $this->environment = ($data['environment'] ?? 'Sandbox') === 'Production' ? Environment::PRODUCTION : Environment::SANDBOX;
 
-        $this->environment = $data['environment'] === 'Production'
-            ? Environment::PRODUCTION
-            : Environment::SANDBOX;
-
-        if (!empty($data['purchaseDate'])) {
-            $this->purchaseDate = Carbon::createFromTimestampMs($data['purchaseDate']);
-        }
-
-        if (!empty($data['originalPurchaseDate'])) {
-            $this->originalPurchaseDate = Carbon::createFromTimestampMs($data['originalPurchaseDate']);
-        }
-
-        if (!empty($data['expiresDate'])) {
-            $this->expiresDate = Carbon::createFromTimestampMs($data['expiresDate']);
-        }
-
-        if (!empty($data['signedDate'])) {
-            $this->signedDate = Carbon::createFromTimestampMs($data['signedDate']);
-        }
-
-        if (!empty($data['revocationDate'])) {
-            $this->revocationDate = Carbon::createFromTimestampMs($data['revocationDate']);
-        }
-
-        return $this;
+        // Parse millisecond timestamps into Carbon objects
+        $this->purchaseDate = isset($data['purchaseDate']) ? Carbon::createFromTimestampMs($data['purchaseDate']) : null;
+        $this->originalPurchaseDate = isset($data['originalPurchaseDate']) ? Carbon::createFromTimestampMs($data['originalPurchaseDate']) : null;
+        $this->expiresDate = isset($data['expiresDate']) ? Carbon::createFromTimestampMs($data['expiresDate']) : null;
+        $this->signedDate = isset($data['signedDate']) ? Carbon::createFromTimestampMs($data['signedDate']) : null;
+        $this->revocationDate = isset($data['revocationDate']) ? Carbon::createFromTimestampMs($data['revocationDate']) : null;
     }
 
-    #[ReturnTypeWillChange]
-    public function offsetGet($offset): mixed
-    {
-        return $this->rawData[$offset] ?? null;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetUnset($offset): void
-    {
-        unset($this->rawData[$offset]);
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetExists($offset): bool
-    {
-        return isset($this->rawData[$offset]);
-    }
+    // --- GETTER METHODS (Preserved for backward compatibility) ---
 
     /**
-     * Get the environment used.
-     *
-     * @return Environment
+     * Returns the original transaction identifier.
      */
-    public function getEnvironment(): Environment
-    {
-        return $this->environment;
-    }
-
-    /**
-     * Set the environment.
-     *
-     * @param Environment $environment
-     * @return $this
-     */
-    public function setEnvironment(Environment $environment): self
-    {
-        $this->environment = $environment;
-        return $this;
-    }
-
     public function getOriginalTransactionId(): ?string
     {
         return $this->originalTransactionId;
     }
 
+    /**
+     * Returns the unique identifier for subscription purchase events.
+     */
     public function getWebOrderLineItemId(): ?string
     {
         return $this->webOrderLineItemId;
     }
 
+    /**
+     * Returns the bundle identifier of the app.
+     */
     public function getBundleId(): ?string
     {
         return $this->bundleId;
     }
 
+    /**
+     * Returns the subscription group identifier.
+     */
     public function getSubscriptionGroupIdentifier(): ?string
     {
         return $this->subscriptionGroupIdentifier;
     }
 
+    /**
+     * Returns the time the user was charged.
+     */
     public function getPurchaseDate(): ?Carbon
     {
         return $this->purchaseDate;
     }
 
+    /**
+     * Returns the original purchase date.
+     */
     public function getOriginalPurchaseDate(): ?Carbon
     {
         return $this->originalPurchaseDate;
     }
 
+    /**
+     * Returns the subscription expiration date.
+     */
     public function getExpiresDate(): ?Carbon
     {
         return $this->expiresDate;
     }
 
+    /**
+     * Returns the type of the in-app purchase.
+     */
     public function getType(): ?string
     {
         return $this->type;
     }
 
+    /**
+     * Returns the UUID that maps a purchase to the customer's account.
+     */
     public function getAppAccountToken(): ?string
     {
         return $this->appAccountToken;
     }
 
+    /**
+     * Returns the ownership type of the in-app purchase.
+     */
     public function getInAppOwnershipType(): ?string
     {
         return $this->inAppOwnershipType;
     }
 
+    /**
+     * Returns the time the JWS data was signed.
+     */
     public function getSignedDate(): ?Carbon
     {
         return $this->signedDate;
     }
 
+    /**
+     * Returns the reason for a refund or revocation.
+     */
     public function getRevocationReason(): ?string
     {
         return $this->revocationReason;
     }
 
+    /**
+     * Returns the time of a refund or revocation.
+     */
     public function getRevocationDate(): ?Carbon
     {
         return $this->revocationDate;
     }
 
-    public function getIsUpgraded(): ?bool
+    /**
+     * Returns true if the user upgraded to another subscription.
+     */
+    public function isUpgraded(): ?bool
     {
         return $this->isUpgraded;
     }
 
+    /**
+     * Returns the type of a promotional offer.
+     */
     public function getOfferType(): ?string
     {
         return $this->offerType;
     }
 
+    /**
+     * Returns the identifier for a promotional offer.
+     */
     public function getOfferIdentifier(): ?string
     {
         return $this->offerIdentifier;
     }
 
+    /**
+     * Returns the App Store storefront country code.
+     */
     public function getStorefront(): ?string
     {
         return $this->storefront;
     }
 
+    /**
+     * Returns the App Store storefront identifier.
+     */
     public function getStorefrontId(): ?string
     {
         return $this->storefrontId;
     }
 
+    /**
+     * Returns the reason for the transaction.
+     */
     public function getTransactionReason(): ?string
     {
         return $this->transactionReason;
     }
 
+    /**
+     * Returns the three-letter currency code.
+     */
     public function getCurrency(): ?string
     {
         return $this->currency;
     }
 
+    /**
+     * Returns the price in milliunits.
+     */
     public function getPrice(): ?int
     {
         return $this->price;
     }
 
+    /**
+     * Returns the payment mode for a promotional offer.
+     */
     public function getOfferDiscountType(): ?string
     {
         return $this->offerDiscountType;
     }
 
+    /**
+     * Returns the app transaction identifier.
+     */
     public function getAppTransactionId(): ?string
     {
         return $this->appTransactionId;
     }
 
+    /**
+     * Returns the duration of the promotional offer.
+     */
     public function getOfferPeriod(): ?string
     {
         return $this->offerPeriod;
+    }
+
+    /**
+     * Returns the server environment that signed the transaction.
+     */
+    public function getEnvironment(): Environment
+    {
+        return $this->environment;
     }
 }

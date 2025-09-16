@@ -6,14 +6,48 @@ use Carbon\Carbon;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\AppleAppStore\Transaction;
 use ReceiptValidator\Environment;
-use ReceiptValidator\Exceptions\ValidationException;
 
+/**
+ * @group      apple-app-store
+ * @coversDefaultClass \ReceiptValidator\AppleAppStore\Transaction
+ */
 class TransactionTest extends TestCase
 {
+    /**
+     * @covers ::__construct
+     * @covers ::getOriginalTransactionId
+     * @covers ::getTransactionId
+     * @covers ::getWebOrderLineItemId
+     * @covers ::getBundleId
+     * @covers ::getProductId
+     * @covers ::getSubscriptionGroupIdentifier
+     * @covers ::getQuantity
+     * @covers ::getType
+     * @covers ::getAppAccountToken
+     * @covers ::getInAppOwnershipType
+     * @covers ::getRevocationReason
+     * @covers ::isUpgraded
+     * @covers ::getOfferType
+     * @covers ::getOfferIdentifier
+     * @covers ::getStorefront
+     * @covers ::getStorefrontId
+     * @covers ::getTransactionReason
+     * @covers ::getCurrency
+     * @covers ::getPrice
+     * @covers ::getOfferDiscountType
+     * @covers ::getAppTransactionId
+     * @covers ::getOfferPeriod
+     * @covers ::getPurchaseDate
+     * @covers ::getOriginalPurchaseDate
+     * @covers ::getExpiresDate
+     * @covers ::getSignedDate
+     * @covers ::getRevocationDate
+     * @covers ::getEnvironment
+     * @covers ::getRawData
+     */
     public function testParseAndGetters(): void
     {
         $now = Carbon::now()->timestamp * 1000;
-
         $data = [
             'originalTransactionId' => '1000000000000000',
             'transactionId' => '2000000000000000',
@@ -44,9 +78,7 @@ class TransactionTest extends TestCase
             'signedDate' => $now + 1000,
             'revocationDate' => $now + 2000,
         ];
-
         $transaction = new Transaction($data);
-
         $this->assertSame($data['originalTransactionId'], $transaction->getOriginalTransactionId());
         $this->assertSame($data['transactionId'], $transaction->getTransactionId());
         $this->assertSame($data['webOrderLineItemId'], $transaction->getWebOrderLineItemId());
@@ -58,7 +90,7 @@ class TransactionTest extends TestCase
         $this->assertSame($data['appAccountToken'], $transaction->getAppAccountToken());
         $this->assertSame($data['inAppOwnershipType'], $transaction->getInAppOwnershipType());
         $this->assertSame($data['revocationReason'], $transaction->getRevocationReason());
-        $this->assertSame($data['isUpgraded'], $transaction->getIsUpgraded());
+        $this->assertTrue($transaction->isUpgraded());
         $this->assertSame($data['offerType'], $transaction->getOfferType());
         $this->assertSame($data['offerIdentifier'], $transaction->getOfferIdentifier());
         $this->assertSame($data['storefront'], $transaction->getStorefront());
@@ -76,17 +108,15 @@ class TransactionTest extends TestCase
         $this->assertInstanceOf(Carbon::class, $transaction->getRevocationDate());
         $this->assertSame(Environment::PRODUCTION, $transaction->getEnvironment());
         $this->assertSame($data, $transaction->getRawData());
-
-        $transaction['testKey'] = 'testValue';
-        $this->assertSame('testValue', $transaction['testKey']);
-        $this->assertTrue(isset($transaction['testKey']));
-        unset($transaction['testKey']);
-        $this->assertFalse(isset($transaction['testKey']));
     }
 
-    public function testInvalidRawDataThrows(): void
+    /**
+     * @covers ::__construct
+     */
+    public function testEmptyDataIsValid(): void
     {
-        $this->expectException(ValidationException::class);
-        new Transaction(null);
+        $transaction = new Transaction([]);
+        $this->assertNull($transaction->getTransactionId());
+        $this->assertEquals(0, $transaction->getQuantity());
     }
 }

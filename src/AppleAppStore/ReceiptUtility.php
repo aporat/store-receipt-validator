@@ -50,7 +50,7 @@ final class ReceiptUtility
     public static function extractTransactionIdFromAppReceipt(string $appReceipt): ?string
     {
         $decodedReceipt = base64_decode($appReceipt);
-        if ($decodedReceipt === false) {
+        if (!$decodedReceipt) {
             throw new ValueError('Failed to Base64-decode the app receipt.');
         }
 

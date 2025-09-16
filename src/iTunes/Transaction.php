@@ -2,86 +2,97 @@
 
 namespace ReceiptValidator\iTunes;
 
-use ArrayAccess;
 use Carbon\Carbon;
 use ReceiptValidator\AbstractTransaction;
-use ReceiptValidator\Exceptions\ValidationException;
-use ReturnTypeWillChange;
 
 /**
- * @implements ArrayAccess<string, mixed>
+ * Encapsulates a single transaction from a legacy iTunes receipt.
+ *
+ * This immutable data object provides structured access to the properties of a
+ * single purchase, parsed from the 'in_app' array of a legacy iTunes receipt.
  */
-class Transaction extends AbstractTransaction implements ArrayAccess
+final class Transaction extends AbstractTransaction
 {
     /**
-     * Web order line item ID.
-     *
-     * @var string|null
+     * The unique identifier of the original transaction.
      */
-    protected ?string $webOrderLineItemId = null;
+    public ?string $originalTransactionId;
 
     /**
-     * Original transaction ID.
-     *
-     * @var string
+     * The unique identifier for a transaction in the web order line item.
      */
-    protected string $originalTransactionId;
+    public ?string $webOrderLineItemId;
 
     /**
-     * Purchase date.
-     *
-     * @var Carbon|null
+     * The date and time of the purchase.
      */
-    protected ?Carbon $purchaseDate = null;
+    public ?Carbon $purchaseDate;
 
     /**
-     * Original purchase date.
-     *
-     * @var Carbon|null
+     * The date and time of the original purchase.
      */
-    protected ?Carbon $originalPurchaseDate = null;
+    public ?Carbon $originalPurchaseDate;
 
     /**
-     * Expires date.
-     *
-     * @var Carbon|null
+     * The expiration date for a subscription.
      */
-    protected ?Carbon $expiresDate = null;
+    public ?Carbon $expiresDate;
 
     /**
-     * Cancellation date.
-     *
-     * @var Carbon|null
+     * The date a subscription or purchase was cancelled.
      */
-    protected ?Carbon $cancellationDate = null;
+    public ?Carbon $cancellationDate;
 
     /**
-     * Whether it’s a trial period.
-     *
-     * @var bool|null
+     * A Boolean value that indicates whether the transaction is in a trial period.
      */
-    protected ?bool $isTrialPeriod = null;
+    public ?bool $isTrialPeriod;
 
     /**
-     * Whether it's an introductory offer.
-     *
-     * @var bool|null
+     * A Boolean value that indicates whether the transaction is in an introductory offer period.
      */
-    protected ?bool $isInIntroOfferPeriod = null;
+    public ?bool $isInIntroOfferPeriod;
 
     /**
-     * Promotional offer ID.
-     *
-     * @var string|null
+     * The identifier of a promotional offer.
      */
-    protected ?string $promotionalOfferId = null;
+    public ?string $promotionalOfferId;
+
+    /**
+     * Constructs the Transaction object and initializes its state.
+     *
+     * @param array<string, mixed> $data The raw data for a single transaction.
+     */
+    public function __construct(array $data = [])
+    {
+        parent::__construct($data);
+
+        // Initialize parent's properties from iTunes-specific fields.
+        $this->quantity = (int) ($data['quantity'] ?? 0);
+        $this->productId = $data['product_id'] ?? null;
+        $this->transactionId = $data['transaction_id'] ?? null;
+
+        // Initialize properties specific to this transaction type.
+        $this->originalTransactionId = $data['original_transaction_id'] ?? null;
+        $this->webOrderLineItemId = $data['web_order_line_item_id'] ?? null;
+        $this->promotionalOfferId = $data['promotional_offer_id'] ?? null;
+
+        $this->isTrialPeriod = isset($data['is_trial_period']) ? filter_var($data['is_trial_period'], FILTER_VALIDATE_BOOLEAN) : null;
+        $this->isInIntroOfferPeriod = isset($data['is_in_intro_offer_period']) ? filter_var($data['is_in_intro_offer_period'], FILTER_VALIDATE_BOOLEAN) : null;
+
+        // Parse millisecond timestamps into Carbon objects.
+        $this->purchaseDate = isset($data['purchase_date_ms']) ? Carbon::createFromTimestampMs($data['purchase_date_ms']) : null;
+        $this->originalPurchaseDate = isset($data['original_purchase_date_ms']) ? Carbon::createFromTimestampMs($data['original_purchase_date_ms']) : null;
+        $this->expiresDate = isset($data['expires_date_ms']) ? Carbon::createFromTimestampMs($data['expires_date_ms']) : null;
+        $this->cancellationDate = isset($data['cancellation_date_ms']) ? Carbon::createFromTimestampMs($data['cancellation_date_ms']) : null;
+    }
 
     public function getWebOrderLineItemId(): ?string
     {
         return $this->webOrderLineItemId;
     }
 
-    public function getOriginalTransactionId(): string
+    public function getOriginalTransactionId(): ?string
     {
         return $this->originalTransactionId;
     }
@@ -121,87 +132,19 @@ class Transaction extends AbstractTransaction implements ArrayAccess
         return $this->promotionalOfferId;
     }
 
+    /**
+     * Checks if the subscription has expired.
+     */
     public function hasExpired(): bool
     {
         return $this->expiresDate !== null && $this->expiresDate->isPast();
     }
 
+    /**
+     * Checks if the subscription was cancelled.
+     */
     public function wasCanceled(): bool
     {
         return $this->cancellationDate !== null;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetSet($offset, $value): void
-    {
-        $this->rawData[$offset] = $value;
-        $this->parse();
-    }
-
-    /**
-     * Parse Data from JSON Response.
-     *
-     * @return $this
-     * @throws ValidationException
-     */
-    public function parse(): self
-    {
-        if (!is_array($this->rawData)) {
-            throw new ValidationException('Response must be an array');
-        }
-
-        $this->setQuantity((int)($this->rawData['quantity'] ?? 0));
-        $this->setTransactionId($this->rawData['transaction_id'] ?? '');
-        $this->setProductId($this->rawData['product_id'] ?? '');
-
-        $this->originalTransactionId = $this->rawData['original_transaction_id'] ?? '';
-        $this->webOrderLineItemId = $this->rawData['web_order_line_item_id'] ?? null;
-        $this->promotionalOfferId = $this->rawData['promotional_offer_id'] ?? null;
-
-        $this->isTrialPeriod = isset($this->rawData['is_trial_period'])
-            ? filter_var($this->rawData['is_trial_period'], FILTER_VALIDATE_BOOLEAN)
-            : null;
-
-        $this->isInIntroOfferPeriod = isset($this->rawData['is_in_intro_offer_period'])
-            ? filter_var($this->rawData['is_in_intro_offer_period'], FILTER_VALIDATE_BOOLEAN)
-            : null;
-
-        if (!empty($this->rawData['purchase_date_ms'])) {
-            $this->purchaseDate = Carbon::createFromTimestampUTC((int)($this->rawData['purchase_date_ms'] / 1000));
-        }
-
-        if (!empty($this->rawData['original_purchase_date_ms'])) {
-            $this->originalPurchaseDate = Carbon::createFromTimestampUTC((int)($this->rawData['original_purchase_date_ms'] / 1000));
-        }
-
-        if (!empty($this->rawData['expires_date_ms'])) {
-            $this->expiresDate = Carbon::createFromTimestampUTC((int)($this->rawData['expires_date_ms'] / 1000));
-        } elseif (!empty($this->rawData['expires_date']) && is_numeric($this->rawData['expires_date'])) {
-            $this->expiresDate = Carbon::createFromTimestampUTC((int)($this->rawData['expires_date'] / 1000));
-        }
-
-        if (!empty($this->rawData['cancellation_date_ms'])) {
-            $this->cancellationDate = Carbon::createFromTimestampUTC((int)($this->rawData['cancellation_date_ms'] / 1000));
-        }
-
-        return $this;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetGet($offset): mixed
-    {
-        return $this->rawData[$offset] ?? null;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetUnset($offset): void
-    {
-        unset($this->rawData[$offset]);
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetExists($offset): bool
-    {
-        return isset($this->rawData[$offset]);
     }
 }
