@@ -4,6 +4,7 @@ namespace ReceiptValidator\Amazon;
 
 use DateTimeImmutable;
 use ReceiptValidator\AbstractResponse;
+use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 
 /**
@@ -55,10 +56,10 @@ final class Response extends AbstractResponse
      * Overridden constructor to initialize readonly properties before parsing.
      *
      * @param array<string, mixed> $data
-     * @param \ReceiptValidator\Environment $environment
+     * @param Environment $environment
      * @throws ValidationException
      */
-    public function __construct(array $data = [], \ReceiptValidator\Environment $environment = \ReceiptValidator\Environment::PRODUCTION)
+    public function __construct(array $data = [], Environment $environment = Environment::PRODUCTION)
     {
         $this->receiptId = $data['receiptId'] ?? null;
         $this->productId = $data['productId'] ?? null;
