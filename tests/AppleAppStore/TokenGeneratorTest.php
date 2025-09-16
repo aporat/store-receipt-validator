@@ -10,11 +10,28 @@ use ReceiptValidator\AppleAppStore\JWT\TokenKey;
 use Lcobucci\JWT\Signer\Ecdsa\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
 
+/**
+ * @group      apple-app-store
+ * @coversDefaultClass \ReceiptValidator\AppleAppStore\JWT\TokenGenerator
+ */
 class TokenGeneratorTest extends TestCase
 {
+    /**
+     * Verifies that a token is generated successfully with a valid configuration
+     * and that its essential claims are set correctly.
+     *
+     * @covers ::__construct
+     * @covers ::generate
+     */
     public function testTokenGeneration(): void
     {
-        $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
+        $keyPath = __DIR__ . '/certs/testSigningKey.p8';
+
+        if (!is_readable($keyPath)) {
+            $this->markTestSkipped('Test signing key is not available at ' . $keyPath);
+        }
+
+        $signingKey = file_get_contents($keyPath);
 
         $issuerId = 'issuer-id';
         $bundleId = 'com.example.app';

@@ -5,46 +5,41 @@ namespace ReceiptValidator\AppleAppStore\JWT;
 use Lcobucci\JWT\Signer;
 
 /**
- * Represents the issuer of the JWT token.
- * - iss: Developer ID
- * - alg: Signer algorithm
- * - key: Private key
+ * Represents the issuer of an App Store Connect API token.
+ *
+ * This immutable data object encapsulates all the necessary components for
+ * identifying the token's issuer: the issuer ID, the app's bundle ID,
+ * the signing key, and the signing algorithm.
  */
-final class TokenIssuer
+final readonly class TokenIssuer
 {
     /**
-     * Developer ID (issuer).
-     *
-     * @var string
+     * The issuer ID from your App Store Connect account.
      */
     private string $id;
 
     /**
-     * App bundle ID.
-     *
-     * @var string
+     * The bundle identifier of your app.
      */
     private string $bundle;
 
     /**
-     * JWT signing key.
-     *
-     * @var TokenKey
+     * The key used to sign the token.
      */
     private TokenKey $key;
 
     /**
-     * JWT signer.
-     *
-     * @var Signer
+     * The signing algorithm.
      */
     private Signer $signer;
 
     /**
-     * @param string $id
-     * @param string $bundle
-     * @param TokenKey $key
-     * @param Signer $signer
+     * Constructs the TokenIssuer.
+     *
+     * @param string $id Your issuer ID.
+     * @param string $bundle The bundle identifier of your app.
+     * @param TokenKey $key The signing key object.
+     * @param Signer $signer The signing algorithm instance.
      */
     public function __construct(string $id, string $bundle, TokenKey $key, Signer $signer)
     {
@@ -54,21 +49,33 @@ final class TokenIssuer
         $this->signer = $signer;
     }
 
+    /**
+     * Returns the issuer ID.
+     */
     public function id(): string
     {
         return $this->id;
     }
 
+    /**
+     * Returns the app's bundle identifier.
+     */
     public function bundle(): string
     {
         return $this->bundle;
     }
 
+    /**
+     * Returns the signing key object.
+     */
     public function key(): TokenKey
     {
         return $this->key;
     }
 
+    /**
+     * Returns the signing algorithm instance.
+     */
     public function signer(): Signer
     {
         return $this->signer;
