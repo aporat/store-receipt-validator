@@ -2,7 +2,7 @@
 
 namespace ReceiptValidator\Tests\Amazon;
 
-use DateTimeImmutable;
+use Carbon\Carbon;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Transaction;
 
@@ -39,11 +39,11 @@ class TransactionTest extends TestCase
         $this->assertEquals(1, $item->getQuantity());
         $this->assertEquals('com.amazon.sample', $item->getProductId());
         $this->assertEquals('txn123', $item->getTransactionId());
-        $this->assertEquals(new DateTimeImmutable('@1609459200'), $item->getPurchaseDate());
-        $this->assertEquals(new DateTimeImmutable('@1612137600'), $item->getCancellationDate());
-        $this->assertEquals(new DateTimeImmutable('@1614748800'), $item->getRenewalDate());
-        $this->assertEquals(new DateTimeImmutable('@1614840000'), $item->getGracePeriodEndDate());
-        $this->assertEquals(new DateTimeImmutable('@1614930000'), $item->getFreeTrialEndDate());
+        $this->assertEquals(Carbon::createFromTimestampUTC(1609459200), $item->getPurchaseDate());
+        $this->assertEquals(Carbon::createFromTimestampUTC(1612137600), $item->getCancellationDate());
+        $this->assertEquals(Carbon::createFromTimestampUTC(1614748800), $item->getRenewalDate());
+        $this->assertEquals(Carbon::createFromTimestampUTC(1614840000), $item->getGracePeriodEndDate());
+        $this->assertEquals(Carbon::createFromTimestampUTC(1614930000), $item->getFreeTrialEndDate());
         $this->assertTrue($item->isAutoRenewing());
         $this->assertEquals('1 Month', $item->getTerm());
         $this->assertEquals('sub1-monthly', $item->getTermSku());

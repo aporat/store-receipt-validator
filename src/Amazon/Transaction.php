@@ -2,7 +2,7 @@
 
 namespace ReceiptValidator\Amazon;
 
-use DateTimeImmutable;
+use Carbon\Carbon;
 use ReceiptValidator\AbstractTransaction;
 
 /**
@@ -16,27 +16,27 @@ final class Transaction extends AbstractTransaction
     /**
      * The date the purchase was initiated.
      */
-    public readonly ?DateTimeImmutable $purchaseDate;
+    public readonly ?Carbon $purchaseDate;
 
     /**
      * The date the subscription or entitlement was cancelled.
      */
-    public readonly ?DateTimeImmutable $cancellationDate;
+    public readonly ?Carbon $cancellationDate;
 
     /**
      * The date a subscription is scheduled to renew.
      */
-    public readonly ?DateTimeImmutable $renewalDate;
+    public readonly ?Carbon $renewalDate;
 
     /**
      * The end date of a grace period for a subscription.
      */
-    public readonly ?DateTimeImmutable $gracePeriodEndDate;
+    public readonly ?Carbon $gracePeriodEndDate;
 
     /**
      * The end date of a free trial period.
      */
-    public readonly ?DateTimeImmutable $freeTrialEndDate;
+    public readonly ?Carbon $freeTrialEndDate;
 
     /**
      * The auto-renewal status of a subscription.
@@ -73,34 +73,58 @@ final class Transaction extends AbstractTransaction
         $this->termSku = $data['termSku'] ?? null;
 
         // Parse millisecond timestamps into immutable DateTime objects.
-        $this->purchaseDate = isset($data['purchaseDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['purchaseDate'] / 1000)) : null;
-        $this->cancellationDate = isset($data['cancelDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['cancelDate'] / 1000)) : null;
-        $this->renewalDate = isset($data['renewalDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['renewalDate'] / 1000)) : null;
-        $this->gracePeriodEndDate = isset($data['GracePeriodEndDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['GracePeriodEndDate'] / 1000)) : null;
-        $this->freeTrialEndDate = isset($data['freeTrialEndDate']) ? (new DateTimeImmutable())->setTimestamp((int) ($data['freeTrialEndDate'] / 1000)) : null;
+        if (!empty($data['purchaseDate'])) {
+            $this->purchaseDate = Carbon::createFromTimestampUTC((int)($data['purchaseDate'] / 1000));
+        } else {
+            $this->purchaseDate = null;
+        }
+
+        if (!empty($data['cancelDate'])) {
+            $this->cancellationDate = Carbon::createFromTimestampUTC((int)($data['cancelDate'] / 1000));
+        } else {
+            $this->cancellationDate = null;
+        }
+
+        if (!empty($data['renewalDate'])) {
+            $this->renewalDate = Carbon::createFromTimestampUTC((int)($data['renewalDate'] / 1000));
+        } else {
+            $this->renewalDate = null;
+        }
+
+        if (!empty($data['GracePeriodEndDate'])) {
+            $this->gracePeriodEndDate = Carbon::createFromTimestampUTC((int)($data['GracePeriodEndDate'] / 1000));
+        } else {
+            $this->gracePeriodEndDate = null;
+        }
+
+        if (!empty($data['freeTrialEndDate'])) {
+            $this->freeTrialEndDate = Carbon::createFromTimestampUTC((int)($data['freeTrialEndDate'] / 1000));
+        } else {
+            $this->freeTrialEndDate = null;
+        }
     }
 
-    public function getPurchaseDate(): ?DateTimeImmutable
+    public function getPurchaseDate(): ?Carbon
     {
         return $this->purchaseDate;
     }
 
-    public function getCancellationDate(): ?DateTimeImmutable
+    public function getCancellationDate(): ?Carbon
     {
         return $this->cancellationDate;
     }
 
-    public function getRenewalDate(): ?DateTimeImmutable
+    public function getRenewalDate(): ?Carbon
     {
         return $this->renewalDate;
     }
 
-    public function getGracePeriodEndDate(): ?DateTimeImmutable
+    public function getGracePeriodEndDate(): ?Carbon
     {
         return $this->gracePeriodEndDate;
     }
 
-    public function getFreeTrialEndDate(): ?DateTimeImmutable
+    public function getFreeTrialEndDate(): ?Carbon
     {
         return $this->freeTrialEndDate;
     }
