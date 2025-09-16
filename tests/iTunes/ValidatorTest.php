@@ -54,8 +54,10 @@ class ValidatorTest extends TestCase
                 'receipt' => ['app_item_id' => 123, 'in_app' => []]
             ])));
 
-        $validator = new Validator('secret');
-        $validator->client = $mockClient;
+        $validator = Mockery::mock(Validator::class, ['secret'])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
         $validator->setReceiptData('abc');
 
         $response = $validator->validate();
@@ -65,10 +67,12 @@ class ValidatorTest extends TestCase
     public function testRetryOnSandboxError(): void
     {
         $mockClient = Mockery::mock(Client::class);
+        // Expect the first request (to production)
         $mockClient->shouldReceive('request')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], json_encode(['status' => 21007])));
 
+        // Expect the second request (to sandbox)
         $mockClient->shouldReceive('request')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], json_encode([
@@ -76,8 +80,10 @@ class ValidatorTest extends TestCase
                 'receipt' => ['app_item_id' => 123, 'in_app' => []]
             ])));
 
-        $validator = new Validator('secret', Environment::PRODUCTION);
-        $validator->client = $mockClient;
+        $validator = Mockery::mock(Validator::class, ['secret', Environment::PRODUCTION])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
         $validator->setReceiptData('xyz');
 
         $response = $validator->validate();
@@ -91,8 +97,10 @@ class ValidatorTest extends TestCase
             ->once()
             ->andReturn(new GuzzleResponse(500, [], 'Server error'));
 
-        $validator = new Validator('secret', Environment::PRODUCTION);
-        $validator->client = $mockClient;
+        $validator = Mockery::mock(Validator::class, ['secret', Environment::PRODUCTION])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
         $validator->setReceiptData('test');
 
         $this->expectException(ValidationException::class);
@@ -109,8 +117,10 @@ class ValidatorTest extends TestCase
             ->once()
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        $validator = new Validator('secret', Environment::SANDBOX);
-        $validator->client = $mockClient;
+        $validator = Mockery::mock(Validator::class, ['secret', Environment::SANDBOX])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
         $validator->setReceiptData('dummy-data');
 
         $response = $validator->validate();
@@ -128,14 +138,16 @@ class ValidatorTest extends TestCase
             ->once()
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        $validator = new Validator('secret', Environment::SANDBOX);
-        $validator->client = $mockClient;
+        $validator = Mockery::mock(Validator::class, ['secret', Environment::SANDBOX])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
         $validator->setReceiptData('dummy-data');
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('The data in the receipt-data property was malformed.');
 
-        $response = $validator->validate();
+        $validator->validate();
     }
 
     public function testThrowsValidationExceptionWithFormattedMessage(): void
@@ -147,8 +159,10 @@ class ValidatorTest extends TestCase
                 'status' => 21004,
             ])));
 
-        $validator = new Validator('invalid-shared-secret', Environment::PRODUCTION);
-        $validator->client = $mockClient;
+        $validator = Mockery::mock(Validator::class, ['invalid-shared-secret', Environment::PRODUCTION])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
         $validator->setReceiptData('dummy');
 
         $this->expectException(ValidationException::class);

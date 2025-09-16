@@ -38,9 +38,11 @@ class ValidatorTest extends TestCase
             ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        $validator = new AmazonValidator('secret123', Environment::SANDBOX);
+        $validator = Mockery::mock(AmazonValidator::class, ['secret123', Environment::SANDBOX])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
         $validator->setUserId('user123')->setReceiptId('receipt123');
-        $validator->client = $mockClient;
 
         $response = $validator->validate();
 
@@ -64,9 +66,11 @@ class ValidatorTest extends TestCase
             ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        $validator = new AmazonValidator('secret123', Environment::SANDBOX);
+        $validator = Mockery::mock(AmazonValidator::class, ['secret123', Environment::SANDBOX])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
         $validator->setUserId('user123')->setReceiptId('receipt123');
-        $validator->client = $mockClient;
 
         $response = $validator->validate();
 
@@ -94,11 +98,13 @@ class ValidatorTest extends TestCase
             ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
             ->andReturn(new GuzzleResponse(200, [], $responseBody));
 
-        $validator = new AmazonValidator('secret123', Environment::SANDBOX);
-        $validator->setUserId('user123')->setReceiptId('receipt123');
-        $validator->client = $mockClient;
+        $validator = Mockery::mock(AmazonValidator::class, ['secret123', Environment::SANDBOX])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
 
-        $response = $validator->setDeveloperSecret('secret123')->validate();
+        $validator->setUserId('user123')->setReceiptId('receipt123');
+
+        $response = $validator->validate();
 
         $this->assertEquals('pack_100', $response->getTransactions()[0]->getProductId());
         $this->assertEquals('txn_abc', $response->getTransactions()[0]->getTransactionId());
@@ -124,9 +130,11 @@ class ValidatorTest extends TestCase
                 'message' => 'Invalid developerSecret'
             ])));
 
-        $validator = new AmazonValidator('secret123', Environment::SANDBOX);
+        $validator = Mockery::mock(AmazonValidator::class, ['secret123', Environment::SANDBOX])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
         $validator->setUserId('user123')->setReceiptId('receipt123');
-        $validator->client = $mockClient;
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Amazon API error [496]: Invalid developerSecret');

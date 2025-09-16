@@ -30,15 +30,18 @@ class ValidatorTest extends TestCase
 
         $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
 
-        $validator = new Validator(
-            signingKey: $signingKey,
-            keyId: 'ABC123XYZ',
-            issuerId: 'DEF456UVW',
-            bundleId: 'com.example',
-            environment: Environment::SANDBOX
-        );
+        // Pass constructor args as an indexed array
+        $validator = Mockery::mock(Validator::class, [
+            $signingKey,
+            'ABC123XYZ',
+            'DEF456UVW',
+            'com.example',
+            Environment::SANDBOX
+        ])->makePartial();
 
-        $validator->client = $mockClient;
+        $validator->shouldReceive('__construct')->passthru();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
 
         $response = $validator->validate('abc123');
         $this->assertInstanceOf(Response::class, $response);
@@ -58,15 +61,18 @@ class ValidatorTest extends TestCase
 
         $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
 
-        $validator = new Validator(
-            signingKey: $signingKey,
-            keyId: 'ABC123XYZ',
-            issuerId: 'DEF456UVW',
-            bundleId: 'com.example',
-            environment: Environment::SANDBOX
-        );
+        // Pass constructor args as an indexed array
+        $validator = Mockery::mock(Validator::class, [
+            $signingKey,
+            'ABC123XYZ',
+            'DEF456UVW',
+            'com.example',
+            Environment::SANDBOX
+        ])->makePartial();
 
-        $validator->client = $mockClient;
+        $validator->shouldReceive('__construct')->passthru();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
 
         $token = $validator->requestTestNotification();
 
@@ -87,15 +93,18 @@ class ValidatorTest extends TestCase
 
         $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
 
-        $validator = new Validator(
-            signingKey: $signingKey,
-            keyId: 'ABC123XYZ',
-            issuerId: 'DEF456UVW',
-            bundleId: 'com.example',
-            environment: Environment::SANDBOX
-        );
+        // Pass constructor args as an indexed array
+        $validator = Mockery::mock(Validator::class, [
+            $signingKey,
+            'ABC123XYZ',
+            'DEF456UVW',
+            'com.example',
+            Environment::SANDBOX
+        ])->makePartial();
 
-        $validator->client = $mockClient;
+        $validator->shouldReceive('__construct')->passthru();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionCode(APIError::INVALID_TRANSACTION_ID);
@@ -118,15 +127,18 @@ class ValidatorTest extends TestCase
 
         $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
 
-        $validator = new Validator(
-            signingKey: $signingKey,
-            keyId: 'ABC123XYZ',
-            issuerId: 'DEF456UVW',
-            bundleId: 'com.example',
-            environment: Environment::SANDBOX
-        );
+        // Pass constructor args as an indexed array
+        $validator = Mockery::mock(Validator::class, [
+            $signingKey,
+            'ABC123XYZ',
+            'DEF456UVW',
+            'com.example',
+            Environment::SANDBOX
+        ])->makePartial();
 
-        $validator->client = $mockClient;
+        $validator->shouldReceive('__construct')->passthru();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionCode(4999999);
@@ -144,15 +156,18 @@ class ValidatorTest extends TestCase
 
         $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
 
-        $validator = new Validator(
-            signingKey: $signingKey,
-            keyId: 'ABC123XYZ',
-            issuerId: 'DEF456UVW',
-            bundleId: 'com.example',
-            environment: Environment::SANDBOX
-        );
+        // Pass constructor args as an indexed array
+        $validator = Mockery::mock(Validator::class, [
+            $signingKey,
+            'ABC123XYZ',
+            'DEF456UVW',
+            'com.example',
+            Environment::SANDBOX
+        ])->makePartial();
 
-        $validator->client = $mockClient;
+        $validator->shouldReceive('__construct')->passthru();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionCode(401);

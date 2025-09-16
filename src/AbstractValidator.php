@@ -12,6 +12,12 @@ abstract class AbstractValidator
      * HTTP client instance.
      */
     public ?HttpClient $client = null;
+
+    /**
+     * The base URI of the currently configured client.
+     */
+    protected ?string $baseUri = null;
+
     /**
      * Environment (sandbox or production).
      */
@@ -54,13 +60,17 @@ abstract class AbstractValidator
 
     /**
      * Get the Guzzle HTTP client.
+     *
+     * This method ensures a new client is created if the base URI changes,
+     * which is critical for services that switch between production and sandbox endpoints.
      */
     protected function getClient(string $base_uri): HttpClient
     {
-        if ($this->client === null) {
+        if ($this->client === null || $this->baseUri !== $base_uri) {
             $options = $this->client_options;
             $options['base_uri'] = $base_uri;
             $this->client = new HttpClient($options);
+            $this->baseUri = $base_uri;
         }
 
         return $this->client;
