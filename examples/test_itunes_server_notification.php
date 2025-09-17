@@ -1,15 +1,8 @@
 <?php
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+declare(strict_types=1);
 
-$root = realpath(dirname(__FILE__, 2));
-$library = "$root/library";
-
-$path = [$library, get_include_path()];
-set_include_path(implode(PATH_SEPARATOR, $path));
-
-require_once $root . '/vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 use ReceiptValidator\iTunes\ServerNotification;
 use ReceiptValidator\Exceptions\ValidationException;
