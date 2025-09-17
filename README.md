@@ -6,6 +6,17 @@ A modern PHP library for validating in-app purchase receipts from the Apple App 
 
 ---
 
+## ✨ Features
+
+- ✅ Apple App Store **Server API (v2)** support
+- ✅ Apple iTunes **Legacy API** support (deprecated by Apple, still available here)
+- ✅ Amazon Appstore receipt validation
+- ✅ App Store **Server Notifications v1 & v2** parsing
+- ✅ Strong typing (PHP 8.3+), enums, and modern error handling
+- ✅ Built-in test suite with 100% coverage
+
+---
+
 ## 📦 Requirements
 
 - PHP >= 8.3
@@ -37,9 +48,8 @@ $bundleId = 'com.myapp';
 
 $receiptBase64Data = '...'; // your app receipt here
 
-// The App Store Server API validates individual purchases via a transaction ID.
-// This utility extracts the latest transaction ID from the app receipt to be used for validation.
-// It will return null if no in-app purchases have been made.
+// 🔑 Tip: Apple's Server API does not accept the full app receipt.
+// Use ReceiptUtility to extract the latest transaction ID.
 $transactionId = ReceiptUtility::extractTransactionIdFromAppReceipt($receiptBase64Data);
 
 $validator = new AppleValidator(
@@ -112,7 +122,6 @@ foreach ($response->getPurchases() as $purchase) {
 
 ```php
 use ReceiptValidator\Amazon\Validator;
-use ReceiptValidator\Amazon\Response;
 
 $validator = new Validator();
 
@@ -130,11 +139,11 @@ try {
 
 echo 'Receipt is valid.' . PHP_EOL;
 
-foreach ($response->getPurchases() as $purchase) {
-    echo 'Product ID: ' . $purchase->getProductId() . PHP_EOL;
+foreach ($response->getTransactions() as $transaction) {
+    echo 'Product ID: ' . $transaction->getProductId() . PHP_EOL;
 
-    if ($purchase->getPurchaseDate() !== null) {
-        echo 'Purchase Date: ' . $purchase->getPurchaseDate()->toIso8601String() . PHP_EOL;
+    if ($transaction->getPurchaseDate() !== null) {
+        echo 'Purchase Date: ' . $transaction->getPurchaseDate()->toIso8601String() . PHP_EOL;
     }
 }
 ```
@@ -214,8 +223,16 @@ composer analyze     # Run static analysis with PHPStan
 
 Contributions are welcome!  
 To get started:
-1. Fork this repo  
-2. Create a feature branch  
+1. Fork this repo
+2. Create a feature branch
 3. Submit a pull request
 
 Found a bug or want a new feature? [Open an issue](https://github.com/aporat/store-receipt-validator/issues)
+
+---
+
+## 📄 License
+
+MIT License. See [LICENSE](LICENSE).
+
+---
