@@ -52,7 +52,7 @@ class ServerNotification
         }
 
         // Required keys (throw with clear messages if missing/invalid)
-        $this->password = (string)($data['password'] ?? '');
+        $this->password = $data['password'] ?? '';
         if ($this->password === '') {
             throw new ValidationException('Missing password in server notification payload.');
         }
@@ -61,7 +61,7 @@ class ServerNotification
         try {
             $this->notificationType = ServerNotificationType::from($typeRaw);
         } catch (ValueError) {
-            throw new ValidationException("Unknown notification_type: {$typeRaw}");
+            throw new ValidationException("Unknown notification_type: $typeRaw");
         }
 
         // Environment via ValueCasting (accepts 'production', 'prod', 'sandbox', etc.)
@@ -75,7 +75,7 @@ class ServerNotification
         $this->originalTransactionId = $this->toString($data, 'original_transaction_id', '') ?? '';
 
         // Booleans (non-nullable; default false)
-        $this->autoRenewStatus = $this->toBool($data, 'auto_renew_status', false);
+        $this->autoRenewStatus = $this->toBool($data, 'auto_renew_status');
 
         // Dates (ms → CarbonImmutable)
         $this->autoRenewStatusChangeDate = $this->toDateFromMs($data, 'auto_renew_status_change_date_ms');

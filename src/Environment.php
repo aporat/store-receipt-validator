@@ -38,7 +38,7 @@ enum Environment: string
         return match (strtolower(trim($value))) {
             'sandbox'          => self::SANDBOX,
             'production', 'prod' => self::PRODUCTION,
-            default              => throw new InvalidArgumentException("Invalid environment: {$value}"),
+            default              => throw new InvalidArgumentException("Invalid environment: $value"),
         };
     }
 }

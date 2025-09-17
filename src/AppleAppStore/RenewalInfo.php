@@ -90,10 +90,10 @@ class RenewalInfo extends AbstractRenewalInfo
         $this->rawData = $data;
 
         $this->autoRenewProductId       = $this->toString($data, 'autoRenewProductId');
-        $this->autoRenewStatus          = $this->toBool($data, 'autoRenewStatus', false);
+        $this->autoRenewStatus          = $this->toBool($data, 'autoRenewStatus');
         $this->originalTransactionId    = $this->toString($data, 'originalTransactionId');
-        $this->isUpgraded               = $this->toBool($data, 'isUpgraded', false);
-        $this->isInBillingRetryPeriod   = $this->toBool($data, 'isInBillingRetryPeriod', false);
+        $this->isUpgraded               = $this->toBool($data, 'isUpgraded');
+        $this->isInBillingRetryPeriod   = $this->toBool($data, 'isInBillingRetryPeriod');
         $this->priceConsentStatus       = $this->toInt($data, 'priceConsentStatus');
         $this->renewalPrice             = $this->toInt($data, 'renewalPrice');
         $this->currency                 = $this->toString($data, 'currency');

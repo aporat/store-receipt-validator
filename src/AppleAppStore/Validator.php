@@ -161,7 +161,7 @@ class Validator extends AbstractValidator
                 $errorCode = $statusCode;
             }
 
-            throw new ValidationException("App Store API error [{$errorCode}]: {$errorMessage}", $errorCode);
+            throw new ValidationException("App Store API error [$errorCode]: $errorMessage", $errorCode);
         }
 
         if (!$isJson || !is_array($decoded)) {

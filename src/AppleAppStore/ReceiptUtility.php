@@ -92,7 +92,7 @@ final class ReceiptUtility
 
         // Guard the OID node
         $oid = $sequence[0]['content'] ?? null;
-        if (!is_string($oid) || $oid !== self::PKCS7_OID) {
+        if ($oid !== self::PKCS7_OID) {
             throw new ValueError('Receipt is not a valid PKCS #7 container.');
         }
 

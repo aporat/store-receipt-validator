@@ -2,8 +2,6 @@
 
 namespace ReceiptValidator\AppleAppStore;
 
-use ReceiptValidator\Exceptions\ValidationException;
-
 /**
  * Represents notification types for App Store Server Notifications V2.
  *

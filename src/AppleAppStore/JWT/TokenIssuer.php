@@ -80,12 +80,4 @@ final readonly class TokenIssuer
     {
         return $this->signer;
     }
-
-    /**
-     * Returns the key ID (kid) from the signing key.
-     */
-    public function kid(): string
-    {
-        return $this->key->kid();
-    }
 }

@@ -103,8 +103,8 @@ final class TokenVerifier
         [$leaf, $intermediate, $root] = $chain;
 
         $fingerprints = [
-            strtolower(openssl_x509_fingerprint($intermediate, 'sha1') ?: ''),
-            strtolower(openssl_x509_fingerprint($root, 'sha1') ?: ''),
+            strtolower(openssl_x509_fingerprint($intermediate) ?: ''),
+            strtolower(openssl_x509_fingerprint($root) ?: ''),
         ];
 
         if ($fingerprints !== self::APPLE_CERTIFICATE_FINGERPRINTS) {

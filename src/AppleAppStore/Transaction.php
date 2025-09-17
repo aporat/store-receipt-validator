@@ -61,7 +61,7 @@ final readonly class Transaction extends AbstractTransaction
     /** A Boolean value that indicates whether the user upgraded to another subscription. */
     public bool $isUpgraded;
 
-    /** The type of a promotional offer. */
+    /** The type of promotional offer. */
     public ?string $offerType;
 
     /** The identifier for a promotional offer. */
@@ -124,7 +124,7 @@ final readonly class Transaction extends AbstractTransaction
         $this->offerDiscountType           = $this->toString($data, 'offerDiscountType');
         $this->appTransactionId            = $this->toString($data, 'appTransactionId');
         $this->offerPeriod                 = $this->toString($data, 'offerPeriod');
-        $this->isUpgraded = $this->toBool($data, 'isUpgraded', false);
+        $this->isUpgraded = $this->toBool($data, 'isUpgraded');
         $this->environment                 = $this->toEnvironment($data, 'environment');
         $this->purchaseDate         = $this->toDateFromMs($data, 'purchaseDate');
         $this->originalPurchaseDate = $this->toDateFromMs($data, 'originalPurchaseDate');

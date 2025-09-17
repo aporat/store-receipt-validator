@@ -52,7 +52,7 @@ class ServerNotification
         try {
             $this->notificationType = ServerNotificationType::from($typeRaw);
         } catch (ValueError) {
-            throw new ValidationException("Unknown notificationType: {$typeRaw}");
+            throw new ValidationException("Unknown notificationType: $typeRaw");
         }
 
         // subtype (optional)

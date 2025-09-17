@@ -16,7 +16,7 @@ use ReceiptValidator\AppleAppStore\JWT\TokenVerifier;
  *
  * @see https://developer.apple.com/documentation/appstoreserverapi/transactionhistoryresponse
  *
- * @extends \ReceiptValidator\AbstractResponse<Transaction>
+ * @extends AbstractResponse<Transaction>
  */
 final class Response extends AbstractResponse
 {

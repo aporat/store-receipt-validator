@@ -60,8 +60,8 @@ final class RenewalInfo extends AbstractRenewalInfo
         $this->originalTransactionId = $this->toString($this->rawData, 'original_transaction_id', '');
         $this->autoRenewProductId    = $this->toString($this->rawData, 'auto_renew_product_id', '');
 
-        $this->autoRenewStatus        = $this->toBool($this->rawData, 'auto_renew_status', false);
-        $this->isInBillingRetryPeriod = $this->toBool($this->rawData, 'is_in_billing_retry_period', false);
+        $this->autoRenewStatus        = $this->toBool($this->rawData, 'auto_renew_status');
+        $this->isInBillingRetryPeriod = $this->toBool($this->rawData, 'is_in_billing_retry_period');
 
         $this->expirationIntent       = $this->toInt($this->rawData, 'expiration_intent');
         $this->gracePeriodExpiresDate = $this->toDateFromMs($this->rawData, 'grace_period_expires_date_ms');

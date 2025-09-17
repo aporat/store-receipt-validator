@@ -31,7 +31,7 @@ trait ValueCasting
     protected function toDateFromMs(array $data, string $key): ?CarbonImmutable
     {
         $v = $data[$key] ?? null;
-        if ($v === null || $v === '' || !is_numeric($v)) {
+        if ($v === '' || !is_numeric($v)) {
             return null;
         }
         return CarbonImmutable::createFromTimestampMs((int)$v)->utc();
