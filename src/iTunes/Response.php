@@ -18,7 +18,7 @@ use ReceiptValidator\Exceptions\ValidationException;
  *
  * @see https://developer.apple.com/documentation/appstorereceipts/responsebody
  *
- * @extends \ReceiptValidator\AbstractResponse<Transaction>
+ * @extends AbstractResponse<Transaction>
  */
 final class Response extends AbstractResponse
 {
