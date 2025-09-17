@@ -74,22 +74,35 @@ enum APIError: int
 
     /**
      * Returns a human-readable description for the error case.
+     *
+     * @return string
      */
     public function message(): string
     {
         return match ($this) {
-            self::VALID => 'The receipt is valid.',
-            self::JSON_INVALID => 'The App Store could not read the JSON object you provided.',
-            self::RECEIPT_DATA_MALFORMED => 'The data in the receipt-data property was malformed.',
+            self::VALID                         => 'The receipt is valid.',
+            self::JSON_INVALID                  => 'The App Store could not read the JSON object you provided.',
+            self::RECEIPT_DATA_MALFORMED        => 'The data in the receipt-data property was malformed.',
             self::RECEIPT_AUTHENTICATION_FAILED => 'The receipt could not be authenticated.',
-            self::SHARED_SECRET_INVALID => 'The shared secret you provided does not match the shared secret on file for your account.',
-            self::SERVER_UNAVAILABLE => 'The receipt server is not currently available.',
-            self::SUBSCRIPTION_EXPIRED => 'This receipt is valid but the subscription has expired.',
+            self::SHARED_SECRET_INVALID         => 'The shared secret you provided does not match the shared secret on file for your account.',
+            self::SERVER_UNAVAILABLE            => 'The receipt server is not currently available.',
+            self::SUBSCRIPTION_EXPIRED          => 'This receipt is valid but the subscription has expired.',
             self::SANDBOX_RECEIPT_ON_PRODUCTION => 'This receipt is from the test environment, but it was sent to the production environment.',
             self::PRODUCTION_RECEIPT_ON_SANDBOX => 'This receipt is from the production environment, but it was sent to the test environment.',
-            self::INTERNAL_DATA_ACCESS_ERROR => 'Internal data access error.',
-            self::USER_ACCOUNT_NOT_FOUND => 'The user account cannot be found or has been deleted.',
-            self::INTERNAL_ERROR => 'An internal server error occurred.',
+            self::INTERNAL_DATA_ACCESS_ERROR    => 'Internal data access error.',
+            self::USER_ACCOUNT_NOT_FOUND        => 'The user account cannot be found or has been deleted.',
+            self::INTERNAL_ERROR                => 'An internal server error occurred.',
         };
+    }
+
+    /**
+     * Safely creates an APIError case from an int value, or null if unknown.
+     *
+     * @param int $value
+     * @return self|null
+     */
+    public static function fromInt(int $value): ?self
+    {
+        return self::tryFrom($value);
     }
 }

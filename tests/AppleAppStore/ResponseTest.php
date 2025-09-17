@@ -1,64 +1,67 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\Tests\AppleAppStore;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\AppleAppStore\Response;
 use ReceiptValidator\Environment;
 
 /**
- * @group      apple-app-store
- * @coversDefaultClass \ReceiptValidator\AppleAppStore\Response
+ * @group apple-app-store
  */
-class ResponseTest extends TestCase
+#[CoversClass(Response::class)]
+final class ResponseTest extends TestCase
 {
-    /**
-     * Verifies that the constructor correctly parses a valid data array and
-     * that all getters return the expected values.
-     *
-     * @covers ::__construct
-     * @covers ::parse
-     * @covers ::getRevision
-     * @covers ::getBundleId
-     * @covers ::getAppAppleId
-     * @covers ::hasMore
-     * @covers ::getEnvironment
-     * @covers ::getTransactions
-     */
-    public function testParseWithValidTransaction(): void
+    #[DataProvider('responseProvider')]
+    public function testResponseParsing(array $raw, array $expected): void
     {
-        $data = [
-            'revision' => 'rev-1',
-            'bundleId' => 'com.example.app',
-            'appAppleId' => 123456789,
-            'environment' => 'Production',
-            'hasMore' => true
-        ];
+        $r = new Response($raw);
 
-        $response = new Response($data);
-
-        $this->assertSame('rev-1', $response->getRevision());
-        $this->assertSame('com.example.app', $response->getBundleId());
-        $this->assertSame(123456789, $response->getAppAppleId());
-        $this->assertTrue($response->hasMore());
-        $this->assertSame(Environment::PRODUCTION, $response->getEnvironment());
-        $this->assertCount(0, $response->getTransactions());
+        self::assertSame($expected['revision'],   $r->getRevision());
+        self::assertSame($expected['bundleId'],   $r->getBundleId());
+        self::assertSame($expected['appAppleId'], $r->getAppAppleId());
+        self::assertSame($expected['hasMore'],    $r->hasMore());
+        self::assertSame($expected['environment'],$r->getEnvironment());
+        self::assertCount($expected['txCount'],   $r->getTransactions());
     }
 
-    /**
-     * Verifies that creating a response with an empty data array is a valid
-     * state and populates properties with their expected default values.
-     *
-     * @covers ::__construct
-     * @covers ::parse
-     */
-    public function testEmptyResponseIsValid(): void
+    public static function responseProvider(): array
     {
-        // An empty array should create a valid, empty response object without throwing an exception.
-        $response = new Response([]);
-        $this->assertCount(0, $response->getTransactions());
-        $this->assertNull($response->getBundleId());
-        // The environment defaults to SANDBOX if not present in the payload.
-        $this->assertSame(Environment::SANDBOX, $response->getEnvironment());
+        return [
+            'valid' => [
+                'raw' => [
+                    'revision'   => 'rev-1',
+                    'bundleId'   => 'com.example.app',
+                    'appAppleId' => 123456789,
+                    'environment'=> 'Production',
+                    'hasMore'    => true,
+                    // no signedTransactions provided here
+                ],
+                'expected' => [
+                    'revision'   => 'rev-1',
+                    'bundleId'   => 'com.example.app',
+                    'appAppleId' => 123456789,
+                    'hasMore'    => true,
+                    'environment'=> Environment::PRODUCTION,
+                    'txCount'    => 0,
+                ],
+            ],
+            'empty' => [
+                'raw' => [],
+                'expected' => [
+                    'revision'   => null,
+                    'bundleId'   => null,
+                    'appAppleId' => null,
+                    'hasMore'    => false,
+                    // default environment comes from toEnvironment() -> PRODUCTION (since key missing)
+                    'environment'=> Environment::PRODUCTION,
+                    'txCount'    => 0,
+                ],
+            ],
+        ];
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\iTunes;
 
 use GuzzleHttp\Exception\GuzzleException;
@@ -7,65 +9,42 @@ use GuzzleHttp\RequestOptions;
 use ReceiptValidator\AbstractValidator;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
+use Throwable;
 
 class Validator extends AbstractValidator
 {
-    /**
-     * Sandbox endpoint URL.
-     *
-     * @var string
-     */
+    /** Sandbox endpoint URL. */
     public const string ENDPOINT_SANDBOX = 'https://sandbox.itunes.apple.com';
 
-    /**
-     * Production endpoint URL.
-     *
-     * @var string
-     */
+    /** Production endpoint URL. */
     public const string ENDPOINT_PRODUCTION = 'https://buy.itunes.apple.com';
 
-    /**
-     * iTunes receipt data, in base64 format.
-     *
-     * @var string|null
-     */
+    /** @return array{production:string, sandbox:string} */
+    protected function endpointMap(): array
+    {
+        return [
+            Environment::PRODUCTION->value => self::ENDPOINT_PRODUCTION,
+            Environment::SANDBOX->value    => self::ENDPOINT_SANDBOX,
+        ];
+    }
+
+    /** iTunes receipt data, in base64 format. */
     protected ?string $receiptData = null;
 
-    /**
-     * The shared secret for auto-renewable subscriptions.
-     *
-     * @var string|null
-     */
+    /** The shared secret for auto-renewable subscriptions. */
     protected ?string $sharedSecret = null;
 
-    /**
-     * Constructor.
-     *
-     * @param string|null $sharedSecret
-     * @param Environment $environment
-     */
     public function __construct(?string $sharedSecret = null, Environment $environment = Environment::PRODUCTION)
     {
         $this->sharedSecret = $sharedSecret;
-        $this->environment = $environment;
+        $this->environment  = $environment;
     }
 
-    /**
-     * Get the shared secret.
-     *
-     * @return string|null
-     */
     public function getSharedSecret(): ?string
     {
         return $this->sharedSecret;
     }
 
-    /**
-     * Set the shared secret.
-     *
-     * @param string|null $sharedSecret
-     * @return $this
-     */
     public function setSharedSecret(?string $sharedSecret = null): self
     {
         $this->sharedSecret = $sharedSecret;
@@ -75,8 +54,6 @@ class Validator extends AbstractValidator
     /**
      * Validate the receipt.
      *
-     * @param string|null $receiptData
-     * @return Response
      * @throws ValidationException
      */
     public function validate(?string $receiptData = null): Response
@@ -91,8 +68,6 @@ class Validator extends AbstractValidator
     /**
      * Perform the HTTP request and handle cross-environment retry logic if needed.
      *
-     * @param Environment|null $environment
-     * @return Response
      * @throws ValidationException
      */
     protected function makeRequest(?Environment $environment = null): Response
@@ -101,20 +76,15 @@ class Validator extends AbstractValidator
             $this->setEnvironment($environment);
         }
 
-        $endpoint = $this->environment === Environment::PRODUCTION
-            ? self::ENDPOINT_PRODUCTION
-            : self::ENDPOINT_SANDBOX;
+        $endpoint = $this->endpointForEnvironment();
 
         try {
             $httpResponse = $this->getClient($endpoint)->request(
                 'POST',
                 '/verifyReceipt',
                 [
-                    RequestOptions::BODY => $this->prepareRequestData(),
-                    RequestOptions::HEADERS => [
-                        'Content-Type' => 'application/json',
-                        'Accept' => 'application/json',
-                    ],
+                    RequestOptions::BODY    => $this->prepareRequestData(),
+                    RequestOptions::HEADERS => $this->buildHeaders(),
                 ]
             );
         } catch (GuzzleException $e) {
@@ -126,36 +96,35 @@ class Validator extends AbstractValidator
         }
 
         $raw = (string) $httpResponse->getBody();
-        $decodedBody = json_decode($raw, true);
+
+        try {
+            $decodedBody = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        } catch (Throwable $e) {
+            throw new ValidationException('iTunes server returned invalid JSON: ' . $e->getMessage());
+        }
+
         if (!is_array($decodedBody)) {
-            $jsonErr = function_exists('json_last_error_msg') ? json_last_error_msg() : 'Unknown JSON error';
-            throw new ValidationException('iTunes server returned invalid JSON: ' . $jsonErr);
+            throw new ValidationException('iTunes server returned an unexpected response structure.');
         }
 
-        $status = $decodedBody['status'] ?? APIError::VALID->value;
+        $status = (int) ($decodedBody['status'] ?? APIError::VALID->value);
 
-        // Production receipt accidentally sent to sandbox → retry on production (21008)
-        if (
-            $this->environment === Environment::SANDBOX &&
-            $status === APIError::PRODUCTION_RECEIPT_ON_SANDBOX->value
-        ) {
-            return $this->makeRequest(Environment::PRODUCTION);
-        }
-
-        // Sandbox receipt accidentally sent to production → retry on sandbox (21007)
-        if (
-            $this->environment === Environment::PRODUCTION &&
-            $status === APIError::SANDBOX_RECEIPT_ON_PRODUCTION->value
-        ) {
+        // Sandbox receipt was sent to production → retry on sandbox (21007)
+        if ($this->environment === Environment::PRODUCTION && $status === APIError::SANDBOX_RECEIPT_ON_PRODUCTION->value) {
             return $this->makeRequest(Environment::SANDBOX);
         }
 
-        // Non-success statuses (other than expired subscription, which is considered a valid outcome)
+        // Production receipt was sent to sandbox → retry on production (21008)
+        if ($this->environment === Environment::SANDBOX && $status === APIError::PRODUCTION_RECEIPT_ON_SANDBOX->value) {
+            return $this->makeRequest(Environment::PRODUCTION);
+        }
+
+        // Anything not VALID or SUBSCRIPTION_EXPIRED is an error
         if ($status !== APIError::VALID->value && $status !== APIError::SUBSCRIPTION_EXPIRED->value) {
-            $errorCase = APIError::tryFrom((int) $status);
+            $errorCase = APIError::tryFrom($status);
             $description = $errorCase ? $errorCase->message() : 'An unknown error occurred.';
-            $fullMessage = "iTunes API error [{$status}]: {$description}";
-            throw new ValidationException($fullMessage, (int) $status);
+            $fullMessage = "iTunes API error [$status]: $description";
+            throw new ValidationException($fullMessage, $status);
         }
 
         return new Response($decodedBody, $this->environment);
@@ -164,56 +133,58 @@ class Validator extends AbstractValidator
     /**
      * Prepare request data (JSON).
      *
-     * @return string
      * @throws ValidationException
      */
     protected function prepareRequestData(): string
     {
-        if (empty($this->receiptData)) {
+        if ($this->receiptData === null || $this->receiptData === '') {
             throw new ValidationException('Receipt data must be set before validation.');
         }
 
-        $request = [
+        $payload = [
             'receipt-data' => $this->receiptData,
         ];
 
-        if ($this->sharedSecret !== null) {
-            $request['password'] = $this->sharedSecret;
+        if ($this->sharedSecret !== null && $this->sharedSecret !== '') {
+            $payload['password'] = $this->sharedSecret;
         }
 
-        $data = json_encode($request);
-        if ($data === false) {
-            throw new ValidationException('Unable to encode data to iTunes server');
+        try {
+            return json_encode($payload, JSON_THROW_ON_ERROR);
+        } catch (Throwable $e) {
+            throw new ValidationException('Unable to encode request for iTunes server: ' . $e->getMessage());
         }
-
-        return $data;
     }
 
-    /**
-     * Get receipt data.
-     *
-     * @return string|null
-     */
     public function getReceiptData(): ?string
     {
         return $this->receiptData;
     }
 
     /**
-     * Set receipt data, either in base64 or as raw JSON (auto-encoded).
-     *
-     * @param string $receiptData
-     * @return $this
+     * Set receipt data, either in base64 or as raw JSON (auto-encodes JSON).
      */
     public function setReceiptData(string $receiptData = ''): self
     {
         $trimmed = ltrim($receiptData);
-        if ($trimmed !== '' && $trimmed[0] === '{') {
-            $this->receiptData = base64_encode($receiptData);
-        } else {
-            $this->receiptData = $receiptData;
-        }
+        // If it looks like raw JSON, base64-encode it to conform with Apple’s API
+        $this->receiptData = ($trimmed !== '' && $trimmed[0] === '{')
+            ? base64_encode($receiptData)
+            : $receiptData;
 
         return $this;
+    }
+
+    /**
+     * Build request headers.
+     *
+     * @return array<string,string>
+     */
+    private function buildHeaders(): array
+    {
+        return [
+            'Content-Type' => 'application/json',
+            'Accept'       => 'application/json',
+        ];
     }
 }

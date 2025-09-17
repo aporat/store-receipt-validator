@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\Tests\AppleAppStore;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Mockery;
 use Mockery\MockInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\AppleAppStore\APIError;
 use ReceiptValidator\AppleAppStore\Response;
@@ -13,11 +16,8 @@ use ReceiptValidator\AppleAppStore\Validator;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 
-/**
- * @group      apple-app-store
- * @coversDefaultClass \ReceiptValidator\AppleAppStore\Validator
- */
-class ValidatorTest extends TestCase
+#[CoversClass(Validator::class)]
+final class ValidatorTest extends TestCase
 {
     private Validator|MockInterface $validator;
     private Client|MockInterface $mockClient;
@@ -25,21 +25,24 @@ class ValidatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->mockClient = Mockery::mock(Client::class);
-        $signingKey = file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
 
-        // Use a partial mock to intercept the getClient method
-        $this->validator = Mockery::mock(Validator::class, [
+        $this->mockClient = Mockery::mock(Client::class);
+        $signingKey = (string) file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
+
+        // Partial mock so we can stub getClient() but keep real behavior otherwise
+        /** @var Validator|MockInterface $validator */
+        $validator = Mockery::mock(Validator::class, [
             $signingKey,
-            'ABC123XYZ',
-            'DEF456UVW',
-            'com.example',
-            Environment::SANDBOX
+            'ABC123XYZ',    // keyId
+            'DEF456UVW',    // issuerId
+            'com.example',  // bundleId
+            Environment::SANDBOX,
         ])->makePartial();
 
-        $this->validator->shouldReceive('__construct')->passthru();
-        $this->validator->shouldAllowMockingProtectedMethods();
-        $this->validator->shouldReceive('getClient')->andReturn($this->mockClient);
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($this->mockClient);
+
+        $this->validator = $validator;
     }
 
     protected function tearDown(): void
@@ -54,13 +57,14 @@ class ValidatorTest extends TestCase
      */
     public function testValidateReturnsResponse(): void
     {
-        $json = file_get_contents(__DIR__ . '/fixtures/transactionHistoryResponse.json');
+        $json = (string) file_get_contents(__DIR__ . '/fixtures/transactionHistoryResponse.json');
+
         $this->mockClient->shouldReceive('request')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], $json));
 
         $response = $this->validator->validate('abc123');
-        $this->assertInstanceOf(Response::class, $response);
+        self::assertInstanceOf(Response::class, $response);
     }
 
     /**
@@ -69,14 +73,15 @@ class ValidatorTest extends TestCase
      */
     public function testRequestTestNotificationReturnsToken(): void
     {
-        $mockResponseBody = json_encode(['testNotificationToken' => 'test-token-123']);
+        $mockResponseBody = json_encode(['testNotificationToken' => 'test-token-123'], JSON_THROW_ON_ERROR);
+
         $this->mockClient->shouldReceive('request')
             ->once()
             ->with('POST', '/inApps/v1/notifications/test', Mockery::any())
             ->andReturn(new GuzzleResponse(200, [], $mockResponseBody));
 
         $token = $this->validator->requestTestNotification();
-        $this->assertEquals('test-token-123', $token);
+        self::assertSame('test-token-123', $token);
     }
 
     /**
@@ -86,15 +91,15 @@ class ValidatorTest extends TestCase
     public function testValidateThrowsWithKnownErrorCode(): void
     {
         $json = json_encode([
-            'errorCode' => APIError::INVALID_TRANSACTION_ID->value,
-            'errorMessage' => 'Invalid transaction ID provided'
-        ]);
+            'errorCode'    => APIError::INVALID_TRANSACTION_ID->value,
+            'errorMessage' => 'Invalid transaction ID provided',
+        ], JSON_THROW_ON_ERROR);
+
         $this->mockClient->shouldReceive('request')
             ->once()
             ->andReturn(new GuzzleResponse(400, [], $json));
 
         $this->expectException(ValidationException::class);
-        // FIX: Use ->value to get the integer from the enum case
         $this->expectExceptionCode(APIError::INVALID_TRANSACTION_ID->value);
 
         $this->validator->validate('bad-id');
@@ -115,5 +120,49 @@ class ValidatorTest extends TestCase
         $this->expectExceptionMessage('App Store API error [401]: Unauthenticated');
 
         $this->validator->validate('fake-transaction-id');
+    }
+
+    /**
+     * @covers ::validate
+     * @covers ::makeRequest
+     */
+    public function testValidateHandles404NotFound(): void
+    {
+        $this->mockClient->shouldReceive('request')
+            ->once()
+            ->andReturn(new GuzzleResponse(404, [], ''));
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionCode(404);
+        $this->expectExceptionMessage('App Store API error [404]: Not Found');
+
+        $this->validator->validate('does-not-exist');
+    }
+
+    /**
+     * @covers ::validate
+     */
+    public function testValidateThrowsWhenTransactionIdMissing(): void
+    {
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Missing transaction ID for App Store Server API validation.');
+        // no setTransactionId() and no param
+        $this->validator->validate();
+    }
+
+    /**
+     * @covers ::makeRequest
+     */
+    public function testInvalidJsonBodyThrows(): void
+    {
+        // Return a 200 with invalid JSON -> should throw invalid format error
+        $this->mockClient->shouldReceive('request')
+            ->once()
+            ->andReturn(new GuzzleResponse(200, [], '{not-json'));
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Invalid response format from App Store Server API');
+
+        $this->validator->validate('abc123');
     }
 }

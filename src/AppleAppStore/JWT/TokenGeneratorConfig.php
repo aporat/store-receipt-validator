@@ -40,7 +40,7 @@ final readonly class TokenGeneratorConfig
     {
         $this->config = $config;
         $this->issuer = $issuer;
-        $this->clock = $clock;
+        $this->clock  = $clock;
     }
 
     /**
@@ -52,8 +52,9 @@ final readonly class TokenGeneratorConfig
      */
     public static function forAppStore(TokenIssuer $issuer, ?Clock $clock = null): self
     {
-        $config = Configuration::forSymmetricSigner(
+        $config = Configuration::forAsymmetricSigner(
             $issuer->signer(),
+            $issuer->key(),
             $issuer->key()
         );
 

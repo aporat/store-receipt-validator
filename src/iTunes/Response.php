@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\iTunes;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Carbon\CarbonImmutable;
 use ReceiptValidator\AbstractResponse;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
@@ -14,12 +17,12 @@ use ReceiptValidator\Exceptions\ValidationException;
  * transactions, and subscription information.
  *
  * @see https://developer.apple.com/documentation/appstorereceipts/responsebody
+ *
+ * @extends \ReceiptValidator\AbstractResponse<Transaction>
  */
 final class Response extends AbstractResponse
 {
-    /**
-     * The latest Base64 encoded receipt for a subscription.
-     */
+    /** The latest Base64 encoded receipt for a subscription. */
     public readonly ?string $latestReceipt;
 
     /**
@@ -36,39 +39,25 @@ final class Response extends AbstractResponse
      */
     public readonly array $pendingRenewalInfo;
 
-    /**
-     * The app's bundle identifier.
-     */
+    /** The app's bundle identifier. */
     public readonly ?string $bundleId;
 
-    /**
-     * The unique identifier for the app.
-     */
+    /** The unique identifier for the app. */
     public readonly ?string $appItemId;
 
-    /**
-     * The date of the original app purchase.
-     */
-    public readonly ?Carbon $originalPurchaseDate;
+    /** The date of the original app purchase. */
+    public readonly ?CarbonImmutable $originalPurchaseDate;
 
-    /**
-     * The date the validation request was sent.
-     */
-    public readonly ?Carbon $requestDate;
+    /** The date the validation request was sent. */
+    public readonly ?CarbonImmutable $requestDate;
 
-    /**
-     * The date the app receipt was created.
-     */
-    public readonly ?Carbon $receiptCreationDate;
+    /** The date the app receipt was created. */
+    public readonly ?CarbonImmutable $receiptCreationDate;
 
-    /**
-     * A flag indicating the request is retryable due to a temporary Apple server issue.
-     */
+    /** A flag indicating the request is retryable due to a temporary Apple server issue. */
     public readonly bool $isRetryable;
 
     /**
-     * Overridden constructor to initialize readonly properties before parsing.
-     *
      * @param array<string, mixed> $data
      * @param Environment $environment
      * @throws ValidationException
@@ -77,30 +66,46 @@ final class Response extends AbstractResponse
     {
         parent::__construct($data, $environment);
 
-        // Initialize all readonly properties from the data array.
-        $this->isRetryable = $data['is-retryable'] ?? false;
-        $this->latestReceipt = $data['latest_receipt'] ?? null;
+        // Top-level scalars
+        $this->isRetryable   = $this->toBool($data, 'is-retryable');
+        $this->latestReceipt = $this->toString($data, 'latest_receipt');
 
-        $receiptData = $data['receipt'] ?? [];
-        $this->appItemId = $receiptData['app_item_id'] ?? null;
-        $this->bundleId = $receiptData['bundle_id'] ?? $receiptData['bid'] ?? null;
-        $this->originalPurchaseDate = isset($receiptData['original_purchase_date_ms']) ? Carbon::createFromTimestampMs($receiptData['original_purchase_date_ms']) : null;
-        $this->requestDate = isset($receiptData['request_date_ms']) ? Carbon::createFromTimestampMs($receiptData['request_date_ms']) : null;
-        $this->receiptCreationDate = isset($receiptData['receipt_creation_date_ms']) ? Carbon::createFromTimestampMs($receiptData['receipt_creation_date_ms']) : null;
+        $receiptData = is_array($data['receipt'] ?? null) ? $data['receipt'] : [];
 
-        $this->latestReceiptInfo = isset($data['latest_receipt_info']) ? array_map(fn($d) => new Transaction($d), $data['latest_receipt_info']) : [];
-        $this->pendingRenewalInfo = isset($data['pending_renewal_info']) ? array_map(fn($d) => new RenewalInfo($d), $data['pending_renewal_info']) : [];
+        $this->appItemId = $this->toString($receiptData, 'app_item_id');
+        $this->bundleId  = $this->toString($receiptData, 'bundle_id') ?? $this->toString($receiptData, 'bid');
 
-        $receipt = $this->rawData['receipt'] ?? [];
+        // Dates (ms -> CarbonImmutable)
+        $this->originalPurchaseDate = $this->toDateFromMs($receiptData, 'original_purchase_date_ms');
+        $this->requestDate          = $this->toDateFromMs($receiptData, 'request_date_ms');
+        $this->receiptCreationDate  = $this->toDateFromMs($receiptData, 'receipt_creation_date_ms');
 
-        if (isset($receipt['in_app'])) {
-            foreach ($receipt['in_app'] as $transactionData) {
-                $this->transactions[] = new Transaction($transactionData);
+        $latestReceiptInfo = [];
+        if (isset($data['latest_receipt_info']) && is_array($data['latest_receipt_info'])) {
+            foreach ($data['latest_receipt_info'] as $d) {
+                $latestReceiptInfo[] = new Transaction((array) $d);
             }
-        } elseif (array_key_exists('product_id', $receipt)) {
-            // Handle legacy "iOS 6" style receipts where the transaction
-            // data is at the top level of the 'receipt' object.
-            $this->transactions[] = new Transaction($receipt);
+        }
+        $this->latestReceiptInfo = $latestReceiptInfo;
+
+        $pendingRenewalInfo = [];
+        if (isset($data['pending_renewal_info']) && is_array($data['pending_renewal_info'])) {
+            foreach ($data['pending_renewal_info'] as $d) {
+                $pendingRenewalInfo[] = new RenewalInfo((array) $d);
+            }
+        }
+        $this->pendingRenewalInfo = $pendingRenewalInfo;
+
+        // Transactions from receipt
+        $receipt = $this->getRawData()['receipt'] ?? [];
+
+        if (is_array($receipt) && isset($receipt['in_app']) && is_array($receipt['in_app'])) {
+            foreach ($receipt['in_app'] as $tx) {
+                $this->addTransaction(new Transaction((array) $tx));
+            }
+        } elseif (is_array($receipt) && array_key_exists('product_id', $receipt)) {
+            // Legacy iOS 6 style (single, top-level transaction)
+            $this->addTransaction(new Transaction($receipt));
         }
     }
 
@@ -108,23 +113,18 @@ final class Response extends AbstractResponse
     {
         return $this->isRetryable;
     }
-
     public function getLatestReceipt(): ?string
     {
         return $this->latestReceipt;
     }
 
-    /**
-     * @return Transaction[]
-     */
+    /** @return Transaction[] */
     public function getLatestReceiptInfo(): array
     {
         return $this->latestReceiptInfo;
     }
 
-    /**
-     * @return RenewalInfo[]
-     */
+    /** @return RenewalInfo[] */
     public function getPendingRenewalInfo(): array
     {
         return $this->pendingRenewalInfo;
@@ -134,23 +134,25 @@ final class Response extends AbstractResponse
     {
         return $this->bundleId;
     }
-
     public function getAppItemId(): ?string
     {
         return $this->appItemId;
     }
 
-    public function getOriginalPurchaseDate(): ?Carbon
+    /** @return CarbonInterface|null */
+    public function getOriginalPurchaseDate(): ?CarbonInterface
     {
         return $this->originalPurchaseDate;
     }
 
-    public function getRequestDate(): ?Carbon
+    /** @return CarbonInterface|null */
+    public function getRequestDate(): ?CarbonInterface
     {
         return $this->requestDate;
     }
 
-    public function getReceiptCreationDate(): ?Carbon
+    /** @return CarbonInterface|null */
+    public function getReceiptCreationDate(): ?CarbonInterface
     {
         return $this->receiptCreationDate;
     }

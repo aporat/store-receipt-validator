@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator;
 
 use InvalidArgumentException;
@@ -27,18 +29,16 @@ enum Environment: string
     case PRODUCTION = 'production';
 
     /**
-     * Creates an Environment case from a string value.
+     * Creates an Environment case from a case-insensitive string value.
      *
-     * This factory method allows for robust creation of an Environment instance
-     * from dynamic input, such as configuration files. It is case-insensitive.
-     *
-     * @param string $value The string representation of the environment (e.g., 'sandbox' or 'production').
-     * @return self The corresponding Environment case.
-     * @throws InvalidArgumentException If the provided string is not a valid environment.
+     * @throws InvalidArgumentException
      */
     public static function fromString(string $value): self
     {
-        return self::tryFrom(strtolower($value))
-            ?? throw new InvalidArgumentException("Invalid environment: $value");
+        return match (strtolower(trim($value))) {
+            'sandbox'          => self::SANDBOX,
+            'production', 'prod' => self::PRODUCTION,
+            default              => throw new InvalidArgumentException("Invalid environment: {$value}"),
+        };
     }
 }

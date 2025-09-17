@@ -13,94 +13,90 @@ namespace ReceiptValidator\AppleAppStore;
 enum ServerNotificationSubtype: string
 {
     // --- Purchase & Subscription Changes ---
-
-    /**
-     * A new subscription purchase.
-     */
-    case INITIAL_BUY = 'INITIAL_BUY';
-
-    /**
-     * A customer resubscribed to a product they were previously subscribed to.
-     */
-    case RESUBSCRIBE = 'RESUBSCRIBE';
-
-    /**
-     * A subscription plan change to a lower level of service.
-     */
-    case DOWNGRADE = 'DOWNGRADE';
-
-    /**
-     * A subscription plan change to a higher level of service.
-     */
-    case UPGRADE = 'UPGRADE';
-
-    /**
-     * A customer enabled auto-renew for a subscription.
-     */
+    case INITIAL_BUY        = 'INITIAL_BUY';
+    case RESUBSCRIBE        = 'RESUBSCRIBE';
+    case DOWNGRADE          = 'DOWNGRADE';
+    case UPGRADE            = 'UPGRADE';
     case AUTO_RENEW_ENABLED = 'AUTO_RENEW_ENABLED';
-
-    /**
-     * A customer disabled auto-renew for a subscription.
-     */
     case AUTO_RENEW_DISABLED = 'AUTO_RENEW_DISABLED';
-
-    /**
-     * The customer voluntarily cancelled a subscription.
-     */
-    case VOLUNTARY = 'VOLUNTARY';
-
-    /**
-     * A notification with a summary of refunded transactions.
-     */
-    case SUMMARY = 'SUMMARY';
+    case VOLUNTARY          = 'VOLUNTARY';
+    case SUMMARY            = 'SUMMARY';
 
     // --- Billing & Renewal Issues ---
-
-    /**
-     * A subscription failed to renew due to a billing issue.
-     */
-    case BILLING_RETRY = 'BILLING_RETRY';
-
-    /**
-     * The subscription entered a grace period due to a billing issue.
-     */
-    case GRACE_PERIOD = 'GRACE_PERIOD';
-
-    /**
-     * A subscription renewal was recovered after a billing issue.
-     */
-    case BILLING_RECOVERY = 'BILLING_RECOVERY';
-
-    /**
-     * A billing error occurred, such as the product not being for sale.
-     */
+    case BILLING_RETRY      = 'BILLING_RETRY';
+    case GRACE_PERIOD       = 'GRACE_PERIOD';
+    case BILLING_RECOVERY   = 'BILLING_RECOVERY';
     case PRODUCT_NOT_FOR_SALE = 'PRODUCT_NOT_FOR_SALE';
 
     // --- Price Increases ---
-
-    /**
-     * A subscription price increase that the customer has not yet consented to.
-     */
-    case PENDING = 'PENDING';
-
-    /**
-     * A customer consented to a subscription price increase.
-     */
-    case ACCEPTED = 'ACCEPTED';
-
-    /**
-     * A subscription price increase occurred.
-     */
-    case PRICE_INCREASE = 'PRICE_INCREASE';
+    case PENDING            = 'PENDING';
+    case ACCEPTED           = 'ACCEPTED';
+    case PRICE_INCREASE     = 'PRICE_INCREASE';
 
     // --- Refund Reversals ---
-    /**
-     * A refund reversal event has failed.
-     */
-    case FAILURE = 'FAILURE';
+    case FAILURE            = 'FAILURE';
+    case UNREPORTED         = 'UNREPORTED';
+
+    // --- Fallback ---
+    case UNKNOWN            = 'UNKNOWN';
 
     /**
-     * A refund reversal event was not reported.
+     * Safer parser that defaults to UNKNOWN for unexpected subtypes.
      */
-    case UNREPORTED = 'UNREPORTED';
+    public static function fromString(string $value): self
+    {
+        return self::tryFrom($value) ?? self::UNKNOWN;
+    }
+
+    /**
+     * Check if subtype is related to subscription lifecycle changes.
+     */
+    public function isSubscriptionChange(): bool
+    {
+        return in_array($this, [
+            self::INITIAL_BUY,
+            self::RESUBSCRIBE,
+            self::DOWNGRADE,
+            self::UPGRADE,
+            self::AUTO_RENEW_ENABLED,
+            self::AUTO_RENEW_DISABLED,
+            self::VOLUNTARY,
+        ], true);
+    }
+
+    /**
+     * Check if subtype is billing or renewal related.
+     */
+    public function isBillingRelated(): bool
+    {
+        return in_array($this, [
+            self::BILLING_RETRY,
+            self::GRACE_PERIOD,
+            self::BILLING_RECOVERY,
+            self::PRODUCT_NOT_FOR_SALE,
+        ], true);
+    }
+
+    /**
+     * Check if subtype is about price changes.
+     */
+    public function isPriceChange(): bool
+    {
+        return in_array($this, [
+            self::PENDING,
+            self::ACCEPTED,
+            self::PRICE_INCREASE,
+        ], true);
+    }
+
+    /**
+     * Check if subtype is refund reversal related.
+     */
+    public function isRefundReversal(): bool
+    {
+        return in_array($this, [
+            self::FAILURE,
+            self::UNREPORTED,
+        ], true);
+    }
 }

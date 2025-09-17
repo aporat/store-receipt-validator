@@ -24,7 +24,7 @@ final class TokenGenerator
     /**
      * The default expiration time for generated tokens, in minutes.
      */
-    public const int EXPIRATION_MINUTES = 60;
+    public const int EXPIRATION_MINUTES = 20;
 
     /**
      * The configuration for generating the token.
@@ -62,6 +62,7 @@ final class TokenGenerator
                 ->withHeader('kid', $issuer->key()->kid())
                 ->issuedBy($issuer->id())
                 ->issuedAt($now)
+                ->canOnlyBeUsedAfter($now)
                 ->expiresAt($now->modify('+' . self::EXPIRATION_MINUTES . ' minutes'))
                 ->permittedFor(self::AUDIENCE)
                 ->withClaim('bid', $issuer->bundle())

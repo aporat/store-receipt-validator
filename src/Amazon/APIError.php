@@ -40,15 +40,28 @@ enum APIError: string
 
     /**
      * Returns a human-readable description for the error case.
+     *
+     * @return string
      */
     public function message(): string
     {
         return match ($this) {
-            self::INVALID_RECEIPT_ID => 'The receipt ID is not valid.',
-            self::INVALID_USER_ID => 'The user ID is not valid.',
+            self::INVALID_RECEIPT_ID       => 'The receipt ID is not valid.',
+            self::INVALID_USER_ID          => 'The user ID is not valid.',
             self::INVALID_DEVELOPER_SECRET => 'The developer secret is not valid.',
-            self::INVALID_JSON => 'The request JSON was malformed.',
-            self::INTERNAL_ERROR => 'An unknown error occurred on the Amazon server.',
+            self::INVALID_JSON             => 'The request JSON was malformed.',
+            self::INTERNAL_ERROR           => 'An unknown error occurred on the Amazon server.',
         };
+    }
+
+    /**
+     * Safely creates an APIError case from a string, or null if unknown.
+     *
+     * @param string $value
+     * @return self|null
+     */
+    public static function fromString(string $value): ?self
+    {
+        return self::tryFrom($value);
     }
 }

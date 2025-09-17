@@ -1,50 +1,47 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\Tests;
 
+use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Environment;
-use InvalidArgumentException;
 
-/**
- * @coversDefaultClass \ReceiptValidator\Environment
- */
-class EnvironmentTest extends TestCase
+#[CoversClass(Environment::class)]
+final class EnvironmentTest extends TestCase
 {
-    /**
-     * @covers ::fromString
-     */
-    public function test_from_string_returns_sandbox(): void
+    #[Test]
+    public function from_string_returns_correct_enum_case(): void
     {
-        $this->assertSame(Environment::SANDBOX, Environment::fromString('sandbox'));
-        $this->assertSame(Environment::SANDBOX, Environment::fromString('SANDBOX'));
+        $cases = [
+            'sandbox'    => Environment::SANDBOX,
+            'SANDBOX'    => Environment::SANDBOX,
+            'production' => Environment::PRODUCTION,
+            'PRODUCTION' => Environment::PRODUCTION,
+        ];
+
+        foreach ($cases as $value => $expected) {
+            self::assertSame($expected, Environment::fromString($value));
+        }
     }
 
-    /**
-     * @covers ::fromString
-     */
-    public function test_from_string_returns_production(): void
-    {
-        $this->assertSame(Environment::PRODUCTION, Environment::fromString('production'));
-        $this->assertSame(Environment::PRODUCTION, Environment::fromString('PRODUCTION'));
-    }
-
-    /**
-     * @covers ::fromString
-     */
-    public function test_from_string_throws_exception_on_invalid_value(): void
+    #[Test]
+    public function from_string_throws_exception_on_invalid_value(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid environment: dev');
+
         Environment::fromString('dev');
     }
 
-    /**
-     * @coversNothing
-     */
-    public function testEnumValuesAreCorrect(): void
+    #[Test]
+    public function enum_values_are_correct(): void
     {
-        $this->assertSame('sandbox', Environment::SANDBOX->value);
-        $this->assertSame('production', Environment::PRODUCTION->value);
+        self::assertSame('sandbox', Environment::SANDBOX->value);
+        self::assertSame('production', Environment::PRODUCTION->value);
     }
 }

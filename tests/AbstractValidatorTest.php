@@ -10,8 +10,8 @@ use ReceiptValidator\Environment;
 
 final class AbstractValidatorTest extends TestCase
 {
-    private const string PROD = 'https://api.example.com';
-    private const string SANDBOX = 'https://sandbox.example.com';
+    private const PROD    = 'https://api.example.com';
+    private const SANDBOX = 'https://sandbox.example.com';
 
     private function newValidator(): TestableValidator
     {
@@ -38,10 +38,7 @@ final class AbstractValidatorTest extends TestCase
         $c1 = $v->clientFor(self::PROD);
         $c2 = $v->clientFor(self::PROD);
 
-        // Same instance when base URI is unchanged
         $this->assertSame($c1, $c2);
-
-        // Class should remember the latest base URI we asked for
         $this->assertSame(self::PROD, $v->getBaseUri());
     }
 
@@ -52,10 +49,7 @@ final class AbstractValidatorTest extends TestCase
         $c1 = $v->clientFor(self::PROD);
         $c2 = $v->clientFor(self::SANDBOX);
 
-        // Different instance when base URI changes
         $this->assertNotSame($c1, $c2);
-
-        // Base URI tracked on the validator should reflect the last call
         $this->assertSame(self::SANDBOX, $v->getBaseUri());
     }
 
@@ -66,14 +60,22 @@ final class AbstractValidatorTest extends TestCase
         $injected = new HttpClient(['base_uri' => self::PROD]);
         $v->setHttpClient($injected, self::PROD);
 
-        // Uses the injected client while base URI matches
         $c1 = $v->clientFor(self::PROD);
         $this->assertSame($injected, $c1);
 
-        // Switching base URI should drop the injected client and build a new one
         $c2 = $v->clientFor(self::SANDBOX);
         $this->assertNotSame($injected, $c2);
         $this->assertSame(self::SANDBOX, $v->getBaseUri());
+    }
+
+    public function testEndpointForEnvironmentResolvesFromMap(): void
+    {
+        $v = $this->newValidator();
+
+        $this->assertSame(self::PROD, $v->exposeEndpointForEnvironment());
+
+        $v->setEnvironment(Environment::SANDBOX);
+        $this->assertSame(self::SANDBOX, $v->exposeEndpointForEnvironment());
     }
 }
 
@@ -82,6 +84,9 @@ final class AbstractValidatorTest extends TestCase
  */
 final class TestableValidator extends AbstractValidator
 {
+    private const string PROD    = 'https://api.example.com';
+    private const string SANDBOX = 'https://sandbox.example.com';
+
     public function validate(): string
     {
         return 'ok';
@@ -90,5 +95,19 @@ final class TestableValidator extends AbstractValidator
     public function clientFor(string $baseUri): HttpClient
     {
         return $this->getClient($baseUri);
+    }
+
+    public function exposeEndpointForEnvironment(): string
+    {
+        return $this->endpointForEnvironment();
+    }
+
+    /** @return array{production:string,sandbox:string} */
+    protected function endpointMap(): array
+    {
+        return [
+            Environment::PRODUCTION->value => self::PROD,
+            Environment::SANDBOX->value    => self::SANDBOX,
+        ];
     }
 }

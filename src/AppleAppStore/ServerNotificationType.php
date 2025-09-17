@@ -2,11 +2,10 @@
 
 namespace ReceiptValidator\AppleAppStore;
 
+use ReceiptValidator\Exceptions\ValidationException;
+
 /**
  * Represents notification types for App Store Server Notifications V2.
- *
- * This enum provides a type-safe way to handle all possible notification
- * events sent by Apple's servers.
  *
  * @see https://developer.apple.com/documentation/appstoreservernotifications/notificationtype
  */
@@ -14,107 +13,93 @@ enum ServerNotificationType: string
 {
     // --- Subscription Lifecycle Events ---
 
-    /**
-     * A notification that indicates a customer subscribed to a product.
-     */
-    case SUBSCRIBED = 'SUBSCRIBED';
-
-    /**
-     * A notification that indicates a successful auto-renewal of a subscription.
-     */
-    case DID_RENEW = 'DID_RENEW';
-
-    /**
-     * A notification that indicates a change in the subscription renewal preference.
-     */
-    case DID_CHANGE_RENEWAL_PREF = 'DID_CHANGE_RENEWAL_PREF';
-
-    /**
-     * A notification that indicates a change in the subscription renewal status.
-     */
+    case SUBSCRIBED               = 'SUBSCRIBED';
+    case DID_RENEW                = 'DID_RENEW';
+    case DID_CHANGE_RENEWAL_PREF  = 'DID_CHANGE_RENEWAL_PREF';
     case DID_CHANGE_RENEWAL_STATUS = 'DID_CHANGE_RENEWAL_STATUS';
+    case EXPIRED                  = 'EXPIRED';
+    case DID_FAIL_TO_RENEW        = 'DID_FAIL_TO_RENEW';
+    case GRACE_PERIOD_EXPIRED     = 'GRACE_PERIOD_EXPIRED';
+    case RENEWAL_EXTENDED         = 'RENEWAL_EXTENDED';
 
-    /**
-     * A notification that indicates a subscription has expired.
-     */
-    case EXPIRED = 'EXPIRED';
-
-    /**
-     * A notification that indicates a subscription failed to renew due to a billing issue.
-     */
-    case DID_FAIL_TO_RENEW = 'DID_FAIL_TO_RENEW';
-
-    /**
-     * A notification that indicates the grace period for a subscription has ended without a renewal.
-     */
-    case GRACE_PERIOD_EXPIRED = 'GRACE_PERIOD_EXPIRED';
-
-    /**
-     * A notification that indicates a subscription renewal was extended by the developer.
-     */
-    case RENEWAL_EXTENDED = 'RENEWAL_EXTENDED';
-
-    /**
-     * A notification that indicates a renewal extension was applied in bulk.
-     * @deprecated Replaced by RENEWAL_EXTENDED.
-     */
-    case RENEWAL_EXTENSION = 'RENEWAL_EXTENSION';
+    case RENEWAL_EXTENSION        = 'RENEWAL_EXTENSION';
 
     // --- Offer and Price Change Events ---
 
-    /**
-     * A notification that indicates a customer redeemed a promotional offer.
-     */
-    case OFFER_REDEEMED = 'OFFER_REDEEMED';
-
-    /**
-     * A notification that indicates a subscription price increase that requires customer consent.
-     */
-    case PRICE_INCREASE = 'PRICE_INCREASE';
+    case OFFER_REDEEMED           = 'OFFER_REDEEMED';
+    case PRICE_INCREASE           = 'PRICE_INCREASE';
 
     // --- Refund and Revocation Events ---
 
-    /**
-     * A notification that indicates the App Store refunded a transaction.
-     */
-    case REFUND = 'REFUND';
-
-    /**
-     * A notification that indicates the App Store declined a refund request.
-     */
-    case REFUND_DECLINED = 'REFUND_DECLINED';
-
-    /**
-     * A notification that indicates a refund was reversed due to a dispute.
-     */
-    case REFUND_REVERSED = 'REFUND_REVERSED';
-
-    /**
-     * A notification that indicates Apple Support revoked access to a subscription.
-     */
-    case REVOKE = 'REVOKE';
+    case REFUND                   = 'REFUND';
+    case REFUND_DECLINED          = 'REFUND_DECLINED';
+    case REFUND_REVERSED          = 'REFUND_REVERSED';
+    case REVOKE                   = 'REVOKE';
 
     // --- Consumable and Other Purchase Events ---
 
-    /**
-     * A notification sent when a customer requests consumption data for a consumable in-app purchase.
-     */
-    case CONSUMPTION_REQUEST = 'CONSUMPTION_REQUEST';
-
-    /**
-     * A notification for a one-time charge purchase event.
-     */
-    case ONE_TIME_CHARGE = 'ONE_TIME_CHARGE';
-
-    /**
-     * A notification related to an external purchase token.
-     */
-    case EXTERNAL_PURCHASE_TOKEN = 'EXTERNAL_PURCHASE_TOKEN';
+    case CONSUMPTION_REQUEST      = 'CONSUMPTION_REQUEST';
+    case ONE_TIME_CHARGE          = 'ONE_TIME_CHARGE';
+    case EXTERNAL_PURCHASE_TOKEN  = 'EXTERNAL_PURCHASE_TOKEN';
 
     // --- Testing ---
 
+    case TEST                     = 'TEST';
+
+    // --- Fallback ---
+
     /**
-     * A notification sent when a test notification is requested from the App Store Server API.
+     * Represents an unknown or future notification type not yet handled by this library.
      */
-    case TEST = 'TEST';
+    case UNKNOWN                  = 'UNKNOWN';
+
+    /**
+     * Safer version of from() that falls back to UNKNOWN on unknown values.
+     */
+    public static function fromString(string $value): self
+    {
+        return self::tryFrom($value) ?? self::UNKNOWN;
+    }
+
+    /**
+     * Whether this notification relates to subscription lifecycle events.
+     */
+    public function isSubscriptionLifecycle(): bool
+    {
+        return in_array($this, [
+            self::SUBSCRIBED,
+            self::DID_RENEW,
+            self::DID_CHANGE_RENEWAL_PREF,
+            self::DID_CHANGE_RENEWAL_STATUS,
+            self::EXPIRED,
+            self::DID_FAIL_TO_RENEW,
+            self::GRACE_PERIOD_EXPIRED,
+            self::RENEWAL_EXTENDED,
+            self::RENEWAL_EXTENSION,
+        ], true);
+    }
+
+    /**
+     * Whether this notification relates to a refund or revocation event.
+     */
+    public function isRefundRelated(): bool
+    {
+        return in_array($this, [
+            self::REFUND,
+            self::REFUND_DECLINED,
+            self::REFUND_REVERSED,
+            self::REVOKE,
+        ], true);
+    }
+
+    /**
+     * Whether this notification relates to offers or price events.
+     */
+    public function isOfferOrPriceEvent(): bool
+    {
+        return in_array($this, [
+            self::OFFER_REDEEMED,
+            self::PRICE_INCREASE,
+        ], true);
+    }
 }

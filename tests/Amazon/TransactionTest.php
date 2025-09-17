@@ -2,65 +2,104 @@
 
 namespace ReceiptValidator\Tests\Amazon;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Transaction;
 
 /**
- * @group      amazon
- * @coversDefaultClass \ReceiptValidator\Amazon\Transaction
+ * @group amazon
  */
-class TransactionTest extends TestCase
+#[CoversClass(Transaction::class)]
+final class TransactionTest extends TestCase
 {
-    /**
-     * Verifies that all getters return the correct data from a valid, fully populated
-     * transaction payload.
-     *
-     * @covers ::__construct
-     */
-    public function testParsesFullyPopulatedData(): void
+    #[DataProvider('transactionDataProvider')]
+    public function testTransactionIsCreatedCorrectly(array $rawData, array $expected): void
     {
-        $data = [
-            'productId' => 'com.amazon.sample',
-            'receiptId' => 'txn123',
-            'quantity' => 1,
-            'purchaseDate' => 1609459200000,
-            'cancelDate' => 1612137600000,
-            'renewalDate' => 1614748800000,
-            'GracePeriodEndDate' => 1614840000000,
-            'freeTrialEndDate' => 1614930000000,
-            'AutoRenewing' => true,
-            'term' => '1 Month',
-            'termSku' => 'sub1-monthly',
-        ];
+        $t = new Transaction($rawData);
 
-        $item = new Transaction($data);
+        // Parent props
+        self::assertSame($expected['quantity'], $t->getQuantity());
+        self::assertSame($expected['productId'], $t->getProductId());
+        self::assertSame($expected['transactionId'], $t->getTransactionId());
+        self::assertSame($expected['autoRenewing'], $t->isAutoRenewing());
+        self::assertSame($expected['term'], $t->getTerm());
+        self::assertSame($expected['termSku'], $t->getTermSku());
 
-        $this->assertEquals(1, $item->getQuantity());
-        $this->assertEquals('com.amazon.sample', $item->getProductId());
-        $this->assertEquals('txn123', $item->getTransactionId());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1609459200), $item->getPurchaseDate());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1612137600), $item->getCancellationDate());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1614748800), $item->getRenewalDate());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1614840000), $item->getGracePeriodEndDate());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1614930000), $item->getFreeTrialEndDate());
-        $this->assertTrue($item->isAutoRenewing());
-        $this->assertEquals('1 Month', $item->getTerm());
-        $this->assertEquals('sub1-monthly', $item->getTermSku());
+        // Dates — compare by millisecond epoch (exact), or null
+        self::assertCarbonMsOrNull($expected['purchaseDateMs'] ?? null, $t->getPurchaseDate());
+        self::assertCarbonMsOrNull($expected['cancelDateMs'] ?? null, $t->getCancellationDate());
+        self::assertCarbonMsOrNull($expected['renewalDateMs'] ?? null, $t->getRenewalDate());
+        self::assertCarbonMsOrNull($expected['graceEndMs'] ?? null, $t->getGracePeriodEndDate());
+        self::assertCarbonMsOrNull($expected['trialEndMs'] ?? null, $t->getFreeTrialEndDate());
     }
 
     /**
-     * Verifies that creating a transaction with an empty data array is a valid
-     * state and populates properties with their expected default values.
-     *
-     * @covers ::__construct
+     * Assert a Carbon date has the exact expected millisecond epoch, or both are null.
      */
-    public function testEmptyDataIsValid(): void
+    private static function assertCarbonMsOrNull(?int $expectedMs, ?CarbonInterface $actual): void
     {
-        $item = new Transaction([]);
+        if ($expectedMs === null) {
+            self::assertNull($actual);
+            return;
+        }
 
-        $this->assertNull($item->getProductId());
-        $this->assertNull($item->getTransactionId());
-        $this->assertEquals(1, $item->getQuantity(), 'Quantity should default to 1 for Amazon transactions');
+        self::assertInstanceOf(CarbonInterface::class, $actual);
+        // Normalize to int to avoid float/int mismatches from valueOf()
+        $actualMs = (int) round($actual->valueOf());
+        self::assertSame($expectedMs, $actualMs);
+    }
+
+    public static function transactionDataProvider(): array
+    {
+        $baseMs = 1609459200000; // 2021-01-01T00:00:00Z in ms
+
+        return [
+            'fully_populated_data' => [
+                'rawData' => [
+                    'productId'          => 'com.amazon.sample',
+                    'receiptId'          => 'txn123',
+                    'quantity'           => 1,
+                    'purchaseDate'       => $baseMs,
+                    'cancelDate'         => $baseMs + 2678400000,
+                    'renewalDate'        => $baseMs + 5284800000,
+                    'GracePeriodEndDate' => $baseMs + 5376000000,
+                    'freeTrialEndDate'   => $baseMs + 5466000000,
+                    'AutoRenewing'       => true,
+                    'term'               => '1 Month',
+                    'termSku'            => 'sub1-monthly',
+                ],
+                'expected' => [
+                    'quantity'       => 1,
+                    'productId'      => 'com.amazon.sample',
+                    'transactionId'  => 'txn123',
+                    'autoRenewing'   => true,
+                    'term'           => '1 Month',
+                    'termSku'        => 'sub1-monthly',
+                    'purchaseDateMs' => $baseMs,
+                    'cancelDateMs'   => $baseMs + 2678400000,
+                    'renewalDateMs'  => $baseMs + 5284800000,
+                    'graceEndMs'     => $baseMs + 5376000000,
+                    'trialEndMs'     => $baseMs + 5466000000,
+                ],
+            ],
+            'empty_data' => [
+                'rawData' => [],
+                'expected' => [
+                    'quantity'       => 1,
+                    'productId'      => null,
+                    'transactionId'  => null,
+                    'autoRenewing'   => false, // default(false) from helper
+                    'term'           => null,
+                    'termSku'        => null,
+                    'purchaseDateMs' => null,
+                    'cancelDateMs'   => null,
+                    'renewalDateMs'  => null,
+                    'graceEndMs'     => null,
+                    'trialEndMs'     => null,
+                ],
+            ],
+        ];
     }
 }

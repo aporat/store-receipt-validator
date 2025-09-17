@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\Amazon;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use ReceiptValidator\AbstractTransaction;
 
 /**
@@ -11,133 +14,84 @@ use ReceiptValidator\AbstractTransaction;
  * This immutable data object provides structured access to the properties of a
  * single purchase, parsed from the Amazon RVS response.
  */
-final class Transaction extends AbstractTransaction
+final readonly class Transaction extends AbstractTransaction
 {
-    /**
-     * The date the purchase was initiated.
-     */
-    public readonly ?Carbon $purchaseDate;
+    /** The date the purchase was initiated. */
+    public ?CarbonImmutable $purchaseDate;
+
+    /** The date the subscription or entitlement was cancelled. */
+    public ?CarbonImmutable $cancellationDate;
+
+    /** The date a subscription is scheduled to renew. */
+    public ?CarbonImmutable $renewalDate;
+
+    /** The end date of a grace period for a subscription. */
+    public ?CarbonImmutable $gracePeriodEndDate;
+
+    /** The end date of a free trial period. */
+    public ?CarbonImmutable $freeTrialEndDate;
+
+    /** The auto-renewal status of a subscription. */
+    public bool $autoRenewing;
+
+    /** The duration of the subscription term. */
+    public ?string $term;
+
+    /** The SKU for the subscription term. */
+    public ?string $termSku;
 
     /**
-     * The date the subscription or entitlement was cancelled.
-     */
-    public readonly ?Carbon $cancellationDate;
-
-    /**
-     * The date a subscription is scheduled to renew.
-     */
-    public readonly ?Carbon $renewalDate;
-
-    /**
-     * The end date of a grace period for a subscription.
-     */
-    public readonly ?Carbon $gracePeriodEndDate;
-
-    /**
-     * The end date of a free trial period.
-     */
-    public readonly ?Carbon $freeTrialEndDate;
-
-    /**
-     * The auto-renewal status of a subscription.
-     */
-    public readonly ?bool $autoRenewing;
-
-    /**
-     * The duration of the subscription term.
-     */
-    public readonly ?string $term;
-
-    /**
-     * The SKU for the subscription term.
-     */
-    public readonly ?string $termSku;
-
-    /**
-     * Constructs the Transaction object and initializes its state.
-     *
      * @param array<string, mixed> $data The raw data for a single transaction.
      */
     public function __construct(array $data = [])
     {
-        parent::__construct($data);
+        parent::__construct(
+            rawData: $data,
+            quantity: $this->toInt($data, 'quantity') ?? 1,
+            productId: $this->toString($data, 'productId'),
+            transactionId: $this->toString($data, 'receiptId'),
+        );
 
-        // Initialize parent's readonly properties by mapping Amazon-specific fields.
-        $this->quantity = (int) ($data['quantity'] ?? 1);
-        $this->productId = $data['productId'] ?? null;
-        $this->transactionId = $data['receiptId'] ?? null;
+        $this->autoRenewing = $this->toBool($data, 'AutoRenewing');
+        $this->term         = $this->toString($data, 'term');
+        $this->termSku      = $this->toString($data, 'termSku');
 
-        // Initialize properties specific to this transaction type.
-        $this->autoRenewing = isset($data['AutoRenewing']) ? (bool) $data['AutoRenewing'] : null;
-        $this->term = $data['term'] ?? null;
-        $this->termSku = $data['termSku'] ?? null;
-
-        if (!empty($data['purchaseDate'])) {
-            $this->purchaseDate = Carbon::createFromTimestampMs($data['purchaseDate']);
-        } else {
-            $this->purchaseDate = null;
-        }
-
-        if (!empty($data['cancelDate'])) {
-            $this->cancellationDate = Carbon::createFromTimestampMs($data['cancelDate']);
-        } else {
-            $this->cancellationDate = null;
-        }
-
-        if (!empty($data['renewalDate'])) {
-            $this->renewalDate = Carbon::createFromTimestampMs($data['renewalDate']);
-        } else {
-            $this->renewalDate = null;
-        }
-
-        if (!empty($data['GracePeriodEndDate'])) {
-            $this->gracePeriodEndDate = Carbon::createFromTimestampMs($data['GracePeriodEndDate']);
-        } else {
-            $this->gracePeriodEndDate = null;
-        }
-
-        if (!empty($data['freeTrialEndDate'])) {
-            $this->freeTrialEndDate = Carbon::createFromTimestampMs($data['freeTrialEndDate']);
-        } else {
-            $this->freeTrialEndDate = null;
-        }
+        $this->purchaseDate       = $this->toDateFromMs($data, 'purchaseDate');
+        $this->cancellationDate   = $this->toDateFromMs($data, 'cancelDate');
+        $this->renewalDate        = $this->toDateFromMs($data, 'renewalDate');
+        $this->gracePeriodEndDate = $this->toDateFromMs($data, 'GracePeriodEndDate');
+        $this->freeTrialEndDate   = $this->toDateFromMs($data, 'freeTrialEndDate');
     }
 
-    public function getPurchaseDate(): ?Carbon
+    public function getPurchaseDate(): ?CarbonInterface
     {
         return $this->purchaseDate;
     }
-
-    public function getCancellationDate(): ?Carbon
+    public function getCancellationDate(): ?CarbonInterface
     {
         return $this->cancellationDate;
     }
-
-    public function getRenewalDate(): ?Carbon
+    public function getRenewalDate(): ?CarbonInterface
     {
         return $this->renewalDate;
     }
-
-    public function getGracePeriodEndDate(): ?Carbon
+    public function getGracePeriodEndDate(): ?CarbonInterface
     {
         return $this->gracePeriodEndDate;
     }
-
-    public function getFreeTrialEndDate(): ?Carbon
+    public function getFreeTrialEndDate(): ?CarbonInterface
     {
         return $this->freeTrialEndDate;
     }
 
-    public function isAutoRenewing(): ?bool
+    public function isAutoRenewing(): bool
     {
         return $this->autoRenewing;
     }
-
     public function getTerm(): ?string
     {
         return $this->term;
     }
-
     public function getTermSku(): ?string
     {
         return $this->termSku;

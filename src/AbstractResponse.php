@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator;
 
-use ReceiptValidator\Exceptions\ValidationException;
+use ReceiptValidator\Support\ValueCasting;
 
 /**
  * Provides a base structure for API responses from different app stores.
@@ -10,13 +12,17 @@ use ReceiptValidator\Exceptions\ValidationException;
  * This abstract class standardizes how raw response data is parsed and accessed,
  * ensuring that all concrete response implementations offer a consistent interface.
  * Response objects are designed to be immutable after creation.
+ *
+ * @template T of AbstractTransaction
  */
 abstract class AbstractResponse
 {
+    use ValueCasting;
+
     /**
      * A collection of transaction objects parsed from the response.
      *
-     * @var array<AbstractTransaction>
+     * @var array<T>
      */
     protected array $transactions = [];
 
@@ -33,12 +39,10 @@ abstract class AbstractResponse
     protected readonly Environment $environment;
 
     /**
-     * Constructs the response object and triggers parsing.
+     * Constructs the response object.
      *
      * @param array<string, mixed> $data The raw decoded JSON data from the API response.
-     * @param Environment $environment The environment used for the validation request.
-     *
-     * @throws ValidationException If parsing the raw data fails.
+     * @param Environment $environment   The environment used for the validation request.
      */
     public function __construct(array $data = [], Environment $environment = Environment::PRODUCTION)
     {
@@ -49,9 +53,9 @@ abstract class AbstractResponse
     /**
      * Returns the parsed transaction objects.
      *
-     * @return array<AbstractTransaction> An array of transaction objects.
+     * @return array<T> An array of transaction objects.
      */
-    public function getTransactions(): array
+    final public function getTransactions(): array
     {
         return $this->transactions;
     }
@@ -61,7 +65,7 @@ abstract class AbstractResponse
      *
      * @return array<string, mixed> The raw data from the API.
      */
-    public function getRawData(): array
+    final public function getRawData(): array
     {
         return $this->rawData;
     }
@@ -69,8 +73,39 @@ abstract class AbstractResponse
     /**
      * Returns the environment used for the validation request.
      */
-    public function getEnvironment(): Environment
+    final public function getEnvironment(): Environment
     {
         return $this->environment;
+    }
+
+    /**
+     * Convenience: first transaction if present.
+     *
+     * @return T|null
+     */
+    final public function getFirstTransaction(): ?AbstractTransaction
+    {
+        /** @var T|null */
+        return $this->transactions[0] ?? null;
+    }
+
+    /**
+     * Protected helper to add a single transaction during construction.
+     *
+     * @param T $tx
+     */
+    final protected function addTransaction(AbstractTransaction $tx): void
+    {
+        $this->transactions[] = $tx;
+    }
+
+    /**
+     * Protected helper to set transactions in bulk during construction.
+     *
+     * @param array<T> $txs
+     */
+    final protected function setTransactions(array $txs): void
+    {
+        $this->transactions = $txs;
     }
 }
