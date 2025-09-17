@@ -95,25 +95,41 @@ foreach ($response->getTransactions() as $transaction) {
 use ReceiptValidator\Environment;
 use ReceiptValidator\iTunes\Validator as iTunesValidator;
 
-$validator = new iTunesValidator(Environment::PRODUCTION);
+$validator = new ITunesValidator($sharedSecret, Environment::PRODUCTION);
 
 try {
-    $response = $validator->setSharedSecret('SHARED_SECRET')->setReceiptData('BASE64_RECEIPT')->validate();
+    $response = $validator->setReceiptData('BASE64_RECEIPT')->validate();
 } catch (Exception $e) {
     echo 'Error: ' . $e->getMessage() . PHP_EOL;
     echo $e->getTraceAsString() . PHP_EOL;
     exit;
 }
 
-echo 'Receipt is valid.' . PHP_EOL;
 echo 'Bundle ID: ' . $response->getBundleId() . PHP_EOL;
+echo 'Original Purchase Date: ' . $response->getOriginalPurchaseDate()?->toIso8601String() . PHP_EOL;
 
-foreach ($response->getLatestReceiptInfo() as $transaction) {
-    echo 'Product ID: ' . $transaction->getProductId() . PHP_EOL;
-    echo 'Transaction ID: ' . $transaction->getTransactionId() . PHP_EOL;
+foreach ($response->getTransactions() as $tx) {
+    echo 'Product ID: ' . $tx->getProductId() . PHP_EOL;
+    echo 'Transaction ID: ' . $tx->getTransactionId() . PHP_EOL;
+    echo 'Original Transaction ID: ' . ($tx->getOriginalTransactionId() ?? 'N/A') . PHP_EOL;
 
-    if ($transaction->getPurchaseDate() !== null) {
-        echo 'Purchase Date: ' . $transaction->getPurchaseDate()->toIso8601String() . PHP_EOL;
+    if ($tx->getPurchaseDate() !== null) {
+        echo 'Purchase Date: ' . $tx->getPurchaseDate()?->toIso8601String() . PHP_EOL;
+    }
+    if ($tx->getExpiresDate() !== null) {
+        echo 'Expires Date: ' . $tx->getExpiresDate()?->toIso8601String() . PHP_EOL;
+    }
+}
+
+foreach ($response->getLatestReceiptInfo() as $tx) {
+    echo 'Latest — Product ID: ' . $tx->getProductId() . PHP_EOL;
+    echo 'Latest — Transaction ID: ' . $tx->getTransactionId() . PHP_EOL;
+
+    if ($tx->getPurchaseDate() !== null) {
+        echo 'Latest — Purchase Date: ' . $tx->getPurchaseDate()?->toIso8601String() . PHP_EOL;
+    }
+    if ($tx->getExpiresDate() !== null) {
+        echo 'Latest — Expires Date: ' . $tx->getExpiresDate()?->toIso8601String() . PHP_EOL;
     }
 }
 ```
