@@ -170,4 +170,108 @@ final class RenewalInfoTest extends TestCase
         self::assertInstanceOf(CarbonInterface::class, $actual);
         self::assertSame($expectedSec, $actual->getTimestamp());
     }
+
+    #[DataProvider('expirationReasonProvider')]
+    public function testExpirationReasonMapping(?int $intent, ?string $expected): void
+    {
+        $payload = [
+            'product_id'              => 'p',
+            'original_transaction_id' => 'o',
+            'auto_renew_product_id'   => 'a',
+            'auto_renew_status'       => '1',
+        ];
+
+        if ($intent !== null) {
+            $payload['expiration_intent'] = (string) $intent;
+        }
+
+        $info = new RenewalInfo($payload);
+
+        self::assertSame($expected, $info->getExpirationReason());
+        self::assertSame($intent !== null, $info->hasExpirationIntent());
+    }
+
+    public static function expirationReasonProvider(): array
+    {
+        return [
+            [RenewalInfo::EXPIRATION_INTENT_CANCELLED, 'Customer canceled subscription'],
+            [RenewalInfo::EXPIRATION_INTENT_BILLING_ERROR, 'Billing error (e.g. payment declined)'],
+            [RenewalInfo::EXPIRATION_INTENT_INCREASE_DECLINED, 'Price increase not accepted'],
+            [RenewalInfo::EXPIRATION_INTENT_PRODUCT_UNAVAILABLE, 'Product no longer available'],
+            [RenewalInfo::EXPIRATION_INTENT_UNKNOWN, 'Unknown reason'],
+            [null, null],
+        ];
+    }
+
+    public function testHasExpirationIntentTrueForZero(): void
+    {
+        $info = new RenewalInfo([
+            'product_id'              => 'p',
+            'original_transaction_id' => 'o',
+            'auto_renew_product_id'   => 'a',
+            'auto_renew_status'       => '1',
+            'expiration_intent'       => '0',
+        ]);
+
+        self::assertTrue($info->hasExpirationIntent());
+        self::assertSame(0, $info->getExpirationIntent());
+        self::assertNull($info->getExpirationReason());
+    }
+
+    public function testStatusAutoRenewOffOverridesRetry(): void
+    {
+        $info = new RenewalInfo([
+            'product_id'                 => 'p',
+            'original_transaction_id'    => 'o',
+            'auto_renew_product_id'      => 'a',
+            'auto_renew_status'          => '0',
+            'is_in_billing_retry_period' => '1',
+        ]);
+
+        self::assertSame(RenewalInfo::STATUS_EXPIRED, $info->getStatus());
+    }
+
+    public function testGracePeriodFutureWithRetry(): void
+    {
+        $future = Carbon::now()->addHour();
+
+        $info = new RenewalInfo([
+            'product_id'                   => 'p',
+            'original_transaction_id'      => 'o',
+            'auto_renew_product_id'        => 'a',
+            'auto_renew_status'            => '1',
+            'is_in_billing_retry_period'   => '1',
+            'grace_period_expires_date_ms' => $future->getTimestamp() * 1000,
+        ]);
+
+        self::assertTrue($info->isInGracePeriod());
+        self::assertInstanceOf(CarbonInterface::class, $info->getGracePeriodExpiresDate());
+    }
+
+    public function testGracePeriodFutureWithoutRetryIsFalse(): void
+    {
+        $future = Carbon::now()->addHour();
+
+        $info = new RenewalInfo([
+            'product_id'                   => 'p',
+            'original_transaction_id'      => 'o',
+            'auto_renew_product_id'        => 'a',
+            'auto_renew_status'            => '1',
+            'is_in_billing_retry_period'   => '0',
+            'grace_period_expires_date_ms' => $future->getTimestamp() * 1000,
+        ]);
+
+        self::assertFalse($info->isInGracePeriod());
+    }
+
+    public function testOptionalFieldsDefaultToEmptyStrings(): void
+    {
+        $info = new RenewalInfo([
+            'product_id'       => 'p',
+            'auto_renew_status'=> '1',
+        ]);
+
+        self::assertSame('', $info->getOriginalTransactionId());
+        self::assertSame('', $info->getAutoRenewProductId());
+    }
 }

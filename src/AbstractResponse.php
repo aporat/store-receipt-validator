@@ -79,17 +79,6 @@ abstract class AbstractResponse
     }
 
     /**
-     * Convenience: first transaction if present.
-     *
-     * @return T|null
-     */
-    final public function getFirstTransaction(): ?AbstractTransaction
-    {
-        /** @var T|null */
-        return $this->transactions[0] ?? null;
-    }
-
-    /**
      * Protected helper to add a single transaction during construction.
      *
      * @param T $tx

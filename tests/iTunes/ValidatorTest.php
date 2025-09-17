@@ -12,6 +12,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
+use ReceiptValidator\iTunes\APIError;
 use ReceiptValidator\iTunes\Validator;
 
 #[CoversClass(Validator::class)]
@@ -239,5 +240,96 @@ final class ValidatorTest extends TestCase
         $this->expectExceptionMessage('iTunes server returned invalid JSON');
 
         $validator->validate();
+    }
+
+    public function testSubscriptionExpiredReturnsResponse(): void
+    {
+        // Apple returns 21006 when the subscription is expired but the receipt is otherwise valid.
+        // Library should not throw; it should return a Response so callers can inspect it.
+        $mockClient = Mockery::mock(Client::class);
+        $mockClient->shouldReceive('request')
+            ->once()
+            ->andReturn(new GuzzleResponse(200, [], json_encode([
+                'status'  => APIError::SUBSCRIPTION_EXPIRED->value,
+                'receipt' => ['app_item_id' => 123, 'in_app' => []],
+            ], JSON_THROW_ON_ERROR)));
+
+        /** @var Validator|MockInterface $validator */
+        $validator = Mockery::mock(Validator::class, ['secret', Environment::PRODUCTION])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
+        $validator->setReceiptData('dummy-data');
+
+        $response = $validator->validate();
+        self::assertIsArray($response->getRawData());
+        self::assertSame(APIError::SUBSCRIPTION_EXPIRED->value, $response->getRawData()['status']);
+    }
+
+    public function testApiErrorFromIntHelper(): void
+    {
+        self::assertSame(APIError::JSON_INVALID, APIError::fromInt(21000));
+        self::assertNull(APIError::fromInt(999999));
+    }
+
+    public function testSharedSecretIncludedInRequestPayload(): void
+    {
+        // We’ll assert the request body contains "password" only when a shared secret is set
+        $captured = [];
+
+        $mockClient = Mockery::mock(Client::class);
+        $mockClient->shouldReceive('request')
+            ->once()
+            ->withArgs(function (string $method, string $uri, array $options) use (&$captured): bool {
+                $captured['first'] = $options;
+                return $method === 'POST' && $uri === '/verifyReceipt';
+            })
+            ->andReturn(new GuzzleResponse(200, [], json_encode([
+                'status'  => 0,
+                'receipt' => ['app_item_id' => 1, 'in_app' => []],
+            ], JSON_THROW_ON_ERROR)));
+
+        /** @var Validator|MockInterface $validator */
+        $validator = Mockery::mock(Validator::class, ['topsecret', Environment::PRODUCTION])->makePartial();
+        $validator->shouldAllowMockingProtectedMethods();
+        $validator->shouldReceive('getClient')->andReturn($mockClient);
+
+        // Base64 payload path (not raw JSON)
+        $validator->setReceiptData(base64_encode('anything'));
+        $validator->validate();
+
+        $this->assertArrayHasKey('body', $captured['first']);
+        $payload = json_decode($captured['first']['body'] ?? '{}', true);
+        $this->assertIsArray($payload);
+        $this->assertSame('topsecret', $payload['password'] ?? null);
+        $this->assertArrayHasKey('receipt-data', $payload);
+
+        // Now repeat with NO shared secret → password should be absent
+        $captured = [];
+
+        $mockClient2 = Mockery::mock(Client::class);
+        $mockClient2->shouldReceive('request')
+            ->once()
+            ->withArgs(function (string $method, string $uri, array $options) use (&$captured): bool {
+                $captured['second'] = $options;
+                return $method === 'POST' && $uri === '/verifyReceipt';
+            })
+            ->andReturn(new GuzzleResponse(200, [], json_encode([
+                'status'  => 0,
+                'receipt' => ['app_item_id' => 1, 'in_app' => []],
+            ], JSON_THROW_ON_ERROR)));
+
+        /** @var Validator|MockInterface $validator2 */
+        $validator2 = Mockery::mock(Validator::class, [null, Environment::PRODUCTION])->makePartial();
+        $validator2->shouldAllowMockingProtectedMethods();
+        $validator2->shouldReceive('getClient')->andReturn($mockClient2);
+
+        $validator2->setReceiptData(base64_encode('anything'));
+        $validator2->validate();
+
+        $payload2 = json_decode($captured['second']['body'] ?? '{}', true);
+        $this->assertIsArray($payload2);
+        $this->assertArrayNotHasKey('password', $payload2);
+        $this->assertArrayHasKey('receipt-data', $payload2);
     }
 }
