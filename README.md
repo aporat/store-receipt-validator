@@ -108,12 +108,12 @@ try {
 echo 'Receipt is valid.' . PHP_EOL;
 echo 'Bundle ID: ' . $response->getBundleId() . PHP_EOL;
 
-foreach ($response->getPurchases() as $purchase) {
-    echo 'Product ID: ' . $purchase->getProductId() . PHP_EOL;
-    echo 'Transaction ID: ' . $purchase->getTransactionId() . PHP_EOL;
+foreach ($response->getLatestReceiptInfo() as $transaction) {
+    echo 'Product ID: ' . $transaction->getProductId() . PHP_EOL;
+    echo 'Transaction ID: ' . $transaction->getTransactionId() . PHP_EOL;
 
-    if ($purchase->getPurchaseDate() !== null) {
-        echo 'Purchase Date: ' . $purchase->getPurchaseDate()->toIso8601String() . PHP_EOL;
+    if ($transaction->getPurchaseDate() !== null) {
+        echo 'Purchase Date: ' . $transaction->getPurchaseDate()->toIso8601String() . PHP_EOL;
     }
 }
 ```
