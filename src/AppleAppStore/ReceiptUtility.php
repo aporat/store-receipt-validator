@@ -1,61 +1,51 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\AppleAppStore;
 
 use phpseclib3\File\ASN1;
 use ValueError;
 
-class ReceiptUtility
+/**
+ * Low-level helpers to pull transaction identifiers out of Apple receipts.
+ * No signature or PKI validation is performed here.
+ */
+final class ReceiptUtility
 {
+    /** PKCS #7: signedData OID */
     private const string PKCS7_OID = '1.2.840.113549.1.7.2';
-    private const int IN_APP_ARRAY = 17;
-    private const int TRANSACTION_IDENTIFIER = 1703;
+
+    /** Receipt attribute: in-app array */
+    private const int IN_APP_ARRAY_TYPE = 17;
+
+    /** In-app attribute: transaction identifier */
+    private const int TRANSACTION_IDENTIFIER_TYPE = 1703;
+
+    private function __construct()
+    {
+    }
 
     /**
-     * Extracts a transaction id from an encoded App Receipt.
-     * Throws if the receipt does not match the expected format.
-     * *NO validation* is performed on the receipt, and any data returned
-     * should only be used to call the App Store Server API.
+     * Extract a transaction ID from a Base64-encoded App Receipt (PKCS#7).
      *
-     * @param string $appReceipt The unmodified app receipt
-     * @return string|null A transaction id from the array of in-app purchases,
-     *                     or null if the receipt contains no in-app purchases
-     * @throws ValueError
+     * @throws ValueError when the receipt fails to decode or isn't a PKCS#7 container.
      */
     public static function extractTransactionIdFromAppReceipt(string $appReceipt): ?string
     {
-        $decodedArray = ASN1::decodeBER(base64_decode($appReceipt));
-        $sequence = $decodedArray[0]['content'] ?? null;
-
-        if (!isset($sequence[0]['content']) || $sequence[0]['content'] !== self::PKCS7_OID) {
-            throw new ValueError('Invalid PKCS7 OID');
+        $decoded = base64_decode($appReceipt, true);
+        if ($decoded === false) {
+            throw new ValueError('Failed to Base64-decode the app receipt.');
         }
 
-        $data = $sequence[1]['content'][0]['content'][2]['content'][1]['content'][0]['content'] ?? null;
-        if (!is_string($data)) {
-            throw new ValueError('Invalid inner content');
-        }
+        $attributes = self::getReceiptAttributeSet($decoded);
 
-        $decodedSet = ASN1::decodeBER($data);
-        $receiptSet = $decodedSet[0]['content'] ?? [];
+        foreach ($attributes as $attr) {
+            $type  = $attr['content'][0]['content'] ?? null;
+            $value = $attr['content'][2]['content'] ?? null;
 
-        foreach ($receiptSet as $entry) {
-            $type = $entry['content'][0]['content'] ?? null;
-            $value = $entry['content'][2]['content'] ?? null;
-
-            if ((string)$type === (string)self::IN_APP_ARRAY && is_string($value)) {
-                $inAppDecoded = ASN1::decodeBER($value);
-                $inAppSet = $inAppDecoded[0]['content'] ?? [];
-
-                foreach ($inAppSet as $inAppItem) {
-                    $type = $inAppItem['content'][0]['content'] ?? null;
-                    $value = $inAppItem['content'][2]['content'] ?? null;
-
-                    if ((string)$type === (string)self::TRANSACTION_IDENTIFIER && is_string($value)) {
-                        $finalDecoded = ASN1::decodeBER($value);
-                        return $finalDecoded[0]['content'] ?? null;
-                    }
-                }
+            if ((string) $type === (string) self::IN_APP_ARRAY_TYPE && is_string($value)) {
+                return self::findTransactionIdInInAppPurchaseSet($value);
             }
         }
 
@@ -63,26 +53,77 @@ class ReceiptUtility
     }
 
     /**
-     * Extracts a transaction id from an encoded transactional receipt.
-     * Throws if the receipt does not match the expected format.
-     * *NO validation* is performed on the receipt,
-     * and any data returned should only be used to call the App Store Server API.
-     *
-     * @param string $transactionReceipt The unmodified transactionReceipt
-     * @return string|null A transaction id, or null if no transactionId is found in the receipt
+     * Extract a transaction ID from a legacy transactional receipt (Base64).
+     * Uses regex on the decoded payload; no validation performed.
      */
     public static function extractTransactionIdFromTransactionReceipt(string $transactionReceipt): ?string
     {
-        $decoded = base64_decode($transactionReceipt);
-        if (!$decoded || !preg_match('/"purchase-info"\s+=\s+"([^\"]+)";/', $decoded, $matches)) {
+        $decoded = base64_decode($transactionReceipt, true);
+        if ($decoded === false) {
             return null;
         }
 
-        $purchaseInfo = base64_decode($matches[1]);
-        if (!preg_match('/"transaction-id"\s+=\s+"([^\"]+)";/', $purchaseInfo, $transactionMatches)) {
+        if (!preg_match('/"purchase-info"\s*=\s*"([^"]+)";/m', $decoded, $m)) {
             return null;
         }
 
-        return $transactionMatches[1];
+        $purchaseInfo = base64_decode($m[1], true);
+        if ($purchaseInfo === false) {
+            return null;
+        }
+
+        if (!preg_match('/"transaction-id"\s*=\s*"([^"]+)";/m', $purchaseInfo, $txm)) {
+            return null;
+        }
+
+        return $txm[1];
+    }
+
+    /**
+     * Decode outer PKCS#7 and return the set of receipt attributes.
+     *
+     * @return array<int, mixed>
+     * @throws ValueError
+     */
+    private static function getReceiptAttributeSet(string $der): array
+    {
+        $root = ASN1::decodeBER($der);
+        $sequence = $root[0]['content'] ?? null;
+
+        // Guard the OID node
+        $oid = $sequence[0]['content'] ?? null;
+        if (!is_string($oid) || $oid !== self::PKCS7_OID) {
+            throw new ValueError('Receipt is not a valid PKCS #7 container.');
+        }
+
+        // Walk down to the encapsulated receipt (as BER) and decode it
+        $data = $sequence[1]['content'][0]['content'][2]['content'][1]['content'][0]['content'] ?? null;
+        if (!is_string($data)) {
+            throw new ValueError('Could not find the receipt attribute set in the payload.');
+        }
+
+        $decodedSet = ASN1::decodeBER($data);
+        $attrs = $decodedSet[0]['content'] ?? null;
+
+        return is_array($attrs) ? $attrs : [];
+    }
+
+    private static function findTransactionIdInInAppPurchaseSet(string $inAppPurchaseData): ?string
+    {
+        $inAppDecoded = ASN1::decodeBER($inAppPurchaseData);
+        $inAppSet = $inAppDecoded[0]['content'] ?? [];
+
+        foreach ($inAppSet as $item) {
+            $type  = $item['content'][0]['content'] ?? null;
+            $value = $item['content'][2]['content'] ?? null;
+
+            if ((string) $type === (string) self::TRANSACTION_IDENTIFIER_TYPE && is_string($value)) {
+                $final = ASN1::decodeBER($value);
+                $content = $final[0]['content'] ?? null;
+                return is_scalar($content) ? (string) $content : null;
+            }
+        }
+
+        return null;
     }
 }

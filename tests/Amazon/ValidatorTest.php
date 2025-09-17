@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\Tests\Amazon;
 
-use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Mockery;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Amazon\Validator as AmazonValidator;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 
-class ValidatorTest extends TestCase
+#[CoversClass(AmazonValidator::class)]
+final class ValidatorTest extends TestCase
 {
     protected function tearDown(): void
     {
@@ -24,8 +27,8 @@ class ValidatorTest extends TestCase
         $validator->setUserId('user1');
         $validator->setReceiptId('receipt1');
 
-        $this->assertEquals('SECRET', $validator->getDeveloperSecret());
-        $this->assertEquals(Environment::SANDBOX, $validator->getEnvironment());
+        self::assertSame('SECRET', $validator->getDeveloperSecret());
+        self::assertSame(Environment::SANDBOX, $validator->getEnvironment());
     }
 
     public function testValidateWithFixtureReturnsValidResponse(): void
@@ -38,22 +41,21 @@ class ValidatorTest extends TestCase
             ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        $validator = Mockery::mock(AmazonValidator::class, ['secret123', Environment::SANDBOX])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new AmazonValidator('secret123', Environment::SANDBOX);
+        $validator->setHttpClient($mockClient, AmazonValidator::ENDPOINT_SANDBOX);
         $validator->setUserId('user123')->setReceiptId('receipt123');
 
         $response = $validator->validate();
 
-        $this->assertEquals('com.amazon.iapsamplev2.expansion_set_3', $response->getRawData()['productId']);
-        $this->assertEquals(
+        self::assertSame('com.amazon.iapsamplev2.expansion_set_3', $response->getRawData()['productId']);
+        self::assertSame(
             'q1YqVrJSSs7P1UvMTazKz9PLTCwoTswtyEktM9JLrShIzCvOzM-LL04tiTdW0lFKASo2NDEwMjCwMDM2MTC0AIqVAsUsLd1c4l18jIxdfTOK_N1d8kqLLHVLc8oK83OLgtPNCit9AoJdjJ3dXG2BGkqUrAxrAQ',
             $response->getRawData()['receiptId']
         );
 
-        $this->assertEquals(Carbon::createFromTimestampUTC(1561104377), $response->getTransactions()[0]->getFreeTrialEndDate());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1561104377), $response->getTransactions()[0]->getGracePeriodEndDate());
+        $tx = $response->getTransactions()[0];
+        self::assertSame(1561104377, $tx->getFreeTrialEndDate()?->getTimestamp());
+        self::assertSame(1561104377, $tx->getGracePeriodEndDate()?->getTimestamp());
     }
 
     public function testValidateEntitledPurchaseFixture(): void
@@ -66,31 +68,30 @@ class ValidatorTest extends TestCase
             ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        $validator = Mockery::mock(AmazonValidator::class, ['secret123', Environment::SANDBOX])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new AmazonValidator('secret123', Environment::SANDBOX);
+        $validator->setHttpClient($mockClient, AmazonValidator::ENDPOINT_SANDBOX);
         $validator->setUserId('user123')->setReceiptId('receipt123');
 
         $response = $validator->validate();
+        $tx = $response->getTransactions()[0];
 
-        $this->assertEquals('com.amazon.iapsamplev2.expansion_set_3', $response->getTransactions()[0]->getProductId());
-        $this->assertEquals(
+        self::assertSame('com.amazon.iapsamplev2.expansion_set_3', $tx->getProductId());
+        self::assertSame(
             'q1YqVrJSSs7P1UvMTazKz9PLTCwoTswtyEktM9JLrShIzCvOzM-LL04tiTdW0lFKASo2NDEwMjCwMDM2MTC0AIqVAsUsLd1c4l18jIxdfTOK_N1d8kqLLHVLc8oK83OLgtPNCit9AoJdjJ3dXG2BGkqUrAxrAQ',
-            $response->getTransactions()[0]->getTransactionId()
+            $tx->getTransactionId()
         );
-        $this->assertEquals(1, $response->getTransactions()[0]->getQuantity());
-        $this->assertEquals(Carbon::createFromTimestampUTC(1402008634), $response->getTransactions()[0]->getPurchaseDate());
+        self::assertSame(1, $tx->getQuantity());
+        self::assertSame(1402008634, $tx->getPurchaseDate()?->getTimestamp());
     }
 
     public function testValidateReturnsValidResponse(): void
     {
         $responseBody = json_encode([
-            'productId' => 'pack_100',
-            'receiptId' => 'txn_abc',
+            'productId'    => 'pack_100',
+            'receiptId'    => 'txn_abc',
             'purchaseDate' => 1713350400000,
-            'quantity' => 1,
-        ]);
+            'quantity'     => 1,
+        ], JSON_THROW_ON_ERROR);
 
         $mockClient = Mockery::mock(Client::class);
         $mockClient->shouldReceive('request')
@@ -98,26 +99,25 @@ class ValidatorTest extends TestCase
             ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
             ->andReturn(new GuzzleResponse(200, [], $responseBody));
 
-        $validator = Mockery::mock(AmazonValidator::class, ['secret123', Environment::SANDBOX])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new AmazonValidator('secret123', Environment::SANDBOX);
+        $validator->setHttpClient($mockClient, AmazonValidator::ENDPOINT_SANDBOX);
         $validator->setUserId('user123')->setReceiptId('receipt123');
 
         $response = $validator->validate();
+        $tx = $response->getTransactions()[0];
 
-        $this->assertEquals('pack_100', $response->getTransactions()[0]->getProductId());
-        $this->assertEquals('txn_abc', $response->getTransactions()[0]->getTransactionId());
-        $this->assertEquals(1, $response->getTransactions()[0]->getQuantity());
+        self::assertSame('pack_100', $tx->getProductId());
+        self::assertSame('txn_abc', $tx->getTransactionId());
+        self::assertSame(1, $tx->getQuantity());
     }
 
     public function testSetAndGetEnvironment(): void
     {
         $validator = new AmazonValidator('topsecret', Environment::PRODUCTION);
-        $this->assertEquals(Environment::PRODUCTION, $validator->getEnvironment());
+        self::assertSame(Environment::PRODUCTION, $validator->getEnvironment());
 
         $validator->setEnvironment(Environment::SANDBOX);
-        $this->assertEquals(Environment::SANDBOX, $validator->getEnvironment());
+        self::assertSame(Environment::SANDBOX, $validator->getEnvironment());
     }
 
     public function testThrowsValidationExceptionOnNon200Response(): void
@@ -127,13 +127,11 @@ class ValidatorTest extends TestCase
             ->once()
             ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
             ->andReturn(new GuzzleResponse(496, [], json_encode([
-                'message' => 'Invalid developerSecret'
-            ])));
+                'message' => 'Invalid developerSecret',
+            ], JSON_THROW_ON_ERROR)));
 
-        $validator = Mockery::mock(AmazonValidator::class, ['secret123', Environment::SANDBOX])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new AmazonValidator('secret123', Environment::SANDBOX);
+        $validator->setHttpClient($mockClient, AmazonValidator::ENDPOINT_SANDBOX);
         $validator->setUserId('user123')->setReceiptId('receipt123');
 
         $this->expectException(ValidationException::class);

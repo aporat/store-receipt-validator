@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\Amazon;
 
 use GuzzleHttp\Exception\GuzzleException;
@@ -7,46 +9,41 @@ use ReceiptValidator\AbstractValidator;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 
-class Validator extends AbstractValidator
+final class Validator extends AbstractValidator
 {
-    /**
-     * Amazon RVS sandbox endpoint.
-     */
+    /** Amazon RVS sandbox endpoint. */
     public const string ENDPOINT_SANDBOX = 'https://appstore-sdk.amazon.com/sandbox';
 
-    /**
-     * Amazon RVS production endpoint.
-     */
+    /** Amazon RVS production endpoint. */
     public const string ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com';
 
-    /**
-     * User ID.
-     */
+    /** @return array{production:string, sandbox:string} */
+    protected function endpointMap(): array
+    {
+        return [
+            Environment::PRODUCTION->value => self::ENDPOINT_PRODUCTION,
+            Environment::SANDBOX->value    => self::ENDPOINT_SANDBOX,
+        ];
+    }
+
+    /** User ID. */
     protected ?string $userId = null;
 
-    /**
-     * Receipt ID.
-     */
+    /** Receipt ID. */
     protected ?string $receiptId = null;
 
-    /**
-     * Developer secret.
-     */
+    /** Developer secret. */
     protected ?string $developerSecret = null;
 
-    /**
-     * Validator constructor.
-     */
-    public function __construct(string $developerSecret, Environment $environment)
+    public function __construct(string $developerSecret, Environment $environment = Environment::PRODUCTION)
     {
         $this->developerSecret = $developerSecret;
-        $this->environment = $environment;
+        $this->environment     = $environment;
     }
 
     /**
      * Validate the receipt by sending a request to Amazon's RVS.
      *
-     * @return Response
      * @throws ValidationException
      */
     public function validate(): Response
@@ -57,42 +54,56 @@ class Validator extends AbstractValidator
     /**
      * Perform the HTTP request and parse the response.
      *
-     * @return Response
      * @throws ValidationException
      */
     protected function makeRequest(): Response
     {
-        $endpoint = $this->environment === Environment::PRODUCTION
-            ? self::ENDPOINT_PRODUCTION
-            : self::ENDPOINT_SANDBOX;
+        if ($this->developerSecret === null || $this->developerSecret === '') {
+            throw new ValidationException('Missing Amazon developer secret');
+        }
+        if ($this->userId === null || $this->userId === '') {
+            throw new ValidationException('Missing Amazon userId');
+        }
+        if ($this->receiptId === null || $this->receiptId === '') {
+            throw new ValidationException('Missing Amazon receiptId');
+        }
+
+        $endpoint = $this->endpointForEnvironment();
+
+        // URL-encode path segments to be safe with special characters
+        $path = sprintf(
+            '/version/1.0/verifyReceiptId/developer/%s/user/%s/receiptId/%s',
+            rawurlencode($this->developerSecret),
+            rawurlencode($this->userId),
+            rawurlencode($this->receiptId)
+        );
 
         try {
-            $httpResponse = $this->getClient($endpoint)->request(
-                'GET',
-                sprintf(
-                    '/version/1.0/verifyReceiptId/developer/%s/user/%s/receiptId/%s',
-                    $this->developerSecret,
-                    $this->userId,
-                    $this->receiptId
-                )
-            );
+            $httpResponse = $this->getClient($endpoint)->request('GET', $path);
 
-            $body = (string)$httpResponse->getBody();
-            $decodedBody = json_decode($body, true);
+            $status   = $httpResponse->getStatusCode();
+            $rawBody  = (string) $httpResponse->getBody();
+            $decoded  = json_decode($rawBody, true);
 
-            if ($httpResponse->getStatusCode() !== 200) {
-                $errorCode = $httpResponse->getStatusCode();
-                $messages = APIError::messages();
-                $description = array_key_exists($errorCode, $messages)
-                    ? $messages[$errorCode]
-                    : ($decodedBody['message'] ?? 'Unexpected error occurred while validating the receipt.');
-
-                $fullMessage = "Amazon API error [{$errorCode}]: {$description}";
-
-                throw new ValidationException($fullMessage, $errorCode);
+            // Non-JSON or empty body is an error either way
+            if (!is_array($decoded)) {
+                $jsonErr = function_exists('json_last_error_msg') ? json_last_error_msg() : 'Unknown JSON error';
+                throw new ValidationException("Amazon API returned invalid JSON: $jsonErr", $status);
             }
 
-            return new Response($decodedBody, $this->environment);
+            if ($status !== 200) {
+                // Amazon typically returns { "message": "InvalidDeveloperSecret" } on errors
+                $machine = (string)($decoded['message'] ?? '');
+
+                // If we recognize the machine code, use our friendly description; otherwise use the raw message
+                $case = APIError::tryFrom($machine);
+                $human = $case?->message() ?? ($machine !== '' ? $machine : 'An unknown error occurred.');
+
+                // Use the HTTP status in the brackets (e.g., 496), per test expectation
+                throw new ValidationException("Amazon API error [$status]: $human", $status);
+            }
+
+            return new Response($decoded, $this->environment);
         } catch (GuzzleException $e) {
             throw new ValidationException('Amazon validation request failed', 0, $e);
         }
@@ -101,12 +112,6 @@ class Validator extends AbstractValidator
     public function getDeveloperSecret(): ?string
     {
         return $this->developerSecret;
-    }
-
-    public function setDeveloperSecret(?string $developerSecret): self
-    {
-        $this->developerSecret = $developerSecret;
-        return $this;
     }
 
     public function setUserId(?string $userId): self

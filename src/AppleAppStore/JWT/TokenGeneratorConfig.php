@@ -7,58 +7,62 @@ use Lcobucci\Clock\SystemClock;
 use Lcobucci\JWT\Configuration;
 
 /**
- * JWT Generator Configuration
+ * Encapsulates the complete configuration for generating an App Store Connect API token.
+ *
+ * This immutable object holds the JWT library configuration, the token issuer details,
+ * and a clock instance, providing a stable and reliable setup for the TokenGenerator.
  */
-final class TokenGeneratorConfig
+final readonly class TokenGeneratorConfig
 {
     /**
-     * @var Configuration
+     * The underlying JWT library configuration.
      */
     private Configuration $config;
 
     /**
-     * @var TokenIssuer
+     * The entity that issues the token (your developer account).
      */
     private TokenIssuer $issuer;
 
     /**
-     * @var Clock
+     * The clock used to determine the token's issuance and expiration times.
      */
     private Clock $clock;
 
     /**
-     * @param Configuration $config
-     * @param TokenIssuer $issuer
-     * @param Clock $clock
+     * Constructs the TokenGeneratorConfig.
+     *
+     * @param Configuration $config The JWT library configuration.
+     * @param TokenIssuer $issuer The token issuer details.
+     * @param Clock $clock The clock for timestamp generation.
      */
     public function __construct(Configuration $config, TokenIssuer $issuer, Clock $clock)
     {
         $this->config = $config;
         $this->issuer = $issuer;
-        $this->clock = $clock;
+        $this->clock  = $clock;
     }
 
     /**
-     * Creates a TokenGeneratorConfig for App Store Connect API.
+     * Creates a standard configuration for the App Store Server API.
      *
-     * @param TokenIssuer $issuer
-     * @param Clock|null $clock
-     * @return static
+     * @param TokenIssuer $issuer The configured token issuer.
+     * @param Clock|null $clock An optional clock instance, primarily for testing. Defaults to the system clock.
+     * @return self A new configuration object.
      */
     public static function forAppStore(TokenIssuer $issuer, ?Clock $clock = null): self
     {
-        $config = Configuration::forSymmetricSigner(
+        $config = Configuration::forAsymmetricSigner(
             $issuer->signer(),
+            $issuer->key(),
             $issuer->key()
         );
 
-        $clock = $clock ?? SystemClock::fromSystemTimezone();
-
-        return new self($config, $issuer, $clock);
+        return new self($config, $issuer, $clock ?? SystemClock::fromSystemTimezone());
     }
 
     /**
-     * @return Configuration
+     * Returns the JWT library configuration.
      */
     public function config(): Configuration
     {
@@ -66,7 +70,7 @@ final class TokenGeneratorConfig
     }
 
     /**
-     * @return TokenIssuer
+     * Returns the token issuer.
      */
     public function issuer(): TokenIssuer
     {
@@ -74,7 +78,7 @@ final class TokenGeneratorConfig
     }
 
     /**
-     * @return Clock
+     * Returns the clock instance.
      */
     public function clock(): Clock
     {

@@ -1,119 +1,63 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator;
 
-use ReceiptValidator\Exceptions\ValidationException;
+use ReceiptValidator\Support\ValueCasting;
 
-abstract class AbstractTransaction
+/**
+ * Provides a base structure for individual transaction objects.
+ *
+ * This abstract class standardizes how transaction data is represented,
+ * ensuring that transaction objects from all stores are immutable and
+ * offer a consistent interface for accessing common fields.
+ */
+abstract readonly class AbstractTransaction
 {
-    /**
-     * Raw JSON data from the response.
-     *
-     * @var array<string, mixed>|null
-     */
-    protected ?array $rawData = null;
+    use ValueCasting;
 
     /**
-     * Quantity.
+     * Constructs the transaction object.
      *
-     * @var int
+     * Child classes should pass their parsed values to this constructor
+     * and then initialize their own readonly properties.
+     *
+     * @param array<string, mixed> $rawData The raw data for a single transaction.
      */
-    protected int $quantity = 0;
-
-    /**
-     * Product ID.
-     *
-     * @var string
-     */
-    protected string $productId;
-
-    /**
-     * Transaction ID.
-     *
-     * @var string
-     */
-    protected string $transactionId;
-
-    /**
-     * Constructor.
-     *
-     * @param array<string, mixed>|null $data
-     *
-     * @throws ValidationException
-     */
-    public function __construct(?array $data = [])
-    {
-        $this->rawData = $data;
-
-        $this->parse();
+    public function __construct(
+        protected array $rawData = [],
+        protected int $quantity = 1,
+        protected ?string $productId = null,
+        protected ?string $transactionId = null,
+    ) {
     }
 
     /**
-     * Parse raw data into the response.
+     * Returns the original, unprocessed data for the transaction.
      *
-     * @return $this
-     * @throws ValidationException
+     * @return array<string, mixed>
      */
-    abstract public function parse(): self;
-
-    /**
-     * Get raw response data.
-     *
-     * @return array<string, mixed>|null
-     */
-    public function getRawData(): ?array
+    final public function getRawData(): array
     {
         return $this->rawData;
     }
 
-    /**
-     * Get quantity.
-     */
-    public function getQuantity(): int
+    /** Returns the number of items purchased. */
+    final public function getQuantity(): int
     {
         return $this->quantity;
     }
 
-    /**
-     * Set quantity.
-     */
-    public function setQuantity(int $quantity): self
-    {
-        $this->quantity = $quantity;
-        return $this;
-    }
-
-    /**
-     * Get product ID.
-     */
-    public function getProductId(): string
+    /** Returns the unique identifier of the product. */
+    final public function getProductId(): ?string
     {
         return $this->productId;
     }
 
-    /**
-     * Set product ID.
-     */
-    public function setProductId(string $productId): self
-    {
-        $this->productId = $productId;
-        return $this;
-    }
-
-    /**
-     * Get transaction ID.
-     */
-    public function getTransactionId(): string
+    /** Returns the unique identifier of the transaction. */
+    final public function getTransactionId(): ?string
     {
         return $this->transactionId;
-    }
-
-    /**
-     * Set transaction ID.
-     */
-    public function setTransactionId(string $transactionId): self
-    {
-        $this->transactionId = $transactionId;
-        return $this;
     }
 }

@@ -1,95 +1,100 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator;
 
-use ReceiptValidator\Exceptions\ValidationException;
+use ReceiptValidator\Support\ValueCasting;
 
+/**
+ * Provides a base structure for API responses from different app stores.
+ *
+ * This abstract class standardizes how raw response data is parsed and accessed,
+ * ensuring that all concrete response implementations offer a consistent interface.
+ * Response objects are designed to be immutable after creation.
+ *
+ * @template T of AbstractTransaction
+ */
 abstract class AbstractResponse
 {
+    use ValueCasting;
+
     /**
-     * Purchases array.
+     * A collection of transaction objects parsed from the response.
      *
-     * @var array<AbstractTransaction>
+     * @var array<T>
      */
     protected array $transactions = [];
 
     /**
-     * Raw JSON data from the response.
+     * The original, unprocessed data from the store's API response.
      *
-     * @var array<string, mixed>|null
+     * @var array<string, mixed>
      */
-    protected ?array $rawData = null;
+    protected readonly array $rawData;
 
     /**
-     * Environment in which validation was performed.
-     *
-     * @var Environment
+     * The environment in which the validation was performed.
      */
-    protected Environment $environment;
+    protected readonly Environment $environment;
 
     /**
-     * Constructor.
+     * Constructs the response object.
      *
-     * @param array<string, mixed>|null $data
-     * @param Environment $environment
-     *
-     * @throws ValidationException
+     * @param array<string, mixed> $data The raw decoded JSON data from the API response.
+     * @param Environment $environment   The environment used for the validation request.
      */
-    public function __construct(?array $data = [], Environment $environment = Environment::PRODUCTION)
+    public function __construct(array $data = [], Environment $environment = Environment::PRODUCTION)
     {
         $this->rawData = $data;
         $this->environment = $environment;
-
-        $this->parse();
     }
 
     /**
-     * Parse raw data into the response.
+     * Returns the parsed transaction objects.
      *
-     * @return $this
-     * @throws ValidationException
+     * @return array<T> An array of transaction objects.
      */
-    abstract public function parse(): self;
-
-    /**
-     * Get transaction array.
-     *
-     * @return array<AbstractTransaction>
-     */
-    public function getTransactions(): array
+    final public function getTransactions(): array
     {
         return $this->transactions;
     }
 
     /**
-     * Get raw response data.
+     * Returns the original, unprocessed response data.
      *
-     * @return array<string, mixed>|null
+     * @return array<string, mixed> The raw data from the API.
      */
-    public function getRawData(): ?array
+    final public function getRawData(): array
     {
         return $this->rawData;
     }
 
     /**
-     * Get the environment used.
-     *
-     * @return Environment
+     * Returns the environment used for the validation request.
      */
-    public function getEnvironment(): Environment
+    final public function getEnvironment(): Environment
     {
         return $this->environment;
     }
 
     /**
-     * Set the environment.
+     * Protected helper to add a single transaction during construction.
      *
-     * @param Environment $environment
-     * @return $this
+     * @param T $tx
      */
-    public function setEnvironment(Environment $environment): self
+    final protected function addTransaction(AbstractTransaction $tx): void
     {
-        $this->environment = $environment;
-        return $this;
+        $this->transactions[] = $tx;
+    }
+
+    /**
+     * Protected helper to set transactions in bulk during construction.
+     *
+     * @param array<T> $txs
+     */
+    final protected function setTransactions(array $txs): void
+    {
+        $this->transactions = $txs;
     }
 }

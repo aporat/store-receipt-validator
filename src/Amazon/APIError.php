@@ -3,56 +3,65 @@
 namespace ReceiptValidator\Amazon;
 
 /**
- * Amazon RVS (Receipt Verification Service) error codes and descriptions.
+ * Represents error responses from the Amazon RVS (Receipt Verification Service).
  *
- * Reference:
- * https://developer.amazon.com/docs/in-app-purchasing/iap-rvs-for-android-apps.html#error-response
+ * This enum provides a type-safe way to handle specific error codes returned
+ * by the Amazon API, encapsulating the error code, its string value, and a
+ * human-readable message.
+ *
+ * @see https://developer.amazon.com/docs/in-app-purchasing/iap-rvs-for-android-apps.html#error-response
  */
-final class APIError
+enum APIError: string
 {
     /**
-     * The receipt ID is not valid.
-     * @see https://developer.amazon.com/docs/in-app-purchasing/iap-rvs-for-android-apps.html#error-response
+     * The receipt ID provided in the request is not valid.
      */
-    public const string INVALID_RECEIPT_ID = 'InvalidReceiptId';
+    case INVALID_RECEIPT_ID = 'InvalidReceiptId';
 
     /**
-     * The user ID is not valid.
-     * @see https://developer.amazon.com/docs/in-app-purchasing/iap-rvs-for-android-apps.html#error-response
+     * The user ID provided in the request is not valid.
      */
-    public const string INVALID_USER_ID = 'InvalidUserId';
+    case INVALID_USER_ID = 'InvalidUserId';
 
     /**
-     * The developer secret is invalid.
-     * @see https://developer.amazon.com/docs/in-app-purchasing/iap-rvs-for-android-apps.html#error-response
+     * The developer secret provided in the request is not valid.
      */
-    public const string INVALID_DEVELOPER_SECRET = 'InvalidDeveloperSecret';
+    case INVALID_DEVELOPER_SECRET = 'InvalidDeveloperSecret';
 
     /**
-     * The request body was malformed or not valid JSON.
-     * @see https://developer.amazon.com/docs/in-app-purchasing/iap-rvs-for-android-apps.html#error-response
+     * The request body was malformed or was not valid JSON.
      */
-    public const string INVALID_JSON = 'InvalidJson';
+    case INVALID_JSON = 'InvalidJson';
 
     /**
-     * An unknown error occurred on Amazon’s server.
-     * @see https://developer.amazon.com/docs/in-app-purchasing/iap-rvs-for-android-apps.html#error-response
+     * An unknown or internal error occurred on Amazon’s server.
      */
-    public const string INTERNAL_ERROR = 'InternalError';
+    case INTERNAL_ERROR = 'InternalError';
 
     /**
-     * Returns a mapping of error codes to human-readable descriptions.
+     * Returns a human-readable description for the error case.
      *
-     * @return array<string, string>
+     * @return string
      */
-    public static function messages(): array
+    public function message(): string
     {
-        return [
-            self::INVALID_RECEIPT_ID => 'The receipt ID is not valid.',
-            self::INVALID_USER_ID => 'The user ID is not valid.',
+        return match ($this) {
+            self::INVALID_RECEIPT_ID       => 'The receipt ID is not valid.',
+            self::INVALID_USER_ID          => 'The user ID is not valid.',
             self::INVALID_DEVELOPER_SECRET => 'The developer secret is not valid.',
-            self::INVALID_JSON => 'The request JSON was malformed.',
-            self::INTERNAL_ERROR => 'An unknown error occurred on the Amazon server.',
-        ];
+            self::INVALID_JSON             => 'The request JSON was malformed.',
+            self::INTERNAL_ERROR           => 'An unknown error occurred on the Amazon server.',
+        };
+    }
+
+    /**
+     * Safely creates an APIError case from a string, or null if unknown.
+     *
+     * @param string $value
+     * @return self|null
+     */
+    public static function fromString(string $value): ?self
+    {
+        return self::tryFrom($value);
     }
 }

@@ -1,158 +1,99 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\Amazon;
 
-use ArrayAccess;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use ReceiptValidator\AbstractTransaction;
-use ReceiptValidator\Exceptions\ValidationException;
-use ReturnTypeWillChange;
 
 /**
- * Represents a transaction in Amazon receipt validation.
- * @implements ArrayAccess<string, mixed>
+ * Encapsulates a single transaction from an Amazon receipt.
+ *
+ * This immutable data object provides structured access to the properties of a
+ * single purchase, parsed from the Amazon RVS response.
  */
-class Transaction extends AbstractTransaction implements ArrayAccess
+final readonly class Transaction extends AbstractTransaction
 {
-    /** @var Carbon Purchase date. */
-    protected Carbon $purchaseDate;
+    /** The date the purchase was initiated. */
+    public ?CarbonImmutable $purchaseDate;
 
-    /** @var Carbon|null Cancellation date. */
-    protected ?Carbon $cancellationDate = null;
+    /** The date the subscription or entitlement was cancelled. */
+    public ?CarbonImmutable $cancellationDate;
 
-    /** @var Carbon|null Renewal date. */
-    protected ?Carbon $renewalDate = null;
+    /** The date a subscription is scheduled to renew. */
+    public ?CarbonImmutable $renewalDate;
 
-    /** @var Carbon|null Grace period end date. */
-    protected ?Carbon $gracePeriodEndDate = null;
+    /** The end date of a grace period for a subscription. */
+    public ?CarbonImmutable $gracePeriodEndDate;
 
-    /** @var Carbon|null Free trial end date. */
-    protected ?Carbon $freeTrialEndDate = null;
+    /** The end date of a free trial period. */
+    public ?CarbonImmutable $freeTrialEndDate;
 
-    /** @var bool|null Auto-renewing status. */
-    protected ?bool $autoRenewing = null;
+    /** The auto-renewal status of a subscription. */
+    public bool $autoRenewing;
 
-    /** @var string|null Subscription term duration. */
-    protected ?string $term = null;
+    /** The duration of the subscription term. */
+    public ?string $term;
 
-    /** @var string|null Subscription term SKU. */
-    protected ?string $termSku = null;
+    /** The SKU for the subscription term. */
+    public ?string $termSku;
 
     /**
-     * Parses raw transaction data.
-     *
-     * @return $this
-     * @throws ValidationException
+     * @param array<string, mixed> $data The raw data for a single transaction.
      */
-    public function parse(): self
+    public function __construct(array $data = [])
     {
-        if (!is_array($this->rawData)) {
-            throw new ValidationException('Response must be an array');
-        }
+        parent::__construct(
+            rawData: $data,
+            quantity: $this->toInt($data, 'quantity') ?? 1,
+            productId: $this->toString($data, 'productId'),
+            transactionId: $this->toString($data, 'receiptId'),
+        );
 
-        $data = $this->rawData;
+        $this->autoRenewing = $this->toBool($data, 'AutoRenewing');
+        $this->term         = $this->toString($data, 'term');
+        $this->termSku      = $this->toString($data, 'termSku');
 
-        $this->setQuantity((int)($data['quantity'] ?? 0));
-        $this->setTransactionId($data['receiptId'] ?? '');
-        $this->setProductId($data['productId'] ?? '');
-
-        if (!empty($data['purchaseDate'])) {
-            $this->purchaseDate = Carbon::createFromTimestampUTC((int)($data['purchaseDate'] / 1000));
-        }
-
-        if (!empty($data['cancelDate'])) {
-            $this->cancellationDate = Carbon::createFromTimestampUTC((int)($data['cancelDate'] / 1000));
-        }
-
-        if (!empty($data['renewalDate'])) {
-            $this->renewalDate = Carbon::createFromTimestampUTC((int)($data['renewalDate'] / 1000));
-        }
-
-        if (!empty($data['GracePeriodEndDate'])) {
-            $this->gracePeriodEndDate = Carbon::createFromTimestampUTC((int)($data['GracePeriodEndDate'] / 1000));
-        }
-
-        if (!empty($data['freeTrialEndDate'])) {
-            $this->freeTrialEndDate = Carbon::createFromTimestampUTC((int)($data['freeTrialEndDate'] / 1000));
-        }
-
-        $this->autoRenewing = isset($data['AutoRenewing']) ? (bool)$data['AutoRenewing'] : null;
-        $this->term = $data['term'] ?? null;
-        $this->termSku = $data['termSku'] ?? null;
-
-        return $this;
+        $this->purchaseDate       = $this->toDateFromMs($data, 'purchaseDate');
+        $this->cancellationDate   = $this->toDateFromMs($data, 'cancelDate');
+        $this->renewalDate        = $this->toDateFromMs($data, 'renewalDate');
+        $this->gracePeriodEndDate = $this->toDateFromMs($data, 'GracePeriodEndDate');
+        $this->freeTrialEndDate   = $this->toDateFromMs($data, 'freeTrialEndDate');
     }
 
-    public function getRawData(): ?array
-    {
-        return $this->rawData;
-    }
-
-    public function getPurchaseDate(): Carbon
+    public function getPurchaseDate(): ?CarbonInterface
     {
         return $this->purchaseDate;
     }
-
-    public function getCancellationDate(): ?Carbon
+    public function getCancellationDate(): ?CarbonInterface
     {
         return $this->cancellationDate;
     }
-
-    public function getRenewalDate(): ?Carbon
+    public function getRenewalDate(): ?CarbonInterface
     {
         return $this->renewalDate;
     }
-
-    public function getGracePeriodEndDate(): ?Carbon
+    public function getGracePeriodEndDate(): ?CarbonInterface
     {
         return $this->gracePeriodEndDate;
     }
-
-    public function getFreeTrialEndDate(): ?Carbon
+    public function getFreeTrialEndDate(): ?CarbonInterface
     {
         return $this->freeTrialEndDate;
     }
 
-    public function isAutoRenewing(): ?bool
+    public function isAutoRenewing(): bool
     {
         return $this->autoRenewing;
     }
-
     public function getTerm(): ?string
     {
         return $this->term;
     }
-
     public function getTermSku(): ?string
     {
         return $this->termSku;
-    }
-
-    /**
-     * @throws ValidationException
-     */
-    #[ReturnTypeWillChange]
-    public function offsetSet($offset, $value): void
-    {
-        $this->rawData[$offset] = $value;
-        $this->parse();
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetGet($offset): mixed
-    {
-        return $this->rawData[$offset] ?? null;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetUnset($offset): void
-    {
-        unset($this->rawData[$offset]);
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetExists($offset): bool
-    {
-        return isset($this->rawData[$offset]);
     }
 }

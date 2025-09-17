@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\iTunes;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Carbon\CarbonImmutable;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
+use ReceiptValidator\Support\ValueCasting;
+use ValueError;
 
 /**
  * Represents an App Store Server Notification V1.
@@ -13,89 +18,79 @@ use ReceiptValidator\Exceptions\ValidationException;
  */
 class ServerNotification
 {
-    /**
-     * @var ServerNotificationType
-     */
-    protected ServerNotificationType $notificationType;
+    use ValueCasting;
 
-    /**
-     * @var Environment
-     */
+    protected ServerNotificationType $notificationType;
     protected Environment $environment;
 
-    /**
-     * @var string
-     */
-    protected string $autoRenewProductId;
+    protected string $autoRenewProductId = '';
+    protected bool $autoRenewStatus = false;
 
-    /**
-     * @var bool
-     */
-    protected bool $autoRenewStatus;
+    /** @var CarbonImmutable|null */
+    protected ?CarbonImmutable $autoRenewStatusChangeDate = null;
 
-    /**
-     * @var Carbon|null
-     */
-    protected ?Carbon $autoRenewStatusChangeDate = null;
+    protected string $bundleId = '';
+    protected string $bvrs = '';
+    protected string $originalTransactionId = '';
+    protected string $password = '';
 
-    /**
-     * @var string
-     */
-    protected string $bundleId;
-
-    /**
-     * @var string
-     */
-    protected string $bvrs;
-
-    /**
-     * @var string
-     */
-    protected string $originalTransactionId;
-
-    /**
-     * @var string
-     */
-    protected string $password;
-
-    /**
-     * @var Response
-     */
     protected Response $latestReceipt;
-
-    /**
-     * @var RenewalInfo|null
-     */
     protected ?RenewalInfo $pendingRenewalInfo = null;
 
     /**
      * @param array<string, mixed> $data
-     * @param string|null $sharedSecret
+     * @param string|null          $sharedSecret
      * @throws ValidationException
      */
     public function __construct(array $data, ?string $sharedSecret = null)
     {
-        if (!isset($data['password']) || $data['password'] !== $sharedSecret) {
-            throw new ValidationException('Invalid shared secret');
+        // Validate shared secret if one was provided by the caller
+        if ($sharedSecret !== null) {
+            if (!isset($data['password']) || $data['password'] !== $sharedSecret) {
+                throw new ValidationException('Invalid shared secret');
+            }
         }
 
-        $this->password = $data['password'];
-        $this->notificationType = ServerNotificationType::from($data['notification_type']);
-        $this->environment = $data['environment'] === 'PROD' ? Environment::PRODUCTION : Environment::SANDBOX;
-        $this->autoRenewProductId = $data['auto_renew_product_id'];
-        $this->autoRenewStatus = filter_var($data['auto_renew_status'], FILTER_VALIDATE_BOOLEAN);
-        $this->bundleId = $data['bid'];
-        $this->bvrs = $data['bvrs'];
-        $this->originalTransactionId = (string)$data['original_transaction_id'];
-
-        if (isset($data['auto_renew_status_change_date_ms'])) {
-            $this->autoRenewStatusChangeDate = Carbon::createFromTimestampMs((int)$data['auto_renew_status_change_date_ms']);
+        // Required keys (throw with clear messages if missing/invalid)
+        $this->password = (string)($data['password'] ?? '');
+        if ($this->password === '') {
+            throw new ValidationException('Missing password in server notification payload.');
         }
 
-        $this->latestReceipt = new Response($data['unified_receipt'], $this->environment);
+        $typeRaw = (string)($data['notification_type'] ?? '');
+        try {
+            $this->notificationType = ServerNotificationType::from($typeRaw);
+        } catch (ValueError) {
+            throw new ValidationException("Unknown notification_type: {$typeRaw}");
+        }
 
-        if (!empty($data['unified_receipt']['pending_renewal_info'][0])) {
-            $this->pendingRenewalInfo = new RenewalInfo($data['unified_receipt']['pending_renewal_info'][0]);
+        // Environment via ValueCasting (accepts 'production', 'prod', 'sandbox', etc.)
+        // Default to SANDBOX if missing (matches prior behavior).
+        $this->environment = $this->toEnvironment($data, 'environment', Environment::SANDBOX);
+
+        // Optional scalars (string defaults are empty for BC with getters)
+        $this->autoRenewProductId    = $this->toString($data, 'auto_renew_product_id', '') ?? '';
+        $this->bundleId              = $this->toString($data, 'bid', '') ?? '';
+        $this->bvrs                  = $this->toString($data, 'bvrs', '') ?? '';
+        $this->originalTransactionId = $this->toString($data, 'original_transaction_id', '') ?? '';
+
+        // Booleans (non-nullable; default false)
+        $this->autoRenewStatus = $this->toBool($data, 'auto_renew_status', false);
+
+        // Dates (ms → CarbonImmutable)
+        $this->autoRenewStatusChangeDate = $this->toDateFromMs($data, 'auto_renew_status_change_date_ms');
+
+        // Unified receipt is required for v1 notifications
+        $unified = $data['unified_receipt'] ?? null;
+        if (!is_array($unified)) {
+            throw new ValidationException('Missing or invalid unified_receipt in server notification payload.');
+        }
+        $this->latestReceipt = new Response($unified, $this->environment);
+
+        // Pending renewal info (first element if present)
+        $pri = $unified['pending_renewal_info'][0] ?? null;
+        if (is_array($pri)) {
+            $this->pendingRenewalInfo = new RenewalInfo($pri);
         }
     }
 
@@ -119,7 +114,7 @@ class ServerNotification
         return $this->autoRenewStatus;
     }
 
-    public function getAutoRenewStatusChangeDate(): ?Carbon
+    public function getAutoRenewStatusChangeDate(): ?CarbonInterface
     {
         return $this->autoRenewStatusChangeDate;
     }

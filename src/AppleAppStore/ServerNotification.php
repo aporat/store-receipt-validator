@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\AppleAppStore;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Carbon\CarbonImmutable;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 use ReceiptValidator\AppleAppStore\JWT\TokenGenerator;
 use ReceiptValidator\AppleAppStore\JWT\TokenVerifier;
+use ValueError;
 
 /**
  * Represents an App Store Server Notification V2.
@@ -15,44 +19,13 @@ use ReceiptValidator\AppleAppStore\JWT\TokenVerifier;
  */
 class ServerNotification
 {
-    /**
-     * @var ServerNotificationType
-     */
     protected ServerNotificationType $notificationType;
-
-    /**
-     * @var ServerNotificationSubtype|null
-     */
     protected ?ServerNotificationSubtype $subtype = null;
-
-    /**
-     * @var Environment
-     */
     protected Environment $environment;
-
-    /**
-     * @var Carbon
-     */
-    protected Carbon $signedDate;
-
-    /**
-     * @var string
-     */
-    protected string $bundleId;
-
-    /**
-     * @var string
-     */
-    protected string $notificationUUID;
-
-    /**
-     * @var Transaction|null
-     */
+    protected CarbonImmutable $signedDate;
+    protected string $bundleId = '';
+    protected string $notificationUUID = '';
     protected ?Transaction $transaction = null;
-
-    /**
-     * @var RenewalInfo|null
-     */
     protected ?RenewalInfo $renewalInfo = null;
 
     /**
@@ -61,7 +34,6 @@ class ServerNotification
      */
     public function __construct(array $data)
     {
-
         if (!array_key_exists('signedPayload', $data)) {
             throw new ValidationException('signedPayload key is missing from signed payload');
         }
@@ -75,90 +47,76 @@ class ServerNotification
 
         $claims = $token->claims()->all();
 
-        $typeValue = $claims['notificationType'] ?? '';
-        $this->notificationType = ServerNotificationType::from($typeValue);
-
-        if (!empty($claims['subtype'])) {
-            $this->subtype = ServerNotificationSubtype::tryFrom($claims['subtype']);
+        // notificationType (required)
+        $typeRaw = (string)($claims['notificationType'] ?? '');
+        try {
+            $this->notificationType = ServerNotificationType::from($typeRaw);
+        } catch (ValueError) {
+            throw new ValidationException("Unknown notificationType: {$typeRaw}");
         }
 
-        $this->notificationUUID = $claims['notificationUUID'] ?? '';
-        $this->signedDate = Carbon::createFromTimestampMs($claims['signedDate'] ?? 0);
-        $this->bundleId = $claims['data']['bundleId'] ?? '';
+        // subtype (optional)
+        if (!empty($claims['subtype'])) {
+            $this->subtype = ServerNotificationSubtype::tryFrom((string)$claims['subtype']);
+        }
 
-        $env = $claims['data']['environment'] ?? 'Sandbox';
-        $this->environment = $env === 'Production' ? Environment::PRODUCTION : Environment::SANDBOX;
+        // Simple scalars
+        $this->notificationUUID = (string)($claims['notificationUUID'] ?? '');
+        $this->signedDate       = CarbonImmutable::createFromTimestampMs((int)($claims['signedDate'] ?? 0));
 
-        if (!empty($claims['data']['signedTransactionInfo'])) {
-            $txToken = TokenGenerator::decodeToken($claims['data']['signedTransactionInfo']);
+        $dataClaims = is_array($claims['data'] ?? null) ? $claims['data'] : [];
+
+        $this->bundleId   = (string)($dataClaims['bundleId'] ?? '');
+        $envRaw           = (string)($dataClaims['environment'] ?? 'Sandbox');
+        $this->environment = Environment::fromString($envRaw); // accepts "sandbox", "production", "prod"
+
+        // Nested signed JWS blobs → decode, then hydrate typed objects
+        if (!empty($dataClaims['signedTransactionInfo'])) {
+            $txToken       = TokenGenerator::decodeToken($dataClaims['signedTransactionInfo']);
             $this->transaction = new Transaction($txToken->claims()->all());
         }
 
-        if (!empty($claims['data']['signedRenewalInfo'])) {
-            $renewalToken = TokenGenerator::decodeToken($claims['data']['signedRenewalInfo']);
+        if (!empty($dataClaims['signedRenewalInfo'])) {
+            $renewalToken  = TokenGenerator::decodeToken($dataClaims['signedRenewalInfo']);
             $this->renewalInfo = new RenewalInfo($renewalToken->claims()->all());
         }
     }
 
-    /**
-     * @return ServerNotificationType
-     */
     public function getNotificationType(): ServerNotificationType
     {
         return $this->notificationType;
     }
 
-    /**
-     * @return ServerNotificationSubtype|null
-     */
     public function getSubtype(): ?ServerNotificationSubtype
     {
         return $this->subtype;
     }
 
-    /**
-     * @return string
-     */
     public function getNotificationUUID(): string
     {
         return $this->notificationUUID;
     }
 
-    /**
-     * @return Carbon
-     */
-    public function getSignedDate(): Carbon
+    public function getSignedDate(): CarbonInterface
     {
         return $this->signedDate;
     }
 
-    /**
-     * @return string
-     */
     public function getBundleId(): string
     {
         return $this->bundleId;
     }
 
-    /**
-     * @return Environment
-     */
     public function getEnvironment(): Environment
     {
         return $this->environment;
     }
 
-    /**
-     * @return Transaction|null
-     */
     public function getTransaction(): ?Transaction
     {
         return $this->transaction;
     }
 
-    /**
-     * @return RenewalInfo|null
-     */
     public function getRenewalInfo(): ?RenewalInfo
     {
         return $this->renewalInfo;

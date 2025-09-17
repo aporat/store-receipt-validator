@@ -1,121 +1,107 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\iTunes;
 
-use ArrayAccess;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use ReceiptValidator\AbstractTransaction;
-use ReceiptValidator\Exceptions\ValidationException;
-use ReturnTypeWillChange;
 
 /**
- * @implements ArrayAccess<string, mixed>
+ * Encapsulates a single transaction from a legacy iTunes receipt.
+ *
+ * This immutable data object provides structured access to the properties of a
+ * single purchase, parsed from the 'in_app' array of a legacy iTunes receipt.
  */
-class Transaction extends AbstractTransaction implements ArrayAccess
+final readonly class Transaction extends AbstractTransaction
 {
-    /**
-     * Web order line item ID.
-     *
-     * @var string|null
-     */
-    protected ?string $webOrderLineItemId = null;
+    /** The unique identifier of the original transaction. */
+    public ?string $originalTransactionId;
+
+    /** The unique identifier for a transaction in the web order line item. */
+    public ?string $webOrderLineItemId;
+
+    /** The date and time of the purchase. */
+    public ?CarbonImmutable $purchaseDate;
+
+    /** The date and time of the original purchase. */
+    public ?CarbonImmutable $originalPurchaseDate;
+
+    /** The expiration date for a subscription. */
+    public ?CarbonImmutable $expiresDate;
+
+    /** The date a subscription or purchase was cancelled. */
+    public ?CarbonImmutable $cancellationDate;
+
+    /** A Boolean value that indicates whether the transaction is in a trial period. */
+    public bool $isTrialPeriod;
+
+    /** A Boolean value that indicates whether the transaction is in an introductory offer period. */
+    public bool $isInIntroOfferPeriod;
+
+    /** The identifier of a promotional offer. */
+    public ?string $promotionalOfferId;
 
     /**
-     * Original transaction ID.
-     *
-     * @var string
+     * @param array<string, mixed> $data The raw data for a single transaction.
      */
-    protected string $originalTransactionId;
+    public function __construct(array $data = [])
+    {
+        parent::__construct(
+            rawData: $data,
+            quantity: $this->toInt($data, 'quantity') ?? 0,
+            productId: $this->toString($data, 'product_id'),
+            transactionId: $this->toString($data, 'transaction_id'),
+        );
 
-    /**
-     * Purchase date.
-     *
-     * @var Carbon|null
-     */
-    protected ?Carbon $purchaseDate = null;
+        $this->originalTransactionId = $this->toString($data, 'original_transaction_id');
+        $this->webOrderLineItemId    = $this->toString($data, 'web_order_line_item_id');
+        $this->promotionalOfferId    = $this->toString($data, 'promotional_offer_id');
 
-    /**
-     * Original purchase date.
-     *
-     * @var Carbon|null
-     */
-    protected ?Carbon $originalPurchaseDate = null;
+        $this->isTrialPeriod        = $this->toBool($data, 'is_trial_period');
+        $this->isInIntroOfferPeriod = $this->toBool($data, 'is_in_intro_offer_period');
 
-    /**
-     * Expires date.
-     *
-     * @var Carbon|null
-     */
-    protected ?Carbon $expiresDate = null;
-
-    /**
-     * Cancellation date.
-     *
-     * @var Carbon|null
-     */
-    protected ?Carbon $cancellationDate = null;
-
-    /**
-     * Whether it’s a trial period.
-     *
-     * @var bool|null
-     */
-    protected ?bool $isTrialPeriod = null;
-
-    /**
-     * Whether it's an introductory offer.
-     *
-     * @var bool|null
-     */
-    protected ?bool $isInIntroOfferPeriod = null;
-
-    /**
-     * Promotional offer ID.
-     *
-     * @var string|null
-     */
-    protected ?string $promotionalOfferId = null;
+        $this->purchaseDate         = $this->toDateFromMs($data, 'purchase_date_ms');
+        $this->originalPurchaseDate = $this->toDateFromMs($data, 'original_purchase_date_ms');
+        $this->expiresDate          = $this->toDateFromMs($data, 'expires_date_ms');
+        $this->cancellationDate     = $this->toDateFromMs($data, 'cancellation_date_ms');
+    }
 
     public function getWebOrderLineItemId(): ?string
     {
         return $this->webOrderLineItemId;
     }
-
-    public function getOriginalTransactionId(): string
+    public function getOriginalTransactionId(): ?string
     {
         return $this->originalTransactionId;
     }
 
-    public function getPurchaseDate(): ?Carbon
+    public function getPurchaseDate(): ?CarbonInterface
     {
         return $this->purchaseDate;
     }
-
-    public function getOriginalPurchaseDate(): ?Carbon
+    public function getOriginalPurchaseDate(): ?CarbonInterface
     {
         return $this->originalPurchaseDate;
     }
-
-    public function getExpiresDate(): ?Carbon
+    public function getExpiresDate(): ?CarbonInterface
     {
         return $this->expiresDate;
     }
-
-    public function getCancellationDate(): ?Carbon
+    public function getCancellationDate(): ?CarbonInterface
     {
         return $this->cancellationDate;
     }
 
-    public function isTrialPeriod(): ?bool
+    public function isTrialPeriod(): bool
     {
         return $this->isTrialPeriod;
     }
-
-    public function isInIntroOfferPeriod(): ?bool
+    public function isInIntroOfferPeriod(): bool
     {
         return $this->isInIntroOfferPeriod;
     }
-
     public function getPromotionalOfferId(): ?string
     {
         return $this->promotionalOfferId;
@@ -129,79 +115,5 @@ class Transaction extends AbstractTransaction implements ArrayAccess
     public function wasCanceled(): bool
     {
         return $this->cancellationDate !== null;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetSet($offset, $value): void
-    {
-        $this->rawData[$offset] = $value;
-        $this->parse();
-    }
-
-    /**
-     * Parse Data from JSON Response.
-     *
-     * @return $this
-     * @throws ValidationException
-     */
-    public function parse(): self
-    {
-        if (!is_array($this->rawData)) {
-            throw new ValidationException('Response must be an array');
-        }
-
-        $this->setQuantity((int)($this->rawData['quantity'] ?? 0));
-        $this->setTransactionId($this->rawData['transaction_id'] ?? '');
-        $this->setProductId($this->rawData['product_id'] ?? '');
-
-        $this->originalTransactionId = $this->rawData['original_transaction_id'] ?? '';
-        $this->webOrderLineItemId = $this->rawData['web_order_line_item_id'] ?? null;
-        $this->promotionalOfferId = $this->rawData['promotional_offer_id'] ?? null;
-
-        $this->isTrialPeriod = isset($this->rawData['is_trial_period'])
-            ? filter_var($this->rawData['is_trial_period'], FILTER_VALIDATE_BOOLEAN)
-            : null;
-
-        $this->isInIntroOfferPeriod = isset($this->rawData['is_in_intro_offer_period'])
-            ? filter_var($this->rawData['is_in_intro_offer_period'], FILTER_VALIDATE_BOOLEAN)
-            : null;
-
-        if (!empty($this->rawData['purchase_date_ms'])) {
-            $this->purchaseDate = Carbon::createFromTimestampUTC((int)($this->rawData['purchase_date_ms'] / 1000));
-        }
-
-        if (!empty($this->rawData['original_purchase_date_ms'])) {
-            $this->originalPurchaseDate = Carbon::createFromTimestampUTC((int)($this->rawData['original_purchase_date_ms'] / 1000));
-        }
-
-        if (!empty($this->rawData['expires_date_ms'])) {
-            $this->expiresDate = Carbon::createFromTimestampUTC((int)($this->rawData['expires_date_ms'] / 1000));
-        } elseif (!empty($this->rawData['expires_date']) && is_numeric($this->rawData['expires_date'])) {
-            $this->expiresDate = Carbon::createFromTimestampUTC((int)($this->rawData['expires_date'] / 1000));
-        }
-
-        if (!empty($this->rawData['cancellation_date_ms'])) {
-            $this->cancellationDate = Carbon::createFromTimestampUTC((int)($this->rawData['cancellation_date_ms'] / 1000));
-        }
-
-        return $this;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetGet($offset): mixed
-    {
-        return $this->rawData[$offset] ?? null;
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetUnset($offset): void
-    {
-        unset($this->rawData[$offset]);
-    }
-
-    #[ReturnTypeWillChange]
-    public function offsetExists($offset): bool
-    {
-        return isset($this->rawData[$offset]);
     }
 }

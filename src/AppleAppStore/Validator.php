@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ReceiptValidator\AppleAppStore;
 
 use GuzzleHttp\Exception\GuzzleException;
@@ -16,63 +18,46 @@ use ReceiptValidator\Exceptions\ValidationException;
 use Throwable;
 
 /**
- * App Store Server API Validator
+ * App Store Server API Validator.
  */
 class Validator extends AbstractValidator
 {
-    /**
-     * Sandbox endpoint URL.
-     */
+    /** Sandbox endpoint URL. */
     public const string ENDPOINT_SANDBOX = 'https://api.storekit-sandbox.itunes.apple.com';
 
-    /**
-     * Production endpoint URL.
-     */
+    /** Production endpoint URL. */
     public const string ENDPOINT_PRODUCTION = 'https://api.storekit.itunes.apple.com';
 
-    /**
-     * Transaction ID to validate.
-     *
-     * @var string|null
-     */
+    /** @return array{production:string, sandbox:string} */
+    protected function endpointMap(): array
+    {
+        return [
+            Environment::PRODUCTION->value => self::ENDPOINT_PRODUCTION,
+            Environment::SANDBOX->value    => self::ENDPOINT_SANDBOX,
+        ];
+    }
+
+    /** Transaction ID to validate. */
     protected ?string $transactionId = null;
 
-    /**
-     * App Store Connect's private key.
-     *
-     * @var string
-     */
+    /** App Store Connect's private key (PEM or raw .p8 contents). */
     protected string $signingKey;
 
-    /**
-     * Key ID for the private key.
-     *
-     * @var string
-     */
+    /** Key ID for the private key. */
     protected string $keyId;
 
-    /**
-     * Issuer ID (App Store Connect API key issuer).
-     *
-     * @var string
-     */
+    /** Issuer ID (App Store Connect API key issuer). */
     protected string $issuerId;
 
-    /**
-     * App bundle ID.
-     *
-     * @var string
-     */
+    /** App bundle ID. */
     protected string $bundleId;
 
     /**
-     * Validator constructor.
-     *
-     * @param string $signingKey
-     * @param string $keyId
-     * @param string $issuerId
-     * @param string $bundleId
-     * @param Environment $environment
+     * @param string $signingKey The contents of your .p8 key
+     * @param string $keyId      The Key ID from App Store Connect
+     * @param string $issuerId   Your Issuer ID
+     * @param string $bundleId   Your app's bundle identifier
+     * @param Environment $environment Target environment (defaults to PRODUCTION)
      */
     public function __construct(
         string $signingKey,
@@ -81,18 +66,16 @@ class Validator extends AbstractValidator
         string $bundleId,
         Environment $environment = Environment::PRODUCTION
     ) {
-        $this->signingKey = $signingKey;
-        $this->keyId = $keyId;
-        $this->issuerId = $issuerId;
-        $this->bundleId = $bundleId;
-        $this->environment = $environment;
+        $this->signingKey   = $signingKey;
+        $this->keyId        = $keyId;
+        $this->issuerId     = $issuerId;
+        $this->bundleId     = $bundleId;
+        $this->environment  = $environment;
     }
 
     /**
      * Validate the transaction by calling the App Store Server API.
      *
-     * @param string|null $transactionId
-     * @return Response
      * @throws ValidationException
      */
     public function validate(?string $transactionId = null): Response
@@ -101,24 +84,19 @@ class Validator extends AbstractValidator
             $this->setTransactionId($transactionId);
         }
 
-        if (empty($this->transactionId)) {
+        if ($this->transactionId === null || $this->transactionId === '') {
             throw new ValidationException('Missing transaction ID for App Store Server API validation.');
         }
 
         $uri = sprintf('/inApps/v2/history/%s', $this->transactionId);
 
-        $queryParams = [
+        return $this->makeRequest('GET', $uri, [
             'sort' => 'DESCENDING',
-        ];
-
-        return $this->makeRequest('GET', $uri, $queryParams);
+        ]);
     }
 
     /**
-     * Set the transaction ID.
-     *
-     * @param string $transactionId
-     * @return $this
+     * Set the transaction ID (fluent).
      */
     public function setTransactionId(string $transactionId): self
     {
@@ -129,74 +107,86 @@ class Validator extends AbstractValidator
     /**
      * Perform the HTTP request to the App Store API.
      *
-     * @param string $method
-     * @param string $uri
-     * @param array<string, mixed> $queryParams
-     * @return Response
+     * @param array<string,mixed> $queryParams
      * @throws ValidationException
      */
     protected function makeRequest(string $method, string $uri = '', array $queryParams = []): Response
     {
-        $endpoint = $this->environment === Environment::PRODUCTION
-            ? self::ENDPOINT_PRODUCTION
-            : self::ENDPOINT_SANDBOX;
+        $endpoint = $this->endpointForEnvironment();
 
         $token = $this->generateToken();
 
         try {
             $httpResponse = $this->getClient($endpoint)->request($method, $uri, [
-                'headers' => [
-                    'Authorization' => "Bearer {$token->toString()}",
-                ],
-                'query' => $queryParams,
+                'headers' => $this->buildHeaders($token),
+                'query'   => $queryParams,
             ]);
         } catch (GuzzleException $e) {
             throw new ValidationException('Unable to connect to App Store Server API - ' . $e->getMessage(), 0, $e);
         }
 
-        $body = (string)$httpResponse->getBody();
-        $decoded = json_decode($body, true);
+        $statusCode = $httpResponse->getStatusCode();
+        $body       = (string) $httpResponse->getBody();
 
-        if ($httpResponse->getStatusCode() !== 200) {
-            $errorMessage = match ($httpResponse->getStatusCode()) {
-                401 => 'Unauthenticated',
-                404 => 'Not Found',
-                default => $decoded['errorMessage'] ?? ($body ?: 'Unexpected error'),
-            };
-
-            $errorCode = isset($decoded['errorCode']) ? (int)$decoded['errorCode'] : $httpResponse->getStatusCode();
-
-            $fullMessage = "App Store API error [{$errorCode}]: {$errorMessage}";
-
-            throw new ValidationException($fullMessage, $errorCode);
+        // Decode JSON (keep parse error message generic to satisfy strict tests)
+        $decoded = null;
+        $isJson  = false;
+        if ($body !== '') {
+            try {
+                $decoded = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+                $isJson  = is_array($decoded);
+            } catch (Throwable) {
+                if ($statusCode === 200) {
+                    throw new ValidationException('Invalid response format from App Store Server API.');
+                }
+            }
         }
 
-        if (!is_array($decoded)) {
+        if ($statusCode !== 200) {
+            // If Apple returns an errorCode, prefer enum-based message/code
+            $apiCase = ($isJson && isset($decoded['errorCode']))
+                ? APIError::tryFrom((int) $decoded['errorCode'])
+                : null;
+
+            if ($apiCase !== null) {
+                $errorCode    = $apiCase->value;
+                $errorMessage = $apiCase->message();
+            } else {
+                // Friendly defaults for common auth/not-found responses
+                $errorMessage = match ($statusCode) {
+                    401     => 'Unauthenticated',
+                    404     => 'Not Found',
+                    default => ($isJson ? ($decoded['errorMessage'] ?? null) : null) ?? ($body !== '' ? $body : 'Unexpected error'),
+                };
+                $errorCode = $statusCode;
+            }
+
+            throw new ValidationException("App Store API error [{$errorCode}]: {$errorMessage}", $errorCode);
+        }
+
+        if (!$isJson || !is_array($decoded)) {
             throw new ValidationException('Invalid response format from App Store Server API.');
         }
 
-        return new Response($decoded, $this->environment);
+        return new Response($decoded);
     }
 
     /**
      * Generate a JWT for authenticating with the App Store Server API.
      *
-     * @return Token
      * @throws ValidationException
      */
     private function generateToken(): Token
     {
         try {
-            $signingKey = $this->signingKey;
-
-            if ($signingKey === '') {
+            if ($this->signingKey === '') {
                 throw new ValidationException('Cannot generate a token without a signing key.');
             }
 
             $issuer = new TokenIssuer(
                 $this->issuerId,
                 $this->bundleId,
-                new TokenKey($this->keyId, InMemory::plainText($signingKey)),
+                new TokenKey($this->keyId, InMemory::plainText($this->signingKey)),
                 new Sha256()
             );
 
@@ -211,17 +201,29 @@ class Validator extends AbstractValidator
     /**
      * Request a test notification from the App Store Server API.
      *
-     * @return string
      * @throws ValidationException
      */
     public function requestTestNotification(): string
     {
         $data = $this->makeRequest('POST', '/inApps/v1/notifications/test')->getRawData();
 
-        if (!is_array($data) || !isset($data['testNotificationToken'])) {
+        if (!isset($data['testNotificationToken'])) {
             throw new ValidationException('Missing testNotificationToken in response.');
         }
 
-        return $data['testNotificationToken'];
+        return (string) $data['testNotificationToken'];
+    }
+
+    /**
+     * Build request headers with the given token.
+     *
+     * @return array<string,string>
+     */
+    private function buildHeaders(Token $token): array
+    {
+        return [
+            'Authorization' => 'Bearer ' . $token->toString(),
+            'Accept'        => 'application/json',
+        ];
     }
 }
