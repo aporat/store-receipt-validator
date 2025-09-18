@@ -2,75 +2,102 @@ name: CI
 
 on:
     push:
+        branches: [main]
     pull_request:
+        branches: [main]
     release:
         types: [published]
 
-jobs:
-    php-tests:
-        runs-on: ${{ matrix.os }}
+# Prevent duplicate workflow runs on PRs
+concurrency:
+    group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+    cancel-in-progress: true
 
+jobs:
+    test:
+        name: PHP ${{ matrix.php }} on ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
         strategy:
             fail-fast: false
             matrix:
-                php: [8.3, 8.4]
                 os: [ubuntu-latest]
-                coverage: [none]
-                include:
-                    - php: 8.4
-                      os: ubuntu-latest
-                      coverage: xdebug
-
-        name: PHP ${{ matrix.php }} ${{ matrix.description }}
+                php: ['8.3', '8.4']
 
         steps:
-            - name: Checkout Code
-              uses: actions/checkout@v5
+            - name: Checkout code
+              uses: actions/checkout@v4
 
             - name: Setup PHP
               uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php }}
-                  extensions: mbstring, json, openssl, xdebug
+                  extensions: mbstring, json, openssl
                   ini-values: memory_limit=-1
                   tools: composer:v2
-                  coverage: ${{ matrix.coverage }}
+                  coverage: none # No coverage needed for standard test runs
 
-            - name: Cache dependencies
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+            - name: Cache Composer dependencies
               uses: actions/cache@v4
               with:
-                  path: vendor
-                  key: ${{ matrix.os }}-${{ matrix.php }}-vendor-${{ hashFiles('**/composer.lock') }}
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ matrix.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
+                  restore-keys: |
+                      ${{ matrix.os }}-php-${{ matrix.php }}-composer-
 
-            - name: Install Dependencies
+            - name: Install dependencies
               uses: ramsey/composer-install@v3
 
-            - name: Run Tests
-              if: matrix.coverage == 'none'
+            - name: Run tests
               run: composer test
 
-            - name: Run Tests with Coverage
-              if: matrix.coverage == 'xdebug'
-              run: composer test-ci
+    lint-and-analyze:
+        name: Quality Assurance
+        runs-on: ubuntu-latest
+        needs: test # This job runs only if the 'test' job succeeds
 
-            - name: Run code style check
-              if: matrix.coverage == 'xdebug'
-              run: composer check
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-            - name: Run code analyze
-              if: matrix.coverage == 'xdebug'
+            - name: Setup PHP for QA
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.4' # Use the latest PHP version for QA tasks
+                  extensions: mbstring, json, openssl
+                  ini-values: memory_limit=-1
+                  tools: composer:v2
+                  coverage: xdebug # Enable Xdebug for coverage reporting
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+            - name: Cache Composer dependencies
+              uses: actions/cache@v4
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ubuntu-php-8.4-composer-${{ hashFiles('**/composer.lock') }}
+                  restore-keys: |
+                      ubuntu-php-8.4-composer-
+
+            - name: Install dependencies
+              uses: ramsey/composer-install@v3
+
+            - name: Run code style check (lint)
+              run: composer lint
+
+            - name: Run static analysis
               run: composer analyze
 
-            - name: Upload coverage to Codecov
-              if: matrix.coverage == 'xdebug'
-              uses: codecov/codecov-action@v5
-              with:
-                  token: ${{ secrets.CODECOV_TOKEN }}
-                  slug: ${{ github.repository }}
+            - name: Run tests with coverage
+              run: composer test:coverage
 
-            - name: Upload test results to Codecov
-              if: matrix.coverage == 'xdebug'
-              uses: codecov/test-results-action@v1
+            - name: Upload coverage to Codecov
+              uses: codecov/codecov-action@v4
               with:
                   token: ${{ secrets.CODECOV_TOKEN }}
                   slug: ${{ github.repository }}
