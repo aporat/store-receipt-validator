@@ -12,14 +12,14 @@ A modern PHP library for validating in-app purchase receipts from the Apple App 
 - ✅ Apple iTunes **Legacy API** support (deprecated by Apple, still available here)
 - ✅ Amazon Appstore receipt validation
 - ✅ App Store **Server Notifications v1 & v2** parsing
-- ✅ Strong typing (PHP 8.3+), enums, and modern error handling
+- ✅ Strong typing (PHP 8.4+), enums, and modern error handling
 - ✅ Built-in test suite with 100% coverage
 
 ---
 
 ## 📦 Requirements
 
-- PHP >= 8.3
+- PHP >= 8.4
 
 ---
 
