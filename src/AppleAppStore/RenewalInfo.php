@@ -105,7 +105,7 @@ class RenewalInfo extends AbstractRenewalInfo
         $this->appAccountToken          = $this->toString($data, 'appAccountToken');
 
         $eligible = $data['eligibleWinBackOfferIds'] ?? null;
-        $this->eligibleWinBackOfferIds = is_array($eligible) ? $eligible : null;
+        $this->eligibleWinBackOfferIds = is_array($eligible) ? array_values(array_map('strval', $eligible)) : null;
 
         $this->expirationIntentDate       = $this->toDateFromMs($data, 'expirationIntentDate');
         $this->gracePeriodExpiresDate     = $this->toDateFromMs($data, 'gracePeriodExpiresDate');
