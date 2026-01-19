@@ -1,13 +1,12 @@
 {
     "name": "aporat/store-receipt-validator",
-    "description": "PHP receipt validator for Apple iTunes, Google Play and Amazon App Store",
+    "description": "PHP receipt validator for Apple App Store and Amazon Appstore",
     "type": "library",
     "license": "Apache-2.0",
     "homepage": "https://github.com/aporat/store-receipt-validator",
     "keywords": [
         "amazon appstore",
         "apple",
-        "google play",
         "iap",
         "in-app purchase",
         "itunes",
@@ -43,8 +42,8 @@
     },
     "require-dev": {
         "mockery/mockery": "^1.6",
-        "phpstan/phpstan": "^1.11",
-        "phpstan/phpstan-phpunit": "^1.4",
+        "phpstan/phpstan": "^1.11 || ^2.0",
+        "phpstan/phpstan-phpunit": "^1.4 || ^2.0",
         "phpunit/phpunit": "^12.0",
         "squizlabs/php_codesniffer": "^3.10 || ^4.0"
     },

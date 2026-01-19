@@ -249,6 +249,6 @@ Found a bug or want a new feature? [Open an issue](https://github.com/aporat/sto
 
 ## 📄 License
 
-MIT License. See [LICENSE](LICENSE).
+Apache-2.0 License. See [LICENSE](LICENSE).
 
 ---
