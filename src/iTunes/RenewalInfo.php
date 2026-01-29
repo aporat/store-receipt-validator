@@ -12,7 +12,10 @@ use ReceiptValidator\Exceptions\ValidationException;
 /**
  * Represents the renewal info section of the iTunes receipt.
  *
+ * @deprecated since version 2.0. Use {@see \ReceiptValidator\AppleAppStore\RenewalInfo} instead.
+ *             Apple has deprecated the verifyReceipt endpoint in favor of the App Store Server API.
  * @link https://developer.apple.com/library/content/releasenotes/General/ValidateAppStoreReceipt/Chapters/ReceiptFields.html
+ * @see https://developer.apple.com/documentation/appstoreserverapi
  */
 final class RenewalInfo extends AbstractRenewalInfo
 {

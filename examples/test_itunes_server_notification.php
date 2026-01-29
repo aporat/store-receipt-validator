@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @deprecated This example uses the legacy iTunes ServerNotification (V1) which is deprecated.
+ *             Apple has deprecated V1 notifications in favor of App Store Server Notifications V2.
+ *             Please use the AppleAppStore\ServerNotification instead. See test_appstore_server_notification.php for an example.
+ */
+
 declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';

@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @deprecated This example uses the legacy iTunes validator which is deprecated.
+ *             Apple has deprecated the verifyReceipt endpoint in favor of the App Store Server API.
+ *             Please use the AppleAppStore\Validator instead. See test_appstore_receipt.php for an example.
+ */
+
 declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';

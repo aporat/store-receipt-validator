@@ -14,7 +14,10 @@ use ValueError;
 /**
  * Represents an App Store Server Notification V1.
  *
+ * @deprecated since version 2.0. Use {@see \ReceiptValidator\AppleAppStore\ServerNotification} instead.
+ *             Apple has deprecated V1 notifications in favor of App Store Server Notifications V2.
  * @see https://developer.apple.com/documentation/appstoreservernotifications/appstoreservernotification
+ * @see https://developer.apple.com/documentation/appstoreservernotifications
  */
 class ServerNotification
 {

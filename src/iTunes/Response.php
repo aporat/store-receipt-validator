@@ -16,7 +16,10 @@ use ReceiptValidator\Exceptions\ValidationException;
  * This immutable data object provides structured access to receipt attributes,
  * transactions, and subscription information.
  *
+ * @deprecated since version 2.0. Use {@see \ReceiptValidator\AppleAppStore\Response} instead.
+ *             Apple has deprecated the verifyReceipt endpoint in favor of the App Store Server API.
  * @see https://developer.apple.com/documentation/appstorereceipts/responsebody
+ * @see https://developer.apple.com/documentation/appstoreserverapi
  *
  * @extends AbstractResponse<Transaction>
  */
