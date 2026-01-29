@@ -13,6 +13,10 @@ use ReceiptValidator\AbstractTransaction;
  *
  * This immutable data object provides structured access to the properties of a
  * single purchase, parsed from the 'in_app' array of a legacy iTunes receipt.
+ *
+ * @deprecated since version 2.0. Use {@see \ReceiptValidator\AppleAppStore\Transaction} instead.
+ *             Apple has deprecated the verifyReceipt endpoint in favor of the App Store Server API.
+ * @see https://developer.apple.com/documentation/appstoreserverapi
  */
 final readonly class Transaction extends AbstractTransaction
 {

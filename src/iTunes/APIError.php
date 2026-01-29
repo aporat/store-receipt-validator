@@ -8,7 +8,10 @@ namespace ReceiptValidator\iTunes;
  * This enum provides a type-safe way to handle specific status codes returned
  * by the iTunes API, encapsulating the integer code and its human-readable message.
  *
+ * @deprecated since version 2.0. Use {@see \ReceiptValidator\AppleAppStore\APIError} instead.
+ *             Apple has deprecated the verifyReceipt endpoint in favor of the App Store Server API.
  * @see https://developer.apple.com/documentation/appstorereceipts/status
+ * @see https://developer.apple.com/documentation/appstoreserverapi
  */
 enum APIError: int
 {

@@ -11,6 +11,13 @@ use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 use Throwable;
 
+/**
+ * Legacy iTunes receipt validator using the verifyReceipt endpoint.
+ *
+ * @deprecated since version 2.0. Use {@see \ReceiptValidator\AppleAppStore\Validator} instead.
+ *             Apple has deprecated the verifyReceipt endpoint in favor of the App Store Server API.
+ * @see https://developer.apple.com/documentation/appstoreserverapi
+ */
 class Validator extends AbstractValidator
 {
     /** Sandbox endpoint URL. */

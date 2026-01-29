@@ -5,7 +5,10 @@ namespace ReceiptValidator\iTunes;
 /**
  * Notification types for App Store Server Notifications V1.
  *
+ * @deprecated since version 2.0. Use {@see \ReceiptValidator\AppleAppStore\ServerNotificationType} instead.
+ *             Apple has deprecated V1 notifications in favor of App Store Server Notifications V2.
  * @see https://developer.apple.com/documentation/appstoreservernotifications/notificationtype
+ * @see https://developer.apple.com/documentation/appstoreservernotifications
  */
 enum ServerNotificationType: string
 {
