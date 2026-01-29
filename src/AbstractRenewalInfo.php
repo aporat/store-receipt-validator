@@ -9,7 +9,7 @@ use ReceiptValidator\Support\ValueCasting;
 /**
  * Base class for RenewalInfo models (iTunes, AppleAppStore).
  */
-abstract class AbstractRenewalInfo
+abstract readonly class AbstractRenewalInfo
 {
     use ValueCasting;
 }

@@ -87,8 +87,7 @@ final class Validator extends AbstractValidator
 
             // Non-JSON or empty body is an error either way
             if (!is_array($decoded)) {
-                $jsonErr = function_exists('json_last_error_msg') ? json_last_error_msg() : 'Unknown JSON error';
-                throw new ValidationException("Amazon API returned invalid JSON: $jsonErr", $status);
+                throw new ValidationException("Amazon API returned invalid JSON: " . json_last_error_msg(), $status);
             }
 
             if ($status !== 200) {

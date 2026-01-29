@@ -13,74 +13,77 @@ use ReceiptValidator\AbstractRenewalInfo;
  *
  * @see https://developer.apple.com/documentation/appstoreservernotifications/jwsrenewalinfodecodedpayload
  */
-class RenewalInfo extends AbstractRenewalInfo
+final readonly class RenewalInfo extends AbstractRenewalInfo
 {
     /** The product identifier of the auto-renewable subscription. */
-    protected ?string $autoRenewProductId = null;
+    public ?string $autoRenewProductId;
 
     /** The renewal status of the subscription. */
-    protected bool $autoRenewStatus = false;
+    public bool $autoRenewStatus;
 
     /** The time when the subscription will expire due to a billing issue or other reason. */
-    protected ?CarbonImmutable $expirationIntentDate = null;
+    public ?CarbonImmutable $expirationIntentDate;
 
     /** Indicates whether the App Store is attempting to renew the subscription. */
-    protected bool $isInBillingRetryPeriod = false;
+    public bool $isInBillingRetryPeriod;
 
     /** Indicates whether the user upgraded to another subscription. */
-    protected bool $isUpgraded = false;
+    public bool $isUpgraded;
 
     /** The original transaction identifier of the subscription. */
-    protected ?string $originalTransactionId = null;
+    public ?string $originalTransactionId;
 
     /**
-     * The status of the customer’s consent to a subscription price increase.
+     * The status of the customer's consent to a subscription price increase.
      * 0 = customer has not responded, 1 = customer consented
      */
-    protected ?int $priceConsentStatus = null;
+    public ?int $priceConsentStatus;
 
     /** The time when the subscription's billing grace period expires. */
-    protected ?CarbonImmutable $gracePeriodExpiresDate = null;
+    public ?CarbonImmutable $gracePeriodExpiresDate;
 
     /** The subscription price in milli-units (e.g., cents). */
-    protected ?int $renewalPrice = null;
+    public ?int $renewalPrice;
 
     /** The currency code for the renewal price. */
-    protected ?string $currency = null;
+    public ?string $currency;
 
     /** The identifier of the promotional offer. */
-    protected ?string $offerIdentifier = null;
+    public ?string $offerIdentifier;
 
     /** The type of offer being applied. */
-    protected ?int $offerType = null;
+    public ?int $offerType;
 
     /** The discount type of the offer. */
-    protected ?string $offerDiscountType = null;
+    public ?string $offerDiscountType;
 
     /** The ISO 8601 duration of the offer period. */
-    protected ?string $offerPeriod = null;
+    public ?string $offerPeriod;
 
     /** The App Store transaction ID of the renewal. */
-    protected ?string $appTransactionId = null;
+    public ?string $appTransactionId;
 
     /** The app account token that uniquely identifies the customer. */
-    protected ?string $appAccountToken = null;
+    public ?string $appAccountToken;
 
-    /** The list of eligible win-back offer identifiers. */
-    /** @var list<string> */
-    protected ?array $eligibleWinBackOfferIds = null;
+    /**
+     * The list of eligible win-back offer identifiers.
+     *
+     * @var list<string>|null
+     */
+    public ?array $eligibleWinBackOfferIds;
 
     /** The signed date of this renewal info token. */
-    protected ?CarbonImmutable $signedDate = null;
+    public ?CarbonImmutable $signedDate;
 
     /** The start date of the most recent subscription. */
-    protected ?CarbonImmutable $recentSubscriptionStartDate = null;
+    public ?CarbonImmutable $recentSubscriptionStartDate;
 
     /** The next renewal date. */
-    protected ?CarbonImmutable $renewalDate = null;
+    public ?CarbonImmutable $renewalDate;
 
-    /** @var array<string, mixed>|null */
-    protected ?array $rawData = null;
+    /** @var array<string, mixed> */
+    public array $rawData;
 
     /**
      * @param array<string, mixed> $data
@@ -107,17 +110,18 @@ class RenewalInfo extends AbstractRenewalInfo
         $eligible = $data['eligibleWinBackOfferIds'] ?? null;
         $this->eligibleWinBackOfferIds = is_array($eligible) ? array_values(array_map('strval', $eligible)) : null;
 
-        $this->expirationIntentDate       = $this->toDateFromMs($data, 'expirationIntentDate');
-        $this->gracePeriodExpiresDate     = $this->toDateFromMs($data, 'gracePeriodExpiresDate');
-        $this->signedDate                 = $this->toDateFromMs($data, 'signedDate');
+        $this->expirationIntentDate        = $this->toDateFromMs($data, 'expirationIntentDate');
+        $this->gracePeriodExpiresDate      = $this->toDateFromMs($data, 'gracePeriodExpiresDate');
+        $this->signedDate                  = $this->toDateFromMs($data, 'signedDate');
         $this->recentSubscriptionStartDate = $this->toDateFromMs($data, 'recentSubscriptionStartDate');
-        $this->renewalDate                = $this->toDateFromMs($data, 'renewalDate');
+        $this->renewalDate                 = $this->toDateFromMs($data, 'renewalDate');
     }
 
     public function getAutoRenewProductId(): ?string
     {
         return $this->autoRenewProductId;
     }
+
     public function getAutoRenewStatus(): bool
     {
         return $this->autoRenewStatus;
@@ -133,14 +137,17 @@ class RenewalInfo extends AbstractRenewalInfo
     {
         return $this->isInBillingRetryPeriod;
     }
+
     public function isUpgraded(): bool
     {
         return $this->isUpgraded;
     }
+
     public function getOriginalTransactionId(): ?string
     {
         return $this->originalTransactionId;
     }
+
     public function getPriceConsentStatus(): ?int
     {
         return $this->priceConsentStatus;
@@ -156,30 +163,37 @@ class RenewalInfo extends AbstractRenewalInfo
     {
         return $this->renewalPrice;
     }
+
     public function getCurrency(): ?string
     {
         return $this->currency;
     }
+
     public function getOfferIdentifier(): ?string
     {
         return $this->offerIdentifier;
     }
+
     public function getOfferType(): ?int
     {
         return $this->offerType;
     }
+
     public function getOfferDiscountType(): ?string
     {
         return $this->offerDiscountType;
     }
+
     public function getOfferPeriod(): ?string
     {
         return $this->offerPeriod;
     }
+
     public function getAppTransactionId(): ?string
     {
         return $this->appTransactionId;
     }
+
     public function getAppAccountToken(): ?string
     {
         return $this->appAccountToken;

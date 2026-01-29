@@ -229,7 +229,7 @@ public function subscriptions(Request $request): JsonResponse {
 
 ```bash
 composer test        # Run tests with PHPUnit
-composer check       # Run code style checks with PHP_CodeSniffer
+composer lint        # Run code style checks with PHP_CodeSniffer
 composer analyze     # Run static analysis with PHPStan
 ```
 

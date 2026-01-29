@@ -17,7 +17,7 @@ use ReceiptValidator\Exceptions\ValidationException;
  * @link https://developer.apple.com/library/content/releasenotes/General/ValidateAppStoreReceipt/Chapters/ReceiptFields.html
  * @see https://developer.apple.com/documentation/appstoreserverapi
  */
-final class RenewalInfo extends AbstractRenewalInfo
+final readonly class RenewalInfo extends AbstractRenewalInfo
 {
     // Expiration Intent Codes
     public const int EXPIRATION_INTENT_CANCELLED           = 1;
@@ -30,22 +30,20 @@ final class RenewalInfo extends AbstractRenewalInfo
     public const string STATUS_PENDING = 'pending';
     public const string STATUS_EXPIRED = 'expired';
 
-    protected string $productId;
-    protected ?string $autoRenewProductId = null;
-    protected ?string $originalTransactionId = null;
+    public string $productId;
+    public ?string $autoRenewProductId;
+    public ?string $originalTransactionId;
 
-    protected bool $autoRenewStatus = false;
-    protected bool $isInBillingRetryPeriod = false;
+    public bool $autoRenewStatus;
+    public bool $isInBillingRetryPeriod;
 
     /** @var int|null One of the EXPIRATION_INTENT_* codes */
-    protected ?int $expirationIntent = null;
+    public ?int $expirationIntent;
 
-    protected ?CarbonImmutable $gracePeriodExpiresDate = null;
+    public ?CarbonImmutable $gracePeriodExpiresDate;
 
-    /**
-     * @var array<string, mixed>|null
-     */
-    protected ?array $rawData = null;
+    /** @var array<string, mixed> */
+    public array $rawData;
 
     /**
      * @param array<string, mixed>|null $data
@@ -53,21 +51,21 @@ final class RenewalInfo extends AbstractRenewalInfo
      */
     public function __construct(?array $data)
     {
-        $this->rawData = $data;
-
-        if (!is_array($this->rawData)) {
+        if (!is_array($data)) {
             throw new ValidationException('Response must be an array');
         }
 
-        $this->productId             = (string) $this->toString($this->rawData, 'product_id', '');
-        $this->originalTransactionId = $this->toString($this->rawData, 'original_transaction_id', '');
-        $this->autoRenewProductId    = $this->toString($this->rawData, 'auto_renew_product_id', '');
+        $this->rawData = $data;
 
-        $this->autoRenewStatus        = $this->toBool($this->rawData, 'auto_renew_status');
-        $this->isInBillingRetryPeriod = $this->toBool($this->rawData, 'is_in_billing_retry_period');
+        $this->productId             = (string) $this->toString($data, 'product_id', '');
+        $this->originalTransactionId = $this->toString($data, 'original_transaction_id', '');
+        $this->autoRenewProductId    = $this->toString($data, 'auto_renew_product_id', '');
 
-        $this->expirationIntent       = $this->toInt($this->rawData, 'expiration_intent');
-        $this->gracePeriodExpiresDate = $this->toDateFromMs($this->rawData, 'grace_period_expires_date_ms');
+        $this->autoRenewStatus        = $this->toBool($data, 'auto_renew_status');
+        $this->isInBillingRetryPeriod = $this->toBool($data, 'is_in_billing_retry_period');
+
+        $this->expirationIntent       = $this->toInt($data, 'expiration_intent');
+        $this->gracePeriodExpiresDate = $this->toDateFromMs($data, 'grace_period_expires_date_ms');
     }
 
     public function getProductId(): string
