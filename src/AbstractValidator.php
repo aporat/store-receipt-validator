@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace ReceiptValidator;
 
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\ClientInterface as HttpClientInterface;
 use GuzzleHttp\RequestOptions;
 use ReceiptValidator\Exceptions\ValidationException;
 
 abstract class AbstractValidator
 {
     /** HTTP client instance. */
-    protected ?HttpClient $client = null;
+    protected ?HttpClientInterface $client = null;
 
     /** The base URI of the currently configured client. */
     protected ?string $baseUri = null;
@@ -53,7 +54,7 @@ abstract class AbstractValidator
      * Optionally inject a preconfigured HTTP client and its base URI.
      * Useful for testing and for handler stacks or custom middleware.
      */
-    public function setHttpClient(HttpClient $client, ?string $baseUri = null): self
+    public function setHttpClient(HttpClientInterface $client, ?string $baseUri = null): self
     {
         $this->client  = $client;
         $this->baseUri = $baseUri;
@@ -93,7 +94,7 @@ abstract class AbstractValidator
      * Creates a new client if none exists or if the base URI changed.
      * This is important when switching between production and sandbox endpoints.
      */
-    protected function getClient(string $baseUri): HttpClient
+    protected function getClient(string $baseUri): HttpClientInterface
     {
         if ($this->client === null || $this->baseUri !== $baseUri) {
             $options              = $this->client_options;
