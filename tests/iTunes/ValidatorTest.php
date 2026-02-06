@@ -52,6 +52,40 @@ final class ValidatorTest extends TestCase
         self::assertSame('secret', $validator->getSharedSecret());
     }
 
+    public function testSetSharedSecretUpdatesValue(): void
+    {
+        $validator = new Validator('original');
+        $validator->setSharedSecret('updated');
+        self::assertSame('updated', $validator->getSharedSecret());
+    }
+
+    public function testSetSharedSecretToNull(): void
+    {
+        $validator = new Validator('secret');
+        $validator->setSharedSecret(null);
+        self::assertNull($validator->getSharedSecret());
+    }
+
+    public function testSetSharedSecretDefaultsToNull(): void
+    {
+        $validator = new Validator('secret');
+        $validator->setSharedSecret();
+        self::assertNull($validator->getSharedSecret());
+    }
+
+    public function testSetSharedSecretReturnsSelf(): void
+    {
+        $validator = new Validator('secret');
+        $result = $validator->setSharedSecret('new-secret');
+        self::assertSame($validator, $result);
+    }
+
+    public function testConstructorWithNullSharedSecret(): void
+    {
+        $validator = new Validator(null);
+        self::assertNull($validator->getSharedSecret());
+    }
+
     public function testValidateReturnsResponse(): void
     {
         $mockClient = Mockery::mock(Client::class);
