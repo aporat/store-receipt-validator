@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\Tests;
 
+use GuzzleHttp\ClientInterface as HttpClientInterface;
 use GuzzleHttp\Client as HttpClient;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\AbstractValidator;
@@ -92,7 +93,7 @@ final class TestableValidator extends AbstractValidator
         return 'ok';
     }
 
-    public function clientFor(string $baseUri): HttpClient
+    public function clientFor(string $baseUri): HttpClientInterface
     {
         return $this->getClient($baseUri);
     }

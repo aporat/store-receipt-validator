@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\Tests\AppleAppStore;
 
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface as GuzzleHttpClientInterface;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
-use Mockery;
-use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\AppleAppStore\APIError;
-use ReceiptValidator\AppleAppStore\Response;
 use ReceiptValidator\AppleAppStore\Validator;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
@@ -19,35 +17,25 @@ use ReceiptValidator\Exceptions\ValidationException;
 #[CoversClass(Validator::class)]
 final class ValidatorTest extends TestCase
 {
-    private Validator|MockInterface $validator;
-    private Client|MockInterface $mockClient;
+    private Validator $validator;
+    private GuzzleHttpClientInterface&MockObject $mockClient;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->mockClient = Mockery::mock(Client::class);
+        $this->mockClient = $this->createMock(GuzzleHttpClientInterface::class);
         $signingKey = (string) file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
 
         // Partial mock so we can stub getClient() but keep real behavior otherwise
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, [
-            $signingKey,
-            'ABC123XYZ',    // keyId
-            'DEF456UVW',    // issuerId
-            'com.example',  // bundleId
-            Environment::SANDBOX,
-        ])->makePartial();
-
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($this->mockClient);
-
-        $this->validator = $validator;
-    }
-
-    protected function tearDown(): void
-    {
-        Mockery::close();
+        $this->validator = new Validator(
+            signingKey: $signingKey,
+            keyId: 'ABC123XYZ',
+            issuerId: 'DEF456UVW',
+            bundleId: 'com.example',
+            environment: Environment::SANDBOX,
+        );
+        $this->validator->setHttpClient($this->mockClient, Validator::ENDPOINT_SANDBOX);
     }
 
     /**
@@ -59,12 +47,13 @@ final class ValidatorTest extends TestCase
     {
         $json = (string) file_get_contents(__DIR__ . '/fixtures/transactionHistoryResponse.json');
 
-        $this->mockClient->shouldReceive('request')
-            ->once()
-            ->andReturn(new GuzzleResponse(200, [], $json));
+        $this->mockClient
+            ->expects($this->once())
+            ->method('request')
+            ->with('GET', '/inApps/v2/history/abc123')
+            ->willReturn(new GuzzleResponse(200, [], $json));
 
-        $response = $this->validator->validate('abc123');
-        self::assertInstanceOf(Response::class, $response);
+        $this->validator->validate('abc123');
     }
 
     /**
@@ -75,10 +64,11 @@ final class ValidatorTest extends TestCase
     {
         $mockResponseBody = json_encode(['testNotificationToken' => 'test-token-123'], JSON_THROW_ON_ERROR);
 
-        $this->mockClient->shouldReceive('request')
-            ->once()
-            ->with('POST', '/inApps/v1/notifications/test', Mockery::any())
-            ->andReturn(new GuzzleResponse(200, [], $mockResponseBody));
+        $this->mockClient
+            ->expects($this->once())
+            ->method('request')
+            ->with('POST', '/inApps/v1/notifications/test', $this->anything())
+            ->willReturn(new GuzzleResponse(200, [], $mockResponseBody));
 
         $token = $this->validator->requestTestNotification();
         self::assertSame('test-token-123', $token);
@@ -95,9 +85,10 @@ final class ValidatorTest extends TestCase
             'errorMessage' => 'Invalid transaction ID provided',
         ], JSON_THROW_ON_ERROR);
 
-        $this->mockClient->shouldReceive('request')
-            ->once()
-            ->andReturn(new GuzzleResponse(400, [], $json));
+        $this->mockClient
+            ->expects($this->once())
+            ->method('request')
+            ->willReturn(new GuzzleResponse(400, [], $json));
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionCode(APIError::INVALID_TRANSACTION_ID->value);
@@ -111,9 +102,10 @@ final class ValidatorTest extends TestCase
      */
     public function testValidateHandles401Unauthorized(): void
     {
-        $this->mockClient->shouldReceive('request')
-            ->once()
-            ->andReturn(new GuzzleResponse(401, [], ''));
+        $this->mockClient
+            ->expects($this->once())
+            ->method('request')
+            ->willReturn(new GuzzleResponse(401, [], ''));
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionCode(401);
@@ -128,9 +120,10 @@ final class ValidatorTest extends TestCase
      */
     public function testValidateHandles404NotFound(): void
     {
-        $this->mockClient->shouldReceive('request')
-            ->once()
-            ->andReturn(new GuzzleResponse(404, [], ''));
+        $this->mockClient
+            ->expects($this->once())
+            ->method('request')
+            ->willReturn(new GuzzleResponse(404, [], ''));
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionCode(404);
@@ -156,9 +149,10 @@ final class ValidatorTest extends TestCase
     public function testInvalidJsonBodyThrows(): void
     {
         // Return a 200 with invalid JSON -> should throw invalid format error
-        $this->mockClient->shouldReceive('request')
-            ->once()
-            ->andReturn(new GuzzleResponse(200, [], '{not-json'));
+        $this->mockClient
+            ->expects($this->once())
+            ->method('request')
+            ->willReturn(new GuzzleResponse(200, [], '{not-json'));
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Invalid response format from App Store Server API');
