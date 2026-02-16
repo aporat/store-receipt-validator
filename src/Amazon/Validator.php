@@ -17,28 +17,20 @@ final class Validator extends AbstractValidator
     /** Amazon RVS production endpoint. */
     public const string ENDPOINT_PRODUCTION = 'https://appstore-sdk.amazon.com';
 
-    /** @return array{production:string, sandbox:string} */
-    protected function endpointMap(): array
-    {
-        return [
-            Environment::PRODUCTION->value => self::ENDPOINT_PRODUCTION,
-            Environment::SANDBOX->value    => self::ENDPOINT_SANDBOX,
-        ];
-    }
-
     /** User ID. */
     protected ?string $userId = null;
 
     /** Receipt ID. */
     protected ?string $receiptId = null;
 
-    /** Developer secret. */
-    protected ?string $developerSecret = null;
-
-    public function __construct(string $developerSecret, Environment $environment = Environment::PRODUCTION)
-    {
-        $this->developerSecret = $developerSecret;
-        $this->environment     = $environment;
+    /**
+     * @param non-empty-string $developerSecret
+     */
+    public function __construct(
+        private readonly string $developerSecret,
+        Environment $environment = Environment::PRODUCTION,
+    ) {
+        $this->environment = $environment;
     }
 
     /**
@@ -48,38 +40,30 @@ final class Validator extends AbstractValidator
      */
     public function validate(): Response
     {
-        return $this->makeRequest();
-    }
-
-    /**
-     * Perform the HTTP request and parse the response.
-     *
-     * @throws ValidationException
-     */
-    protected function makeRequest(): Response
-    {
-        if ($this->developerSecret === null || $this->developerSecret === '') {
-            throw new ValidationException('Missing Amazon developer secret');
-        }
-        if ($this->userId === null || $this->userId === '') {
+        if (empty($this->userId)) {
             throw new ValidationException('Missing Amazon userId');
         }
-        if ($this->receiptId === null || $this->receiptId === '') {
+
+        if (empty($this->receiptId)) {
             throw new ValidationException('Missing Amazon receiptId');
         }
 
-        $endpoint = $this->endpointForEnvironment();
+        $baseUrl = match ($this->environment) {
+            Environment::PRODUCTION => self::ENDPOINT_PRODUCTION,
+            Environment::SANDBOX => self::ENDPOINT_SANDBOX,
+        };
 
         // URL-encode path segments to be safe with special characters
-        $path = sprintf(
-            '/version/1.0/verifyReceiptId/developer/%s/user/%s/receiptId/%s',
+        $url = sprintf(
+            '%s/version/1.0/verifyReceiptId/developer/%s/user/%s/receiptId/%s',
+            $baseUrl,
             rawurlencode($this->developerSecret),
             rawurlencode($this->userId),
             rawurlencode($this->receiptId)
         );
 
         try {
-            $httpResponse = $this->getClient($endpoint)->request('GET', $path);
+            $httpResponse = $this->makeRequest('GET', $url);
 
             $status   = $httpResponse->getStatusCode();
             $rawBody  = (string) $httpResponse->getBody();
@@ -104,13 +88,8 @@ final class Validator extends AbstractValidator
 
             return new Response($decoded, $this->environment);
         } catch (GuzzleException $e) {
-            throw new ValidationException('Amazon validation request failed', 0, $e);
+            throw new ValidationException('Amazon validation request failed', previous: $e);
         }
-    }
-
-    public function getDeveloperSecret(): ?string
-    {
-        return $this->developerSecret;
     }
 
     public function setUserId(?string $userId): self

@@ -7,57 +7,43 @@ namespace ReceiptValidator;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\ClientInterface as HttpClientInterface;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Message\ResponseInterface;
 use ReceiptValidator\Exceptions\ValidationException;
 
 abstract class AbstractValidator
 {
-    /** HTTP client instance. */
-    protected ?HttpClientInterface $client = null;
-
-    /** The base URI of the currently configured client. */
-    protected ?string $baseUri = null;
-
-    /** Environment (sandbox or production). */
-    protected Environment $environment = Environment::PRODUCTION;
-
     /**
-     * Guzzle client options.
-     *
-     * @var array<string, mixed>
+     * @const array<RequestOptions::*, string>
      */
-    protected array $client_options = [
+    public const array DEFAULT_REQUEST_OPTIONS = [
         RequestOptions::TIMEOUT         => 30,
         RequestOptions::CONNECT_TIMEOUT => 30,
         RequestOptions::HTTP_ERRORS     => false,
     ];
 
+    /** Environment (sandbox or production). */
+    public Environment $environment = Environment::PRODUCTION;
+
+    /** HTTP client instance. */
+    protected ?HttpClientInterface $client = null;
+
     /**
-     * Concrete validators must declare their endpoints.
+     * Guzzle request options.
      *
-     * @return array{production:string, sandbox:string}
+     * @var array<RequestOptions::*, mixed>
      */
-    abstract protected function endpointMap(): array;
-
-    /**
-     * Resolve base URL for the current environment using the validator's map.
-     */
-    protected function endpointForEnvironment(): string
-    {
-        $map = $this->endpointMap();
-
-        return $this->environment === Environment::PRODUCTION
-            ? $map[Environment::PRODUCTION->value]
-            : $map[Environment::SANDBOX->value];
-    }
+    protected array $requestOptions = [];
 
     /**
      * Optionally inject a preconfigured HTTP client and its base URI.
      * Useful for testing and for handler stacks or custom middleware.
+     *
+     * @param array<RequestOptions::*, mixed> $requestOptions
      */
-    public function setHttpClient(HttpClientInterface $client, ?string $baseUri = null): self
+    public function setHttpClient(HttpClientInterface $client, array $requestOptions = []): self
     {
         $this->client  = $client;
-        $this->baseUri = $baseUri;
+        $this->requestOptions = $requestOptions;
 
         return $this;
     }
@@ -75,12 +61,6 @@ abstract class AbstractValidator
         return $this;
     }
 
-    /** Get last configured base URI if present. */
-    public function getBaseUri(): ?string
-    {
-        return $this->baseUri;
-    }
-
     /**
      * Validate the receipt.
      *
@@ -89,18 +69,30 @@ abstract class AbstractValidator
     abstract public function validate(): mixed;
 
     /**
+     * Perform the HTTP request
+     *
+     * @param array<RequestOptions::*, mixed> $options
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    final protected function makeRequest(string $method, string $url, array $options = []): ResponseInterface
+    {
+        return $this->getClient()->request(
+            $method,
+            $url,
+            array_merge(self::DEFAULT_REQUEST_OPTIONS, $this->requestOptions, $options),
+        );
+    }
+
+    /**
      * Get the Guzzle HTTP client.
      *
-     * Creates a new client if none exists or if the base URI changed.
-     * This is important when switching between production and sandbox endpoints.
+     * Creates a new client if none exists.
      */
-    protected function getClient(string $baseUri): HttpClientInterface
+    private function getClient(): HttpClientInterface
     {
-        if ($this->client === null || $this->baseUri !== $baseUri) {
-            $options              = $this->client_options;
-            $options['base_uri']  = $baseUri;
-            $this->client         = new HttpClient($options);
-            $this->baseUri        = $baseUri;
+        if ($this->client === null) {
+            $this->client = new HttpClient();
         }
 
         return $this->client;

@@ -26,33 +26,17 @@ class Validator extends AbstractValidator
     /** Production endpoint URL. */
     public const string ENDPOINT_PRODUCTION = 'https://buy.itunes.apple.com';
 
-    /** @return array{production:string, sandbox:string} */
-    protected function endpointMap(): array
-    {
-        return [
-            Environment::PRODUCTION->value => self::ENDPOINT_PRODUCTION,
-            Environment::SANDBOX->value    => self::ENDPOINT_SANDBOX,
-        ];
-    }
-
     /** iTunes receipt data, in base64 format. */
-    protected ?string $receiptData = null;
+    private ?string $receiptData = null;
 
-    /** The shared secret for auto-renewable subscriptions. */
-    protected ?string $sharedSecret = null;
-
-    public function __construct(?string $sharedSecret = null, Environment $environment = Environment::PRODUCTION)
-    {
-        $this->sharedSecret = $sharedSecret;
+    public function __construct(
+        private ?string $sharedSecret = null,
+        Environment $environment = Environment::PRODUCTION,
+    ) {
         $this->environment  = $environment;
     }
 
-    public function getSharedSecret(): ?string
-    {
-        return $this->sharedSecret;
-    }
-
-    public function setSharedSecret(?string $sharedSecret = null): self
+    public function setSharedSecret(?string $sharedSecret): self
     {
         $this->sharedSecret = $sharedSecret;
         return $this;
@@ -69,7 +53,11 @@ class Validator extends AbstractValidator
             $this->setReceiptData($receiptData);
         }
 
-        return $this->makeRequest();
+        if (empty($this->receiptData)) {
+            throw new ValidationException('Receipt data must be set before validation.');
+        }
+
+        return $this->getResponse($this->environment);
     }
 
     /**
@@ -77,25 +65,33 @@ class Validator extends AbstractValidator
      *
      * @throws ValidationException
      */
-    protected function makeRequest(?Environment $environment = null): Response
+    protected function getResponse(Environment $environment): Response
     {
-        if ($environment !== null) {
-            $this->setEnvironment($environment);
+        $baseUrl = match ($environment) {
+            Environment::PRODUCTION => self::ENDPOINT_PRODUCTION,
+            Environment::SANDBOX => self::ENDPOINT_SANDBOX,
+        };
+
+        $payload = [
+            'receipt-data' => $this->receiptData,
+        ];
+        if (!empty($this->sharedSecret)) {
+            $payload['password'] = $this->sharedSecret;
         }
 
-        $endpoint = $this->endpointForEnvironment();
-
         try {
-            $httpResponse = $this->getClient($endpoint)->request(
+            $httpResponse = $this->makeRequest(
                 'POST',
-                '/verifyReceipt',
+                $baseUrl . '/verifyReceipt',
                 [
-                    RequestOptions::BODY    => $this->prepareRequestData(),
-                    RequestOptions::HEADERS => $this->buildHeaders(),
-                ]
+                    RequestOptions::JSON    => $payload,
+                    RequestOptions::HEADERS => [
+                        'Accept' => 'application/json',
+                    ],
+                ],
             );
         } catch (GuzzleException $e) {
-            throw new ValidationException('Unable to connect to iTunes server - ' . $e->getMessage(), 0, $e);
+            throw new ValidationException('Unable to connect to iTunes server - ' . $e->getMessage(), previous: $e);
         }
 
         if ($httpResponse->getStatusCode() !== 200) {
@@ -117,13 +113,13 @@ class Validator extends AbstractValidator
         $status = (int) ($decodedBody['status'] ?? APIError::VALID->value);
 
         // Sandbox receipt was sent to production → retry on sandbox (21007)
-        if ($this->environment === Environment::PRODUCTION && $status === APIError::SANDBOX_RECEIPT_ON_PRODUCTION->value) {
-            return $this->makeRequest(Environment::SANDBOX);
+        if ($environment === Environment::PRODUCTION && $status === APIError::SANDBOX_RECEIPT_ON_PRODUCTION->value) {
+            return $this->getResponse(Environment::SANDBOX);
         }
 
         // Production receipt was sent to sandbox → retry on production (21008)
-        if ($this->environment === Environment::SANDBOX && $status === APIError::PRODUCTION_RECEIPT_ON_SANDBOX->value) {
-            return $this->makeRequest(Environment::PRODUCTION);
+        if ($environment === Environment::SANDBOX && $status === APIError::PRODUCTION_RECEIPT_ON_SANDBOX->value) {
+            return $this->getResponse(Environment::PRODUCTION);
         }
 
         // Anything not VALID or SUBSCRIPTION_EXPIRED is an error
@@ -135,32 +131,6 @@ class Validator extends AbstractValidator
         }
 
         return new Response($decodedBody, $this->environment);
-    }
-
-    /**
-     * Prepare request data (JSON).
-     *
-     * @throws ValidationException
-     */
-    protected function prepareRequestData(): string
-    {
-        if ($this->receiptData === null || $this->receiptData === '') {
-            throw new ValidationException('Receipt data must be set before validation.');
-        }
-
-        $payload = [
-            'receipt-data' => $this->receiptData,
-        ];
-
-        if ($this->sharedSecret !== null && $this->sharedSecret !== '') {
-            $payload['password'] = $this->sharedSecret;
-        }
-
-        try {
-            return json_encode($payload, JSON_THROW_ON_ERROR);
-        } catch (Throwable $e) {
-            throw new ValidationException('Unable to encode request for iTunes server: ' . $e->getMessage());
-        }
     }
 
     public function getReceiptData(): ?string
@@ -180,18 +150,5 @@ class Validator extends AbstractValidator
             : $receiptData;
 
         return $this;
-    }
-
-    /**
-     * Build request headers.
-     *
-     * @return array<string,string>
-     */
-    private function buildHeaders(): array
-    {
-        return [
-            'Content-Type' => 'application/json',
-            'Accept'       => 'application/json',
-        ];
     }
 }
