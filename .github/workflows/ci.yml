@@ -49,7 +49,7 @@ jobs:
                       ${{ matrix.os }}-php-${{ matrix.php }}-composer-
 
             - name: Install dependencies
-              uses: ramsey/composer-install@v3
+              uses: ramsey/composer-install@v4
 
             - name: Run tests
               run: composer test
@@ -85,7 +85,7 @@ jobs:
                       ubuntu-php-8.5-composer-
 
             - name: Install dependencies
-              uses: ramsey/composer-install@v3
+              uses: ramsey/composer-install@v4
 
             - name: Run code style check (lint)
               run: composer lint
