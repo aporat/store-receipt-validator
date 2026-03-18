@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\Amazon;
 
-use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Client\ClientExceptionInterface;
 use ReceiptValidator\AbstractValidator;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
@@ -85,8 +85,10 @@ final class Validator extends AbstractValidator
             'receipt_id'  => $this->receiptId,
         ]);
 
+        $request = $this->getRequestFactory()->createRequest('GET', $endpoint . $path);
+
         try {
-            $httpResponse = $this->getClient($endpoint)->request('GET', $path);
+            $httpResponse = $this->getClient()->sendRequest($request);
 
             $status   = $httpResponse->getStatusCode();
             $rawBody  = (string) $httpResponse->getBody();
@@ -122,7 +124,7 @@ final class Validator extends AbstractValidator
             ]);
 
             return new Response($decoded, $this->environment);
-        } catch (GuzzleException $e) {
+        } catch (ClientExceptionInterface $e) {
             $this->logger->error('Amazon API connection failed', [
                 'environment' => $this->environment->value,
                 'error'       => $e->getMessage(),

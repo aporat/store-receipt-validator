@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\Tests\AppleAppStore;
 
-use GuzzleHttp\ClientInterface as GuzzleHttpClientInterface;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
 use ReceiptValidator\AppleAppStore\APIError;
 use ReceiptValidator\AppleAppStore\Validator;
 use ReceiptValidator\Environment;
@@ -18,16 +19,15 @@ use ReceiptValidator\Exceptions\ValidationException;
 final class ValidatorTest extends TestCase
 {
     private Validator $validator;
-    private GuzzleHttpClientInterface&MockObject $mockClient;
+    private ClientInterface&MockObject $mockClient;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->mockClient = $this->createMock(GuzzleHttpClientInterface::class);
+        $this->mockClient = $this->createMock(ClientInterface::class);
         $signingKey = (string) file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
 
-        // Partial mock so we can stub getClient() but keep real behavior otherwise
         $this->validator = new Validator(
             signingKey: $signingKey,
             keyId: 'ABC123XYZ',
@@ -35,7 +35,7 @@ final class ValidatorTest extends TestCase
             bundleId: 'com.example',
             environment: Environment::SANDBOX,
         );
-        $this->validator->setHttpClient($this->mockClient, Validator::ENDPOINT_SANDBOX);
+        $this->validator->setHttpClient($this->mockClient);
     }
 
     /**
@@ -49,8 +49,11 @@ final class ValidatorTest extends TestCase
 
         $this->mockClient
             ->expects($this->once())
-            ->method('request')
-            ->with('GET', '/inApps/v2/history/abc123')
+            ->method('sendRequest')
+            ->with($this->callback(function (RequestInterface $request): bool {
+                return $request->getMethod() === 'GET'
+                    && str_contains((string) $request->getUri(), '/inApps/v2/history/abc123');
+            }))
             ->willReturn(new GuzzleResponse(200, [], $json));
 
         $this->validator->validate('abc123');
@@ -66,8 +69,11 @@ final class ValidatorTest extends TestCase
 
         $this->mockClient
             ->expects($this->once())
-            ->method('request')
-            ->with('POST', '/inApps/v1/notifications/test', $this->anything())
+            ->method('sendRequest')
+            ->with($this->callback(function (RequestInterface $request): bool {
+                return $request->getMethod() === 'POST'
+                    && str_contains((string) $request->getUri(), '/inApps/v1/notifications/test');
+            }))
             ->willReturn(new GuzzleResponse(200, [], $mockResponseBody));
 
         $token = $this->validator->requestTestNotification();
@@ -87,7 +93,7 @@ final class ValidatorTest extends TestCase
 
         $this->mockClient
             ->expects($this->once())
-            ->method('request')
+            ->method('sendRequest')
             ->willReturn(new GuzzleResponse(400, [], $json));
 
         $this->expectException(ValidationException::class);
@@ -104,7 +110,7 @@ final class ValidatorTest extends TestCase
     {
         $this->mockClient
             ->expects($this->once())
-            ->method('request')
+            ->method('sendRequest')
             ->willReturn(new GuzzleResponse(401, [], ''));
 
         $this->expectException(ValidationException::class);
@@ -122,7 +128,7 @@ final class ValidatorTest extends TestCase
     {
         $this->mockClient
             ->expects($this->once())
-            ->method('request')
+            ->method('sendRequest')
             ->willReturn(new GuzzleResponse(404, [], ''));
 
         $this->expectException(ValidationException::class);
@@ -151,7 +157,7 @@ final class ValidatorTest extends TestCase
         // Return a 200 with invalid JSON -> should throw invalid format error
         $this->mockClient
             ->expects($this->once())
-            ->method('request')
+            ->method('sendRequest')
             ->willReturn(new GuzzleResponse(200, [], '{not-json'));
 
         $this->expectException(ValidationException::class);

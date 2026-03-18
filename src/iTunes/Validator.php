@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\iTunes;
 
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
+use Psr\Http\Client\ClientExceptionInterface;
 use ReceiptValidator\AbstractValidator;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
@@ -90,16 +89,20 @@ class Validator extends AbstractValidator
             'environment' => $this->environment->value,
         ]);
 
+        $body   = $this->prepareRequestData();
+        $stream = $this->getStreamFactory()->createStream($body);
+
+        $request = $this->getRequestFactory()
+            ->createRequest('POST', $endpoint . '/verifyReceipt')
+            ->withBody($stream);
+
+        foreach ($this->buildHeaders() as $name => $value) {
+            $request = $request->withHeader($name, $value);
+        }
+
         try {
-            $httpResponse = $this->getClient($endpoint)->request(
-                'POST',
-                '/verifyReceipt',
-                [
-                    RequestOptions::BODY    => $this->prepareRequestData(),
-                    RequestOptions::HEADERS => $this->buildHeaders(),
-                ]
-            );
-        } catch (GuzzleException $e) {
+            $httpResponse = $this->getClient()->sendRequest($request);
+        } catch (ClientExceptionInterface $e) {
             $this->logger->error('iTunes API connection failed', [
                 'environment' => $this->environment->value,
                 'error'       => $e->getMessage(),
@@ -203,7 +206,7 @@ class Validator extends AbstractValidator
     public function setReceiptData(string $receiptData = ''): self
     {
         $trimmed = ltrim($receiptData);
-        // If it looks like raw JSON, base64-encode it to conform with Apple’s API
+        // If it looks like raw JSON, base64-encode it to conform with Apple's API
         $this->receiptData = ($trimmed !== '' && $trimmed[0] === '{')
             ? base64_encode($receiptData)
             : $receiptData;

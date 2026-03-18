@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\Tests\Amazon;
 
-use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Mockery;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
 use ReceiptValidator\Amazon\Validator as AmazonValidator;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
@@ -35,14 +36,20 @@ final class ValidatorTest extends TestCase
     {
         $json = file_get_contents(__DIR__ . '/fixtures/validSubscriptionResponse.json');
 
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
-            ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
+            ->withArgs(function (RequestInterface $request): bool {
+                return $request->getMethod() === 'GET'
+                    && str_contains(
+                        (string) $request->getUri(),
+                        '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123'
+                    );
+            })
             ->andReturn(new GuzzleResponse(200, [], $json));
 
         $validator = new AmazonValidator('secret123', Environment::SANDBOX);
-        $validator->setHttpClient($mockClient, AmazonValidator::ENDPOINT_SANDBOX);
+        $validator->setHttpClient($mockClient);
         $validator->setUserId('user123')->setReceiptId('receipt123');
 
         $response = $validator->validate();
@@ -62,14 +69,19 @@ final class ValidatorTest extends TestCase
     {
         $json = file_get_contents(__DIR__ . '/fixtures/entitledPurchaseResponse.json');
 
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
-            ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
+            ->withArgs(function (RequestInterface $request): bool {
+                return str_contains(
+                    (string) $request->getUri(),
+                    '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123'
+                );
+            })
             ->andReturn(new GuzzleResponse(200, [], $json));
 
         $validator = new AmazonValidator('secret123', Environment::SANDBOX);
-        $validator->setHttpClient($mockClient, AmazonValidator::ENDPOINT_SANDBOX);
+        $validator->setHttpClient($mockClient);
         $validator->setUserId('user123')->setReceiptId('receipt123');
 
         $response = $validator->validate();
@@ -93,14 +105,13 @@ final class ValidatorTest extends TestCase
             'quantity'     => 1,
         ], JSON_THROW_ON_ERROR);
 
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
-            ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
             ->andReturn(new GuzzleResponse(200, [], $responseBody));
 
         $validator = new AmazonValidator('secret123', Environment::SANDBOX);
-        $validator->setHttpClient($mockClient, AmazonValidator::ENDPOINT_SANDBOX);
+        $validator->setHttpClient($mockClient);
         $validator->setUserId('user123')->setReceiptId('receipt123');
 
         $response = $validator->validate();
@@ -122,16 +133,15 @@ final class ValidatorTest extends TestCase
 
     public function testThrowsValidationExceptionOnNon200Response(): void
     {
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
-            ->with('GET', '/version/1.0/verifyReceiptId/developer/secret123/user/user123/receiptId/receipt123')
             ->andReturn(new GuzzleResponse(496, [], json_encode([
                 'message' => 'Invalid developerSecret',
             ], JSON_THROW_ON_ERROR)));
 
         $validator = new AmazonValidator('secret123', Environment::SANDBOX);
-        $validator->setHttpClient($mockClient, AmazonValidator::ENDPOINT_SANDBOX);
+        $validator->setHttpClient($mockClient);
         $validator->setUserId('user123')->setReceiptId('receipt123');
 
         $this->expectException(ValidationException::class);

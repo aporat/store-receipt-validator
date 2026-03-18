@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\Tests\iTunes;
 
-use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Mockery;
-use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 use ReceiptValidator\iTunes\APIError;
@@ -88,19 +88,16 @@ final class ValidatorTest extends TestCase
 
     public function testValidateReturnsResponse(): void
     {
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], json_encode([
                 'status'  => 0,
                 'receipt' => ['app_item_id' => 123, 'in_app' => []],
             ], JSON_THROW_ON_ERROR)));
 
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['secret'])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new Validator('secret');
+        $validator->setHttpClient($mockClient);
         $validator->setReceiptData('abc');
 
         $response = $validator->validate();
@@ -109,24 +106,21 @@ final class ValidatorTest extends TestCase
 
     public function testRetryOnSandboxError_21007(): void
     {
-        $mockClient = Mockery::mock(Client::class);
+        $mockClient = Mockery::mock(ClientInterface::class);
         // First call (production) replies with 21007 → retry on SANDBOX
-        $mockClient->shouldReceive('request')
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], json_encode(['status' => 21007], JSON_THROW_ON_ERROR)));
         // Second call (sandbox) succeeds
-        $mockClient->shouldReceive('request')
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], json_encode([
                 'status'  => 0,
                 'receipt' => ['app_item_id' => 123, 'in_app' => []],
             ], JSON_THROW_ON_ERROR)));
 
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['secret', Environment::PRODUCTION])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new Validator('secret', Environment::PRODUCTION);
+        $validator->setHttpClient($mockClient);
         $validator->setReceiptData('xyz');
 
         $response = $validator->validate();
@@ -135,24 +129,21 @@ final class ValidatorTest extends TestCase
 
     public function testRetryOnProductionErrorFromSandbox_21008(): void
     {
-        $mockClient = Mockery::mock(Client::class);
+        $mockClient = Mockery::mock(ClientInterface::class);
         // First call (sandbox) replies with 21008 → retry on PRODUCTION
-        $mockClient->shouldReceive('request')
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], json_encode(['status' => 21008], JSON_THROW_ON_ERROR)));
         // Second call (production) succeeds
-        $mockClient->shouldReceive('request')
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], json_encode([
                 'status'  => 0,
                 'receipt' => ['app_item_id' => 123, 'in_app' => []],
             ], JSON_THROW_ON_ERROR)));
 
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['secret', Environment::SANDBOX])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new Validator('secret', Environment::SANDBOX);
+        $validator->setHttpClient($mockClient);
         $validator->setReceiptData('xyz');
 
         $response = $validator->validate();
@@ -161,16 +152,13 @@ final class ValidatorTest extends TestCase
 
     public function testThrowsOnInvalidHttpStatus(): void
     {
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(500, [], 'Server error'));
 
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['secret', Environment::PRODUCTION])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new Validator('secret', Environment::PRODUCTION);
+        $validator->setHttpClient($mockClient);
         $validator->setReceiptData('test');
 
         $this->expectException(ValidationException::class);
@@ -182,16 +170,13 @@ final class ValidatorTest extends TestCase
     public function testInAppPurchaseResponseFromFixture(): void
     {
         $json       = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseResponse.json');
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['secret', Environment::SANDBOX])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new Validator('secret', Environment::SANDBOX);
+        $validator->setHttpClient($mockClient);
         $validator->setReceiptData('dummy-data');
 
         $response = $validator->validate();
@@ -204,16 +189,13 @@ final class ValidatorTest extends TestCase
     public function testInAppPurchaseInvalidReceiptResponseFromFixture(): void
     {
         $json       = file_get_contents(__DIR__ . '/fixtures/inAppPurchaseInvalidReceiptResponse.json');
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], $json));
 
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['secret', Environment::SANDBOX])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new Validator('secret', Environment::SANDBOX);
+        $validator->setHttpClient($mockClient);
         $validator->setReceiptData('dummy-data');
 
         $this->expectException(ValidationException::class);
@@ -224,16 +206,13 @@ final class ValidatorTest extends TestCase
 
     public function testThrowsValidationExceptionWithFormattedMessage(): void
     {
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], json_encode(['status' => 21004], JSON_THROW_ON_ERROR)));
 
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['invalid-shared-secret', Environment::PRODUCTION])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new Validator('invalid-shared-secret', Environment::PRODUCTION);
+        $validator->setHttpClient($mockClient);
         $validator->setReceiptData('dummy');
 
         $this->expectException(ValidationException::class);
@@ -244,9 +223,7 @@ final class ValidatorTest extends TestCase
 
     public function testValidateThrowsWhenReceiptDataMissing(): void
     {
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['secret', Environment::SANDBOX])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
+        $validator = new Validator('secret', Environment::SANDBOX);
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Receipt data must be set before validation.');
@@ -257,17 +234,13 @@ final class ValidatorTest extends TestCase
 
     public function testInvalidJsonBodyThrows(): void
     {
-        $mockClient = Mockery::mock(Client::class);
-        // Return invalid JSON to exercise JSON error handling
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], '{not-json'));
 
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['secret', Environment::PRODUCTION])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new Validator('secret', Environment::PRODUCTION);
+        $validator->setHttpClient($mockClient);
         $validator->setReceiptData('abc');
 
         $this->expectException(ValidationException::class);
@@ -278,21 +251,16 @@ final class ValidatorTest extends TestCase
 
     public function testSubscriptionExpiredReturnsResponse(): void
     {
-        // Apple returns 21006 when the subscription is expired but the receipt is otherwise valid.
-        // Library should not throw; it should return a Response so callers can inspect it.
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
             ->andReturn(new GuzzleResponse(200, [], json_encode([
                 'status'  => APIError::SUBSCRIPTION_EXPIRED->value,
                 'receipt' => ['app_item_id' => 123, 'in_app' => []],
             ], JSON_THROW_ON_ERROR)));
 
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['secret', Environment::PRODUCTION])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
+        $validator = new Validator('secret', Environment::PRODUCTION);
+        $validator->setHttpClient($mockClient);
         $validator->setReceiptData('dummy-data');
 
         $response = $validator->validate();
@@ -308,60 +276,54 @@ final class ValidatorTest extends TestCase
 
     public function testSharedSecretIncludedInRequestPayload(): void
     {
-        // We’ll assert the request body contains "password" only when a shared secret is set
-        $captured = [];
+        $capturedRequest = null;
 
-        $mockClient = Mockery::mock(Client::class);
-        $mockClient->shouldReceive('request')
+        $mockClient = Mockery::mock(ClientInterface::class);
+        $mockClient->shouldReceive('sendRequest')
             ->once()
-            ->withArgs(function (string $method, string $uri, array $options) use (&$captured): bool {
-                $captured['first'] = $options;
-                return $method === 'POST' && $uri === '/verifyReceipt';
-            })
-            ->andReturn(new GuzzleResponse(200, [], json_encode([
-                'status'  => 0,
-                'receipt' => ['app_item_id' => 1, 'in_app' => []],
-            ], JSON_THROW_ON_ERROR)));
+            ->andReturnUsing(function (RequestInterface $req) use (&$capturedRequest): GuzzleResponse {
+                $capturedRequest = $req;
+                return new GuzzleResponse(200, [], json_encode([
+                    'status'  => 0,
+                    'receipt' => ['app_item_id' => 1, 'in_app' => []],
+                ], JSON_THROW_ON_ERROR));
+            });
 
-        /** @var Validator|MockInterface $validator */
-        $validator = Mockery::mock(Validator::class, ['topsecret', Environment::PRODUCTION])->makePartial();
-        $validator->shouldAllowMockingProtectedMethods();
-        $validator->shouldReceive('getClient')->andReturn($mockClient);
-
-        // Base64 payload path (not raw JSON)
+        $validator = new Validator('topsecret', Environment::PRODUCTION);
+        $validator->setHttpClient($mockClient);
         $validator->setReceiptData(base64_encode('anything'));
         $validator->validate();
 
-        $this->assertArrayHasKey('body', $captured['first']);
-        $payload = json_decode($captured['first']['body'] ?? '{}', true);
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('POST', $capturedRequest->getMethod());
+        $this->assertStringContainsString('/verifyReceipt', (string) $capturedRequest->getUri());
+
+        $payload = json_decode((string) $capturedRequest->getBody(), true);
         $this->assertIsArray($payload);
         $this->assertSame('topsecret', $payload['password'] ?? null);
         $this->assertArrayHasKey('receipt-data', $payload);
 
         // Now repeat with NO shared secret → password should be absent
-        $captured = [];
+        $capturedRequest2 = null;
 
-        $mockClient2 = Mockery::mock(Client::class);
-        $mockClient2->shouldReceive('request')
+        $mockClient2 = Mockery::mock(ClientInterface::class);
+        $mockClient2->shouldReceive('sendRequest')
             ->once()
-            ->withArgs(function (string $method, string $uri, array $options) use (&$captured): bool {
-                $captured['second'] = $options;
-                return $method === 'POST' && $uri === '/verifyReceipt';
-            })
-            ->andReturn(new GuzzleResponse(200, [], json_encode([
-                'status'  => 0,
-                'receipt' => ['app_item_id' => 1, 'in_app' => []],
-            ], JSON_THROW_ON_ERROR)));
+            ->andReturnUsing(function (RequestInterface $req) use (&$capturedRequest2): GuzzleResponse {
+                $capturedRequest2 = $req;
+                return new GuzzleResponse(200, [], json_encode([
+                    'status'  => 0,
+                    'receipt' => ['app_item_id' => 1, 'in_app' => []],
+                ], JSON_THROW_ON_ERROR));
+            });
 
-        /** @var Validator|MockInterface $validator2 */
-        $validator2 = Mockery::mock(Validator::class, [null, Environment::PRODUCTION])->makePartial();
-        $validator2->shouldAllowMockingProtectedMethods();
-        $validator2->shouldReceive('getClient')->andReturn($mockClient2);
-
+        $validator2 = new Validator(null, Environment::PRODUCTION);
+        $validator2->setHttpClient($mockClient2);
         $validator2->setReceiptData(base64_encode('anything'));
         $validator2->validate();
 
-        $payload2 = json_decode($captured['second']['body'] ?? '{}', true);
+        $this->assertNotNull($capturedRequest2);
+        $payload2 = json_decode((string) $capturedRequest2->getBody(), true);
         $this->assertIsArray($payload2);
         $this->assertArrayNotHasKey('password', $payload2);
         $this->assertArrayHasKey('receipt-data', $payload2);
