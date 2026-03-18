@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\Tests;
 
-use GuzzleHttp\ClientInterface as HttpClientInterface;
-use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Client as GuzzleClient;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientInterface;
 use ReceiptValidator\AbstractValidator;
 use ReceiptValidator\Environment;
 
@@ -32,41 +32,30 @@ final class AbstractValidatorTest extends TestCase
         $this->assertSame(Environment::SANDBOX, $v->getEnvironment());
     }
 
-    public function testGetClientCreatesAndCachesClientForSameBaseUri(): void
+    public function testGetClientReturnsDefaultGuzzleInstance(): void
     {
         $v = $this->newValidator();
+        $c = $v->getClientInstance();
+        $this->assertInstanceOf(ClientInterface::class, $c);
+        $this->assertInstanceOf(GuzzleClient::class, $c);
+    }
 
-        $c1 = $v->clientFor(self::PROD);
-        $c2 = $v->clientFor(self::PROD);
-
+    public function testGetClientReturnsSameInstanceOnSubsequentCalls(): void
+    {
+        $v = $this->newValidator();
+        $c1 = $v->getClientInstance();
+        $c2 = $v->getClientInstance();
         $this->assertSame($c1, $c2);
-        $this->assertSame(self::PROD, $v->getBaseUri());
     }
 
-    public function testGetClientRebuildsWhenBaseUriChanges(): void
+    public function testSetHttpClientIsReturnedByGetClient(): void
     {
         $v = $this->newValidator();
 
-        $c1 = $v->clientFor(self::PROD);
-        $c2 = $v->clientFor(self::SANDBOX);
+        $injected = $this->createMock(ClientInterface::class);
+        $v->setHttpClient($injected);
 
-        $this->assertNotSame($c1, $c2);
-        $this->assertSame(self::SANDBOX, $v->getBaseUri());
-    }
-
-    public function testSetHttpClientInjectionIsUsedUntilBaseUriChanges(): void
-    {
-        $v = $this->newValidator();
-
-        $injected = new HttpClient(['base_uri' => self::PROD]);
-        $v->setHttpClient($injected, self::PROD);
-
-        $c1 = $v->clientFor(self::PROD);
-        $this->assertSame($injected, $c1);
-
-        $c2 = $v->clientFor(self::SANDBOX);
-        $this->assertNotSame($injected, $c2);
-        $this->assertSame(self::SANDBOX, $v->getBaseUri());
+        $this->assertSame($injected, $v->getClientInstance());
     }
 
     public function testEndpointForEnvironmentResolvesFromMap(): void
@@ -81,7 +70,7 @@ final class AbstractValidatorTest extends TestCase
 }
 
 /**
- * Minimal concrete subclass to expose getClient() for testing.
+ * Minimal concrete subclass to expose protected methods for testing.
  */
 final class TestableValidator extends AbstractValidator
 {
@@ -93,9 +82,9 @@ final class TestableValidator extends AbstractValidator
         return 'ok';
     }
 
-    public function clientFor(string $baseUri): HttpClientInterface
+    public function getClientInstance(): ClientInterface
     {
-        return $this->getClient($baseUri);
+        return $this->getClient();
     }
 
     public function exposeEndpointForEnvironment(): string

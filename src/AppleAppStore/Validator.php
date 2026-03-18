@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\AppleAppStore;
 
-use GuzzleHttp\Exception\GuzzleException;
 use Lcobucci\JWT\Signer\Ecdsa\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token\Plain as Token;
+use Psr\Http\Client\ClientExceptionInterface;
 use ReceiptValidator\AbstractValidator;
 use ReceiptValidator\AppleAppStore\JWT\TokenGenerator;
 use ReceiptValidator\AppleAppStore\JWT\TokenGeneratorConfig;
@@ -124,12 +124,19 @@ class Validator extends AbstractValidator
 
         $token = $this->generateToken();
 
+        $url = $endpoint . $uri;
+        if (!empty($queryParams)) {
+            $url .= '?' . http_build_query($queryParams);
+        }
+
+        $request = $this->getRequestFactory()->createRequest($method, $url);
+        foreach ($this->buildHeaders($token) as $name => $value) {
+            $request = $request->withHeader($name, $value);
+        }
+
         try {
-            $httpResponse = $this->getClient($endpoint)->request($method, $uri, [
-                'headers' => $this->buildHeaders($token),
-                'query'   => $queryParams,
-            ]);
-        } catch (GuzzleException $e) {
+            $httpResponse = $this->getClient()->sendRequest($request);
+        } catch (ClientExceptionInterface $e) {
             $this->logger->error('App Store API connection failed', [
                 'method'      => $method,
                 'uri'         => $uri,

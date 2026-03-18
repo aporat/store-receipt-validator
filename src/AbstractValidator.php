@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace ReceiptValidator;
 
-use GuzzleHttp\Client as HttpClient;
-use GuzzleHttp\ClientInterface as HttpClientInterface;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use ReceiptValidator\Exceptions\ValidationException;
@@ -16,11 +19,14 @@ abstract class AbstractValidator
     /** PSR-3 logger. Defaults to NullLogger so logging is opt-in. */
     protected LoggerInterface $logger;
 
-    /** HTTP client instance. */
-    protected ?HttpClientInterface $client = null;
+    /** PSR-18 HTTP client. */
+    protected ?ClientInterface $client = null;
 
-    /** The base URI of the currently configured client. */
-    protected ?string $baseUri = null;
+    /** PSR-17 request factory. */
+    protected ?RequestFactoryInterface $requestFactory = null;
+
+    /** PSR-17 stream factory. */
+    protected ?StreamFactoryInterface $streamFactory = null;
 
     /** Environment (sandbox or production). */
     protected Environment $environment = Environment::PRODUCTION;
@@ -38,17 +44,6 @@ abstract class AbstractValidator
         $this->logger = $logger;
         return $this;
     }
-
-    /**
-     * Guzzle client options.
-     *
-     * @var array<string, mixed>
-     */
-    protected array $client_options = [
-        RequestOptions::TIMEOUT         => 30,
-        RequestOptions::CONNECT_TIMEOUT => 30,
-        RequestOptions::HTTP_ERRORS     => false,
-    ];
 
     /**
      * Concrete validators must declare their endpoints.
@@ -70,14 +65,11 @@ abstract class AbstractValidator
     }
 
     /**
-     * Optionally inject a preconfigured HTTP client and its base URI.
-     * Useful for testing and for handler stacks or custom middleware.
+     * Inject a PSR-18 HTTP client. Useful for testing and custom middleware.
      */
-    public function setHttpClient(HttpClientInterface $client, ?string $baseUri = null): self
+    public function setHttpClient(ClientInterface $client): static
     {
-        $this->client  = $client;
-        $this->baseUri = $baseUri;
-
+        $this->client = $client;
         return $this;
     }
 
@@ -88,16 +80,10 @@ abstract class AbstractValidator
     }
 
     /** Set the environment. */
-    public function setEnvironment(Environment $environment): self
+    public function setEnvironment(Environment $environment): static
     {
         $this->environment = $environment;
         return $this;
-    }
-
-    /** Get last configured base URI if present. */
-    public function getBaseUri(): ?string
-    {
-        return $this->baseUri;
     }
 
     /**
@@ -108,20 +94,32 @@ abstract class AbstractValidator
     abstract public function validate(): mixed;
 
     /**
-     * Get the Guzzle HTTP client.
+     * Get the PSR-18 HTTP client.
      *
-     * Creates a new client if none exists or if the base URI changed.
-     * This is important when switching between production and sandbox endpoints.
+     * Creates a default Guzzle client if none was injected.
      */
-    protected function getClient(string $baseUri): HttpClientInterface
+    protected function getClient(): ClientInterface
     {
-        if ($this->client === null || $this->baseUri !== $baseUri) {
-            $options              = $this->client_options;
-            $options['base_uri']  = $baseUri;
-            $this->client         = new HttpClient($options);
-            $this->baseUri        = $baseUri;
-        }
+        return $this->client ??= new GuzzleClient([
+            RequestOptions::TIMEOUT         => 30,
+            RequestOptions::CONNECT_TIMEOUT => 30,
+            RequestOptions::HTTP_ERRORS     => false,
+        ]);
+    }
 
-        return $this->client;
+    /**
+     * Get the PSR-17 request factory.
+     */
+    protected function getRequestFactory(): RequestFactoryInterface
+    {
+        return $this->requestFactory ??= new HttpFactory();
+    }
+
+    /**
+     * Get the PSR-17 stream factory.
+     */
+    protected function getStreamFactory(): StreamFactoryInterface
+    {
+        return $this->streamFactory ??= new HttpFactory();
     }
 }
