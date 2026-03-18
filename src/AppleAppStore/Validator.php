@@ -66,6 +66,7 @@ class Validator extends AbstractValidator
         string $bundleId,
         Environment $environment = Environment::PRODUCTION
     ) {
+        parent::__construct();
         $this->signingKey   = $signingKey;
         $this->keyId        = $keyId;
         $this->issuerId     = $issuerId;
@@ -114,6 +115,13 @@ class Validator extends AbstractValidator
     {
         $endpoint = $this->endpointForEnvironment();
 
+        $this->logger->debug('App Store API request', [
+            'method'      => $method,
+            'uri'         => $uri,
+            'environment' => $this->environment->value,
+            'query'       => $queryParams,
+        ]);
+
         $token = $this->generateToken();
 
         try {
@@ -122,6 +130,12 @@ class Validator extends AbstractValidator
                 'query'   => $queryParams,
             ]);
         } catch (GuzzleException $e) {
+            $this->logger->error('App Store API connection failed', [
+                'method'      => $method,
+                'uri'         => $uri,
+                'environment' => $this->environment->value,
+                'error'       => $e->getMessage(),
+            ]);
             throw new ValidationException('Unable to connect to App Store Server API - ' . $e->getMessage(), 0, $e);
         }
 
@@ -161,12 +175,27 @@ class Validator extends AbstractValidator
                 $errorCode = $statusCode;
             }
 
+            $this->logger->warning('App Store API error response', [
+                'method'      => $method,
+                'uri'         => $uri,
+                'environment' => $this->environment->value,
+                'status_code' => $statusCode,
+                'error_code'  => $errorCode,
+                'error'       => $errorMessage,
+            ]);
+
             throw new ValidationException("App Store API error [$errorCode]: $errorMessage", $errorCode);
         }
 
         if (!$isJson || !is_array($decoded)) {
             throw new ValidationException('Invalid response format from App Store Server API.');
         }
+
+        $this->logger->info('App Store API request successful', [
+            'method'      => $method,
+            'uri'         => $uri,
+            'environment' => $this->environment->value,
+        ]);
 
         return new Response($decoded);
     }

@@ -37,6 +37,7 @@ final class Validator extends AbstractValidator
 
     public function __construct(string $developerSecret, Environment $environment = Environment::PRODUCTION)
     {
+        parent::__construct();
         $this->developerSecret = $developerSecret;
         $this->environment     = $environment;
     }
@@ -78,6 +79,12 @@ final class Validator extends AbstractValidator
             rawurlencode($this->receiptId)
         );
 
+        $this->logger->debug('Amazon API request', [
+            'environment' => $this->environment->value,
+            'user_id'     => $this->userId,
+            'receipt_id'  => $this->receiptId,
+        ]);
+
         try {
             $httpResponse = $this->getClient($endpoint)->request('GET', $path);
 
@@ -98,12 +105,28 @@ final class Validator extends AbstractValidator
                 $case = APIError::tryFrom($machine);
                 $human = $case?->message() ?? ($machine !== '' ? $machine : 'An unknown error occurred.');
 
+                $this->logger->warning('Amazon API error response', [
+                    'environment' => $this->environment->value,
+                    'status_code' => $status,
+                    'error'       => $human,
+                ]);
+
                 // Use the HTTP status in the brackets (e.g., 496), per test expectation
                 throw new ValidationException("Amazon API error [$status]: $human", $status);
             }
 
+            $this->logger->info('Amazon API request successful', [
+                'environment' => $this->environment->value,
+                'user_id'     => $this->userId,
+                'receipt_id'  => $this->receiptId,
+            ]);
+
             return new Response($decoded, $this->environment);
         } catch (GuzzleException $e) {
+            $this->logger->error('Amazon API connection failed', [
+                'environment' => $this->environment->value,
+                'error'       => $e->getMessage(),
+            ]);
             throw new ValidationException('Amazon validation request failed', 0, $e);
         }
     }
