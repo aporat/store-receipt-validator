@@ -43,6 +43,7 @@ class Validator extends AbstractValidator
 
     public function __construct(?string $sharedSecret = null, Environment $environment = Environment::PRODUCTION)
     {
+        parent::__construct();
         $this->sharedSecret = $sharedSecret;
         $this->environment  = $environment;
     }
@@ -85,6 +86,10 @@ class Validator extends AbstractValidator
 
         $endpoint = $this->endpointForEnvironment();
 
+        $this->logger->debug('iTunes API request', [
+            'environment' => $this->environment->value,
+        ]);
+
         try {
             $httpResponse = $this->getClient($endpoint)->request(
                 'POST',
@@ -95,10 +100,18 @@ class Validator extends AbstractValidator
                 ]
             );
         } catch (GuzzleException $e) {
+            $this->logger->error('iTunes API connection failed', [
+                'environment' => $this->environment->value,
+                'error'       => $e->getMessage(),
+            ]);
             throw new ValidationException('Unable to connect to iTunes server - ' . $e->getMessage(), 0, $e);
         }
 
         if ($httpResponse->getStatusCode() !== 200) {
+            $this->logger->warning('iTunes API unexpected HTTP status', [
+                'environment' => $this->environment->value,
+                'status_code' => $httpResponse->getStatusCode(),
+            ]);
             throw new ValidationException('Unable to get response from iTunes server');
         }
 
@@ -118,11 +131,17 @@ class Validator extends AbstractValidator
 
         // Sandbox receipt was sent to production → retry on sandbox (21007)
         if ($this->environment === Environment::PRODUCTION && $status === APIError::SANDBOX_RECEIPT_ON_PRODUCTION->value) {
+            $this->logger->info('iTunes receipt environment mismatch, retrying on sandbox', [
+                'original_environment' => Environment::PRODUCTION->value,
+            ]);
             return $this->makeRequest(Environment::SANDBOX);
         }
 
         // Production receipt was sent to sandbox → retry on production (21008)
         if ($this->environment === Environment::SANDBOX && $status === APIError::PRODUCTION_RECEIPT_ON_SANDBOX->value) {
+            $this->logger->info('iTunes receipt environment mismatch, retrying on production', [
+                'original_environment' => Environment::SANDBOX->value,
+            ]);
             return $this->makeRequest(Environment::PRODUCTION);
         }
 
@@ -131,8 +150,18 @@ class Validator extends AbstractValidator
             $errorCase = APIError::tryFrom($status);
             $description = $errorCase ? $errorCase->message() : 'An unknown error occurred.';
             $fullMessage = "iTunes API error [$status]: $description";
+            $this->logger->warning('iTunes API error response', [
+                'environment' => $this->environment->value,
+                'status'      => $status,
+                'error'       => $description,
+            ]);
             throw new ValidationException($fullMessage, $status);
         }
+
+        $this->logger->info('iTunes API request successful', [
+            'environment' => $this->environment->value,
+            'status'      => $status,
+        ]);
 
         return new Response($decodedBody, $this->environment);
     }

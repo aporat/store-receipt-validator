@@ -7,10 +7,15 @@ namespace ReceiptValidator;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\ClientInterface as HttpClientInterface;
 use GuzzleHttp\RequestOptions;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use ReceiptValidator\Exceptions\ValidationException;
 
 abstract class AbstractValidator
 {
+    /** PSR-3 logger. Defaults to NullLogger so logging is opt-in. */
+    protected LoggerInterface $logger;
+
     /** HTTP client instance. */
     protected ?HttpClientInterface $client = null;
 
@@ -19,6 +24,20 @@ abstract class AbstractValidator
 
     /** Environment (sandbox or production). */
     protected Environment $environment = Environment::PRODUCTION;
+
+    public function __construct()
+    {
+        $this->logger = new NullLogger();
+    }
+
+    /**
+     * Inject a PSR-3 logger. Returns $this for fluent chaining.
+     */
+    public function setLogger(LoggerInterface $logger): static
+    {
+        $this->logger = $logger;
+        return $this;
+    }
 
     /**
      * Guzzle client options.
