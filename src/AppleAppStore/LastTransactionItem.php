@@ -17,7 +17,6 @@ use ReceiptValidator\AppleAppStore\JWT\TokenVerifier;
  */
 final readonly class LastTransactionItem
 {
-
     /** The original transaction identifier for the subscription. */
     public string $originalTransactionId;
 
