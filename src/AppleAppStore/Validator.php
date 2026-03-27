@@ -13,6 +13,7 @@ use ReceiptValidator\AppleAppStore\JWT\TokenGenerator;
 use ReceiptValidator\AppleAppStore\JWT\TokenGeneratorConfig;
 use ReceiptValidator\AppleAppStore\JWT\TokenIssuer;
 use ReceiptValidator\AppleAppStore\JWT\TokenKey;
+use ReceiptValidator\AppleAppStore\JWT\TokenVerifier;
 use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 use Throwable;
@@ -75,12 +76,22 @@ class Validator extends AbstractValidator
     }
 
     /**
-     * Validate the transaction by calling the App Store Server API.
+     * Fetch transaction history from the App Store Server API.
      *
+     * Returns up to 20 transactions per call. When {@see Response::$hasMore} is true,
+     * pass the returned {@see Response::$revision} back as
+     * {@see TransactionHistoryParams::$revision} to fetch the next page.
+     *
+     * @param string|null $transactionId       Overrides the transaction ID set via
+     *                                         {@see setTransactionId()} for this call.
+     * @param TransactionHistoryParams|null $params  Optional filters and sort order.
+     *                                               Defaults to DESCENDING sort with no filters.
      * @throws ValidationException
      */
-    public function validate(?string $transactionId = null): Response
-    {
+    public function validate(
+        ?string $transactionId = null,
+        ?TransactionHistoryParams $params = null,
+    ): Response {
         if ($transactionId !== null) {
             $this->setTransactionId($transactionId);
         }
@@ -91,9 +102,7 @@ class Validator extends AbstractValidator
 
         $uri = sprintf('/inApps/v2/history/%s', $this->transactionId);
 
-        return $this->makeRequest('GET', $uri, [
-            'sort' => 'DESCENDING',
-        ]);
+        return $this->makeRequest('GET', $uri, ($params ?? new TransactionHistoryParams())->toQueryParams());
     }
 
     /**
@@ -106,13 +115,30 @@ class Validator extends AbstractValidator
     }
 
     /**
-     * Perform the HTTP request to the App Store API.
+     * Perform the HTTP request to the App Store API and return the decoded JSON array.
+     *
+     * This is the low-level transport method. Use {@see makeRequest()} for the
+     * transaction-history endpoint, or call this directly when you need to build
+     * a different response type (e.g. {@see getAllSubscriptionStatuses()}).
+     *
+     * When $requestBody is provided it is serialised as JSON and sent as the request
+     * body with a Content-Type: application/json header (used by write endpoints such
+     * as {@see setAppAccountToken()}).
+     *
+     * Endpoints that return 200 with an empty body (write-only operations) return an
+     * empty array rather than throwing.
      *
      * @param array<string,mixed> $queryParams
+     * @param array<string,mixed>|null $requestBody
+     * @return array<string, mixed>
      * @throws ValidationException
      */
-    protected function makeRequest(string $method, string $uri = '', array $queryParams = []): Response
-    {
+    protected function makeRawRequest(
+        string $method,
+        string $uri = '',
+        array $queryParams = [],
+        ?array $requestBody = null,
+    ): array {
         $endpoint = $this->endpointForEnvironment();
 
         $this->logger->debug('App Store API request', [
@@ -126,12 +152,20 @@ class Validator extends AbstractValidator
 
         $url = $endpoint . $uri;
         if (!empty($queryParams)) {
-            $url .= '?' . http_build_query($queryParams);
+            $url .= '?' . $this->buildQueryString($queryParams);
         }
 
         $request = $this->getRequestFactory()->createRequest($method, $url);
         foreach ($this->buildHeaders($token) as $name => $value) {
             $request = $request->withHeader($name, $value);
+        }
+
+        if ($requestBody !== null) {
+            $jsonBody = json_encode($requestBody, JSON_THROW_ON_ERROR);
+            $stream   = $this->getStreamFactory()->createStream($jsonBody);
+            $request  = $request
+                ->withHeader('Content-Type', 'application/json')
+                ->withBody($stream);
         }
 
         try {
@@ -194,6 +228,17 @@ class Validator extends AbstractValidator
             throw new ValidationException("App Store API error [$errorCode]: $errorMessage", $errorCode);
         }
 
+        // Some write endpoints return 200 with an empty body — treat as success.
+        if ($body === '') {
+            $this->logger->info('App Store API request successful', [
+                'method'      => $method,
+                'uri'         => $uri,
+                'environment' => $this->environment->value,
+            ]);
+
+            return [];
+        }
+
         if (!$isJson || !is_array($decoded)) {
             throw new ValidationException('Invalid response format from App Store Server API.');
         }
@@ -204,7 +249,19 @@ class Validator extends AbstractValidator
             'environment' => $this->environment->value,
         ]);
 
-        return new Response($decoded);
+        return $decoded;
+    }
+
+    /**
+     * Perform the HTTP request to the App Store API and wrap the result in a
+     * transaction-history {@see Response}.
+     *
+     * @param array<string,mixed> $queryParams
+     * @throws ValidationException
+     */
+    protected function makeRequest(string $method, string $uri = '', array $queryParams = []): Response
+    {
+        return new Response($this->makeRawRequest($method, $uri, $queryParams));
     }
 
     /**
@@ -241,13 +298,154 @@ class Validator extends AbstractValidator
      */
     public function requestTestNotification(): string
     {
-        $data = $this->makeRequest('POST', '/inApps/v1/notifications/test')->getRawData();
+        $data = $this->makeRawRequest('POST', '/inApps/v1/notifications/test');
 
         if (!isset($data['testNotificationToken'])) {
             throw new ValidationException('Missing testNotificationToken in response.');
         }
 
         return (string) $data['testNotificationToken'];
+    }
+
+    /**
+     * Get the transaction info for a single transaction.
+     *
+     * Fetches a signed transaction record for the given transaction ID and returns
+     * the decoded {@see Transaction} object. Use this to look up a specific purchase
+     * without paginating through the full history.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/get-transaction-info
+     *
+     * @throws ValidationException
+     */
+    public function getTransactionInfo(string $transactionId): Transaction
+    {
+        $uri  = sprintf('/inApps/v2/transactions/%s', $transactionId);
+        $data = $this->makeRawRequest('GET', $uri);
+
+        if (empty($data['signedTransactionInfo']) || !is_string($data['signedTransactionInfo'])) {
+            throw new ValidationException('Missing or invalid signedTransactionInfo in transaction info response.');
+        }
+
+        $token    = TokenGenerator::decodeToken($data['signedTransactionInfo']);
+        $verifier = new TokenVerifier();
+
+        if (!$verifier->verify($token)) {
+            throw new ValidationException('Transaction info JWS signature verification failed.');
+        }
+
+        return new Transaction($token->claims()->all());
+    }
+
+    /**
+     * Get the app transaction info for the currently authenticated customer.
+     *
+     * Returns a signed app-level transaction that records the customer's original
+     * purchase of the app, including the first-install version and purchase date.
+     * This is useful for grandfathering users or verifying device ownership.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info
+     *
+     * @throws ValidationException
+     */
+    public function getAppTransactionInfo(): AppTransaction
+    {
+        $data = $this->makeRawRequest('GET', '/inApps/v2/transactions/appTransaction');
+
+        if (empty($data['signedTransactionInfo']) || !is_string($data['signedTransactionInfo'])) {
+            throw new ValidationException('Missing or invalid signedTransactionInfo in app transaction response.');
+        }
+
+        $token    = TokenGenerator::decodeToken($data['signedTransactionInfo']);
+        $verifier = new TokenVerifier();
+
+        if (!$verifier->verify($token)) {
+            throw new ValidationException('App transaction JWS signature verification failed.');
+        }
+
+        return new AppTransaction($token->claims()->all());
+    }
+
+    /**
+     * Set or update the app account token for a given transaction.
+     *
+     * Associates a customer account in your system (identified by a UUID you generate)
+     * with an App Store transaction. You can call this for one-time purchases as well as
+     * the latest purchase of each auto-renewable subscription; for subscriptions the token
+     * carries over to all future renewals.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/set-app-account-token
+     *
+     * @param string $transactionId    The transaction ID of the purchase to update.
+     * @param string $appAccountToken  A UUID (version 4) that identifies the customer
+     *                                 in your system.
+     * @throws ValidationException     If $appAccountToken is not a valid UUID v4, or if
+     *                                 the API returns an error.
+     */
+    public function setAppAccountToken(string $transactionId, string $appAccountToken): void
+    {
+        if (!$this->isValidUuidV4($appAccountToken)) {
+            throw new ValidationException(
+                sprintf('appAccountToken must be a valid UUID v4; "%s" given.', $appAccountToken)
+            );
+        }
+
+        $uri = sprintf('/inApps/v2/transactions/%s/appAccountToken', $transactionId);
+
+        $this->makeRawRequest('PUT', $uri, [], ['appAccountToken' => $appAccountToken]);
+    }
+
+    /**
+     * Validate that a string is a canonical UUID v4.
+     */
+    private function isValidUuidV4(string $value): bool
+    {
+        return (bool) preg_match(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
+            $value
+        );
+    }
+
+    /**
+     * Get all subscription statuses for a customer identified by their
+     * original transaction ID.
+     *
+     * Returns the status for every auto-renewable subscription the customer
+     * holds in your app, grouped by subscription group.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/get-all-subscription-statuses
+     *
+     * @throws ValidationException
+     */
+    public function getAllSubscriptionStatuses(string $originalTransactionId): SubscriptionStatusResponse
+    {
+        $uri = sprintf('/inApps/v2/subscriptions/%s', $originalTransactionId);
+
+        return new SubscriptionStatusResponse($this->makeRawRequest('GET', $uri));
+    }
+
+    /**
+     * Build a query string that repeats array-valued keys rather than using PHP's default
+     * bracket notation (e.g. productId=x&productId=y instead of productId[0]=x&...).
+     * Apple's API requires the repeated-key form for multi-value parameters.
+     *
+     * @param array<string, mixed> $params
+     */
+    private function buildQueryString(array $params): string
+    {
+        $parts = [];
+
+        foreach ($params as $key => $value) {
+            if (is_array($value)) {
+                foreach ($value as $v) {
+                    $parts[] = urlencode($key) . '=' . urlencode((string) $v);
+                }
+            } else {
+                $parts[] = urlencode($key) . '=' . urlencode((string) $value);
+            }
+        }
+
+        return implode('&', $parts);
     }
 
     /**
