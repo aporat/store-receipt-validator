@@ -1,0 +1,29 @@
+{
+  "environment": "Sandbox",
+  "appAppleId": 123456,
+  "bundleId": "com.example.app",
+  "data": [
+    {
+      "subscriptionGroupIdentifier": "21234567",
+      "lastTransactions": [
+        {
+          "originalTransactionId": "1000000000000001",
+          "status": 1
+        },
+        {
+          "originalTransactionId": "1000000000000002",
+          "status": 2
+        }
+      ]
+    },
+    {
+      "subscriptionGroupIdentifier": "89012345",
+      "lastTransactions": [
+        {
+          "originalTransactionId": "1000000000000003",
+          "status": 4
+        }
+      ]
+    }
+  ]
+}
