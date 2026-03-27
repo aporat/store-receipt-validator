@@ -18,7 +18,6 @@ use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 use Throwable;
 
-
 /**
  * App Store Server API Validator.
  */
