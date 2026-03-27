@@ -13,6 +13,7 @@ A modern PHP library for validating in-app purchase receipts from the Apple App 
 - ✅ Amazon Appstore receipt validation
 - ✅ App Store **Server Notifications v1 & v2** parsing
 - ✅ Strong typing (PHP 8.4+), enums, and modern error handling
+- ✅ PSR-3 compatible logging support
 - ✅ Built-in test suite with 100% coverage
 
 ---
@@ -163,6 +164,41 @@ foreach ($response->getTransactions() as $transaction) {
     }
 }
 ```
+
+---
+
+## 📋 Logging
+
+All validators support [PSR-3](https://www.php-fig.org/psr/psr-3/) compatible logging via `setLogger()`. By default, a `NullLogger` is used so no output is produced unless you inject a logger.
+
+```php
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+
+$logger = new Logger('receipt-validator');
+$logger->pushHandler(new StreamHandler('php://stdout'));
+
+$validator = new AppleValidator($signingKey, $keyId, $issuerId, $bundleId);
+$validator->setLogger($logger);
+```
+
+The method returns `$this` for fluent chaining:
+
+```php
+$response = $validator
+    ->setLogger($logger)
+    ->setTransactionId($transactionId)
+    ->validate();
+```
+
+### Log levels
+
+| Level | Events |
+|-------|--------|
+| `DEBUG` | Outgoing API request details (environment, URI, parameters) |
+| `INFO` | Successful responses; environment retries (e.g. production → sandbox) |
+| `WARNING` | API error responses, unexpected HTTP status codes |
+| `ERROR` | Network/connection failures |
 
 ---
 
