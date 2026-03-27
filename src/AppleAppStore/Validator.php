@@ -18,6 +18,7 @@ use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 use Throwable;
 
+
 /**
  * App Store Server API Validator.
  */
@@ -234,6 +235,7 @@ class Validator extends AbstractValidator
                 'method'      => $method,
                 'uri'         => $uri,
                 'environment' => $this->environment->value,
+                'query'       => $queryParams,
             ]);
 
             return [];
@@ -247,6 +249,7 @@ class Validator extends AbstractValidator
             'method'      => $method,
             'uri'         => $uri,
             'environment' => $this->environment->value,
+            'query'       => $queryParams,
         ]);
 
         return $decoded;
@@ -338,7 +341,7 @@ class Validator extends AbstractValidator
     }
 
     /**
-     * Get the app transaction info for the currently authenticated customer.
+     * Get the app transaction info for the given transaction.
      *
      * Returns a signed app-level transaction that records the customer's original
      * purchase of the app, including the first-install version and purchase date.
@@ -346,17 +349,19 @@ class Validator extends AbstractValidator
      *
      * @see https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info
      *
+     * @param string $transactionId The transactionId, originalTransactionId, or appTransactionId.
      * @throws ValidationException
      */
-    public function getAppTransactionInfo(): AppTransaction
+    public function getAppTransactionInfo(string $transactionId): AppTransaction
     {
-        $data = $this->makeRawRequest('GET', '/inApps/v2/transactions/appTransaction');
+        $uri  = sprintf('/inApps/v1/transactions/appTransactions/%s', $transactionId);
+        $data = $this->makeRawRequest('GET', $uri);
 
-        if (empty($data['signedTransactionInfo']) || !is_string($data['signedTransactionInfo'])) {
-            throw new ValidationException('Missing or invalid signedTransactionInfo in app transaction response.');
+        if (empty($data['signedAppTransactionInfo']) || !is_string($data['signedAppTransactionInfo'])) {
+            throw new ValidationException('Missing or invalid signedAppTransactionInfo in app transaction response.');
         }
 
-        $token    = TokenGenerator::decodeToken($data['signedTransactionInfo']);
+        $token    = TokenGenerator::decodeToken($data['signedAppTransactionInfo']);
         $verifier = new TokenVerifier();
 
         if (!$verifier->verify($token)) {
@@ -390,7 +395,7 @@ class Validator extends AbstractValidator
             );
         }
 
-        $uri = sprintf('/inApps/v2/transactions/%s/appAccountToken', $transactionId);
+        $uri = sprintf('/inApps/v1/transactions/%s/appAccountToken', $transactionId);
 
         $this->makeRawRequest('PUT', $uri, [], ['appAccountToken' => $appAccountToken]);
     }
@@ -419,9 +424,96 @@ class Validator extends AbstractValidator
      */
     public function getAllSubscriptionStatuses(string $originalTransactionId): SubscriptionStatusResponse
     {
-        $uri = sprintf('/inApps/v2/subscriptions/%s', $originalTransactionId);
+        $uri = sprintf('/inApps/v1/subscriptions/%s', $originalTransactionId);
 
         return new SubscriptionStatusResponse($this->makeRawRequest('GET', $uri));
+    }
+
+    /**
+     * Get the refund history for a customer identified by a transaction ID.
+     *
+     * Returns up to 20 refunded or revoked transactions per call, sorted by revocation
+     * date ascending. When {@see RefundHistoryResponse::$hasMore} is true, pass the
+     * returned {@see RefundHistoryResponse::$revision} back as the $revision parameter
+     * to fetch the next page.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/get-refund-history
+     *
+     * @throws ValidationException
+     */
+    public function getRefundHistory(string $transactionId, ?string $revision = null): RefundHistoryResponse
+    {
+        $uri         = sprintf('/inApps/v2/refund/lookup/%s', $transactionId);
+        $queryParams = $revision !== null ? ['revision' => $revision] : [];
+
+        return new RefundHistoryResponse($this->makeRawRequest('GET', $uri, $queryParams));
+    }
+
+    /**
+     * Extend the renewal date for a single auto-renewable subscription.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/extend-a-subscription-renewal-date
+     *
+     * @throws ValidationException
+     */
+    public function extendSubscriptionRenewalDate(
+        string $originalTransactionId,
+        ExtendRenewalDateRequest $request,
+    ): ExtendRenewalDateResponse {
+        $uri = sprintf('/inApps/v1/subscriptions/extend/%s', $originalTransactionId);
+
+        return new ExtendRenewalDateResponse($this->makeRawRequest('PUT', $uri, [], $request->toArray()));
+    }
+
+    /**
+     * Extend subscription renewal dates for all active subscribers of a product.
+     *
+     * Returns the requestIdentifier that you can use with
+     * {@see getStatusOfSubscriptionRenewalDateExtensions()} to track progress.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/extend-subscription-renewal-dates-for-all-active-subscribers
+     *
+     * @throws ValidationException
+     */
+    public function extendSubscriptionRenewalDatesForAllActiveSubscribers(
+        MassExtendRenewalDateRequest $request,
+    ): string {
+        $data = $this->makeRawRequest('POST', '/inApps/v1/subscriptions/extend/mass', [], $request->toArray());
+
+        return (string) ($data['requestIdentifier'] ?? '');
+    }
+
+    /**
+     * Get the status of a previously requested mass subscription renewal date extension.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/get-status-of-subscription-renewal-date-extensions
+     *
+     * @throws ValidationException
+     */
+    public function getStatusOfSubscriptionRenewalDateExtensions(
+        string $productId,
+        string $requestIdentifier,
+    ): MassExtendRenewalDateStatusResponse {
+        $uri = sprintf('/inApps/v1/subscriptions/extend/mass/%s/%s', $productId, $requestIdentifier);
+
+        return new MassExtendRenewalDateStatusResponse($this->makeRawRequest('GET', $uri));
+    }
+
+    /**
+     * Send consumption information for a consumable in-app purchase to the App Store.
+     *
+     * This informs Apple about how much of a consumable purchase a customer has used,
+     * which Apple considers when deciding whether to grant a refund request.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information
+     *
+     * @throws ValidationException
+     */
+    public function sendConsumptionInformation(string $transactionId, ConsumptionRequest $request): void
+    {
+        $uri = sprintf('/inApps/v2/transactions/consumption/%s', $transactionId);
+
+        $this->makeRawRequest('PUT', $uri, [], $request->toArray());
     }
 
     /**
