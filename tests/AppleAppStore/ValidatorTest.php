@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ReceiptValidator\Tests\AppleAppStore;
 
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -141,6 +142,7 @@ final class ValidatorTest extends TestCase
     /**
      * @covers ::validate
      */
+    #[AllowMockObjectsWithoutExpectations]
     public function testValidateThrowsWhenTransactionIdMissing(): void
     {
         $this->expectException(ValidationException::class);
