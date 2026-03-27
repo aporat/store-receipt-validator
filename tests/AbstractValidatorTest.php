@@ -52,7 +52,7 @@ final class AbstractValidatorTest extends TestCase
     {
         $v = $this->newValidator();
 
-        $injected = $this->createMock(ClientInterface::class);
+        $injected = $this->createStub(ClientInterface::class);
         $v->setHttpClient($injected);
 
         $this->assertSame($injected, $v->getClientInstance());
