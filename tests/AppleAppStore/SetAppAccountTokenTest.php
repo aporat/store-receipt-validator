@@ -60,7 +60,7 @@ final class SetAppAccountTokenTest extends TestCase
                 return $request->getMethod() === 'PUT'
                     && str_contains(
                         (string) $request->getUri(),
-                        '/inApps/v2/transactions/' . self::TRANSACTION . '/appAccountToken'
+                        '/inApps/v1/transactions/' . self::TRANSACTION . '/appAccountToken'
                     );
             }))
             ->willReturn(new GuzzleResponse(200, [], ''));

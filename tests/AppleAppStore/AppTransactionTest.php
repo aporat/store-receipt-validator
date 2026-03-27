@@ -61,7 +61,7 @@ final class AppTransactionTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'GET'
-                    && str_contains((string) $request->getUri(), '/inApps/v2/transactions/appTransaction');
+                    && str_contains((string) $request->getUri(), '/inApps/v1/transactions/appTransactions/txn-abc');
             }))
             ->willReturn(new GuzzleResponse(400, [], json_encode([
                 'errorCode'    => 4290000,
@@ -70,7 +70,7 @@ final class AppTransactionTest extends TestCase
 
         // We only care that the correct endpoint was called; the 400 throws an exception.
         $this->expectException(ValidationException::class);
-        $this->validator->getAppTransactionInfo();
+        $this->validator->getAppTransactionInfo('txn-abc');
     }
 
     /**
@@ -83,8 +83,8 @@ final class AppTransactionTest extends TestCase
             ->willReturn(new GuzzleResponse(200, [], json_encode([], JSON_THROW_ON_ERROR)));
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('Missing or invalid signedTransactionInfo');
-        $this->validator->getAppTransactionInfo();
+        $this->expectExceptionMessage('Missing or invalid signedAppTransactionInfo');
+        $this->validator->getAppTransactionInfo('txn-abc');
     }
 
     // -------------------------------------------------------------------------

@@ -66,7 +66,7 @@ final class SubscriptionStatusTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'GET'
-                    && str_contains((string) $request->getUri(), '/inApps/v2/subscriptions/1000000000000001');
+                    && str_contains((string) $request->getUri(), '/inApps/v1/subscriptions/1000000000000001');
             }))
             ->willReturn(new GuzzleResponse(200, [], $json));
 
