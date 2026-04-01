@@ -76,11 +76,35 @@ class Validator extends AbstractValidator
     }
 
     /**
-     * Fetch transaction history from the App Store Server API.
+     * Get the transaction history for a given transaction ID.
      *
      * Returns up to 20 transactions per call. When {@see Response::$hasMore} is true,
      * pass the returned {@see Response::$revision} back as
      * {@see TransactionHistoryParams::$revision} to fetch the next page.
+     *
+     * @param string $transactionId Any transaction ID associated with the customer.
+     * @param TransactionHistoryParams|null $params Optional filters and sort order.
+     *                                              Defaults to DESCENDING sort with no filters.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/get-transaction-history
+     *
+     * @throws ValidationException
+     */
+    public function getTransactionHistory(
+        string $transactionId,
+        ?TransactionHistoryParams $params = null,
+    ): Response {
+        $uri = sprintf('/inApps/v2/history/%s', $transactionId);
+
+        return $this->makeRequest('GET', $uri, ($params ?? new TransactionHistoryParams())->toQueryParams());
+    }
+
+    /**
+     * Fetch transaction history from the App Store Server API.
+     *
+     * @deprecated Use {@see getTransactionHistory()} if you need paginated history with
+     *             {@see TransactionHistoryParams} filters, or {@see getTransactionInfo()}
+     *             if you only need a single transaction by ID.
      *
      * @param string|null $transactionId       Overrides the transaction ID set via
      *                                         {@see setTransactionId()} for this call.
@@ -100,9 +124,7 @@ class Validator extends AbstractValidator
             throw new ValidationException('Missing transaction ID for App Store Server API validation.');
         }
 
-        $uri = sprintf('/inApps/v2/history/%s', $this->transactionId);
-
-        return $this->makeRequest('GET', $uri, ($params ?? new TransactionHistoryParams())->toQueryParams());
+        return $this->getTransactionHistory($this->transactionId, $params);
     }
 
     /**
@@ -307,6 +329,67 @@ class Validator extends AbstractValidator
         }
 
         return (string) $data['testNotificationToken'];
+    }
+
+    /**
+     * Check the delivery status of a test notification.
+     *
+     * Use the token returned by {@see requestTestNotification()} to poll whether
+     * the App Store successfully delivered the test notification to your server,
+     * and to inspect each send attempt's result.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/get-test-notification-status
+     *
+     * @throws ValidationException
+     */
+    public function getTestNotificationStatus(string $testNotificationToken): CheckTestNotificationResponse
+    {
+        $uri = sprintf('/inApps/v1/notifications/test/%s', $testNotificationToken);
+
+        return new CheckTestNotificationResponse($this->makeRawRequest('GET', $uri));
+    }
+
+    /**
+     * Fetch up to six months of App Store Server Notification history for your app.
+     *
+     * Returns up to 20 items per page. When {@see NotificationHistoryResponse::$hasMore}
+     * is true, pass the returned {@see NotificationHistoryResponse::$paginationToken}
+     * back as $paginationToken to fetch the next page.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/get-notification-history
+     *
+     * @throws ValidationException
+     */
+    public function getNotificationHistory(
+        NotificationHistoryRequest $request,
+        ?string $paginationToken = null,
+    ): NotificationHistoryResponse {
+        $queryParams = $paginationToken !== null ? ['paginationToken' => $paginationToken] : [];
+
+        return new NotificationHistoryResponse(
+            $this->makeRawRequest('POST', '/inApps/v1/notifications/history', $queryParams, $request->toArray())
+        );
+    }
+
+    /**
+     * Look up all transactions associated with a customer's App Store order ID.
+     *
+     * An order ID appears on the customer's purchase receipt and can be used to
+     * resolve customer support issues. The response status indicates whether the
+     * order ID is valid; check {@see OrderLookupResponse::isValid()} before
+     * accessing the transactions.
+     *
+     * Note: This endpoint is not available in the sandbox environment.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/look-up-order-id
+     *
+     * @throws ValidationException
+     */
+    public function lookUpOrderId(string $orderId): OrderLookupResponse
+    {
+        $uri = sprintf('/inApps/v1/lookup/%s', $orderId);
+
+        return new OrderLookupResponse($this->makeRawRequest('GET', $uri));
     }
 
     /**

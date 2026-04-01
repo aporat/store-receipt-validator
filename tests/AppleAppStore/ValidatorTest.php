@@ -40,6 +40,26 @@ final class ValidatorTest extends TestCase
     }
 
     /**
+     * @covers ::getTransactionHistory
+     * @covers ::makeRequest
+     */
+    public function testGetTransactionHistoryReturnsResponse(): void
+    {
+        $json = (string) file_get_contents(__DIR__ . '/fixtures/transactionHistoryResponse.json');
+
+        $this->mockClient
+            ->expects($this->once())
+            ->method('sendRequest')
+            ->with($this->callback(function (RequestInterface $request): bool {
+                return $request->getMethod() === 'GET'
+                    && str_contains((string) $request->getUri(), '/inApps/v2/history/abc123');
+            }))
+            ->willReturn(new GuzzleResponse(200, [], $json));
+
+        $this->validator->getTransactionHistory('abc123');
+    }
+
+    /**
      * @covers ::__construct
      * @covers ::validate
      * @covers ::makeRequest
@@ -166,5 +186,84 @@ final class ValidatorTest extends TestCase
         $this->expectExceptionMessage('Invalid response format from App Store Server API');
 
         $this->validator->validate('abc123');
+    }
+
+    /**
+     * @covers ::lookUpOrderId
+     */
+    public function testLookUpOrderIdReturnsResponse(): void
+    {
+        $body = json_encode([
+            'status'             => 0,
+            'signedTransactions' => [],
+        ], JSON_THROW_ON_ERROR);
+
+        $this->mockClient
+            ->expects($this->once())
+            ->method('sendRequest')
+            ->with($this->callback(function (RequestInterface $request): bool {
+                return $request->getMethod() === 'GET'
+                    && str_contains((string) $request->getUri(), '/inApps/v1/lookup/ORDER123');
+            }))
+            ->willReturn(new GuzzleResponse(200, [], $body));
+
+        $response = $this->validator->lookUpOrderId('ORDER123');
+        self::assertTrue($response->isValid());
+        self::assertSame([], $response->getSignedTransactions());
+    }
+
+    /**
+     * @covers ::getTestNotificationStatus
+     */
+    public function testGetTestNotificationStatusReturnsResponse(): void
+    {
+        $body = json_encode([
+            'signedPayload'          => null,
+            'firstSendAttemptResult' => 'SUCCESS',
+            'sendAttempts'           => [],
+        ], JSON_THROW_ON_ERROR);
+
+        $this->mockClient
+            ->expects($this->once())
+            ->method('sendRequest')
+            ->with($this->callback(function (RequestInterface $request): bool {
+                return $request->getMethod() === 'GET'
+                    && str_contains((string) $request->getUri(), '/inApps/v1/notifications/test/test-token-abc');
+            }))
+            ->willReturn(new GuzzleResponse(200, [], $body));
+
+        $response = $this->validator->getTestNotificationStatus('test-token-abc');
+        self::assertTrue($response->wasDelivered());
+        self::assertSame('SUCCESS', $response->getFirstSendAttemptResult());
+        self::assertSame([], $response->getSendAttempts());
+    }
+
+    /**
+     * @covers ::getNotificationHistory
+     */
+    public function testGetNotificationHistoryReturnsResponse(): void
+    {
+        $body = json_encode([
+            'notificationHistory' => [],
+            'hasMore'             => false,
+            'paginationToken'     => null,
+        ], JSON_THROW_ON_ERROR);
+
+        $this->mockClient
+            ->expects($this->once())
+            ->method('sendRequest')
+            ->with($this->callback(function (RequestInterface $request): bool {
+                return $request->getMethod() === 'POST'
+                    && str_contains((string) $request->getUri(), '/inApps/v1/notifications/history');
+            }))
+            ->willReturn(new GuzzleResponse(200, [], $body));
+
+        $request  = new \ReceiptValidator\AppleAppStore\NotificationHistoryRequest(
+            startDate: 1_000_000_000_000,
+            endDate:   2_000_000_000_000,
+        );
+        $response = $this->validator->getNotificationHistory($request);
+        self::assertFalse($response->hasMore());
+        self::assertSame([], $response->getNotificationHistory());
     }
 }
