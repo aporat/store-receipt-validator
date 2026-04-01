@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\AppleAppStore;
 
+use ReceiptValidator\AppleAppStore\JWT\TokenGenerator;
+use ReceiptValidator\AppleAppStore\JWT\TokenVerifier;
 use ReceiptValidator\Support\ValueCasting;
 
 /**
