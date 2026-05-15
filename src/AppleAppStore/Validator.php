@@ -405,7 +405,7 @@ class Validator extends AbstractValidator
      */
     public function getTransactionInfo(string $transactionId): Transaction
     {
-        $uri  = sprintf('/inApps/v2/transactions/%s', $transactionId);
+        $uri  = sprintf('/inApps/v1/transactions/%s', $transactionId);
         $data = $this->makeRawRequest('GET', $uri);
 
         if (empty($data['signedTransactionInfo']) || !is_string($data['signedTransactionInfo'])) {
@@ -454,22 +454,31 @@ class Validator extends AbstractValidator
     }
 
     /**
-     * Set or update the app account token for a given transaction.
+     * Mark a transaction as finished.
      *
-     * Associates a customer account in your system (identified by a UUID you generate)
-     * with an App Store transaction. You can call this for one-time purchases as well as
-     * the latest purchase of each auto-renewable subscription; for subscriptions the token
-     * carries over to all future renewals.
+     * Use this for non-consumable, non-renewing subscription, or auto-renewable subscription
+     * transactions that StoreKit hasn't already finished. Consumable transactions are finished
+     * automatically by Apple once you call {@see sendConsumptionInformation()}.
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/finish-a-transaction
+     *
+     * @throws ValidationException
+     */
+    public function finishTransaction(string $transactionId): void
+    {
+        $uri = sprintf('/inApps/v1/transactions/%s/finish', $transactionId);
+
+        $this->makeRawRequest('POST', $uri);
+    }
+
+    /**
+     * Set or update the app account token for a subscription.
      *
      * @see https://developer.apple.com/documentation/appstoreserverapi/set-app-account-token
      *
-     * @param string $transactionId    The transaction ID of the purchase to update.
-     * @param string $appAccountToken  A UUID (version 4) that identifies the customer
-     *                                 in your system.
-     * @throws ValidationException     If $appAccountToken is not a valid UUID v4, or if
-     *                                 the API returns an error.
+     * @throws ValidationException
      */
-    public function setAppAccountToken(string $transactionId, string $appAccountToken): void
+    public function setAppAccountToken(string $originalTransactionId, string $appAccountToken): void
     {
         if (!$this->isValidUuidV4($appAccountToken)) {
             throw new ValidationException(
@@ -477,7 +486,7 @@ class Validator extends AbstractValidator
             );
         }
 
-        $uri = sprintf('/inApps/v1/transactions/%s/appAccountToken', $transactionId);
+        $uri = sprintf('/inApps/v1/transactions/%s/appAccountToken', $originalTransactionId);
 
         $this->makeRawRequest('PUT', $uri, [], ['appAccountToken' => $appAccountToken]);
     }

@@ -53,7 +53,7 @@ final class GetTransactionInfoTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'GET'
-                    && str_contains((string) $request->getUri(), '/inApps/v2/transactions/txn-abc123')
+                    && str_contains((string) $request->getUri(), '/inApps/v1/transactions/txn-abc123')
                     && !str_contains((string) $request->getUri(), 'appTransaction')
                     && !str_contains((string) $request->getUri(), 'appAccountToken');
             }))
