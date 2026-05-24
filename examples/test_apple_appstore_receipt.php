@@ -39,9 +39,7 @@ $validator = new AppleValidator(
 );
 
 try {
-    $response = $validator
-        ->setTransactionId($transactionId)
-        ->validate();
+    $response = $validator->getTransactionHistory($transactionId);
 } catch (ValidationException $e) {
     if ($e->getCode() === APIError::INVALID_TRANSACTION_ID) {
         echo 'API failed (invalid transaction id): ' . $e->getMessage() . PHP_EOL;

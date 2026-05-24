@@ -62,7 +62,7 @@ $validator = new AppleValidator(
 );
 
 try {
-    $response = $validator->setTransactionId($transactionId)->validate();
+    $response = $validator->getTransactionHistory($transactionId);
 } catch (ValidationException $e) {
     if ($e->getCode() === APIError::INVALID_TRANSACTION_ID) {
         echo "Invalid Transaction ID: {$e->getMessage()}" . PHP_EOL;
@@ -89,6 +89,21 @@ foreach ($response->getTransactions() as $transaction) {
     }
 }
 ```
+
+> ℹ️ `Validator::validate()` is **deprecated** as of v9. Use `getTransactionHistory()` for paginated history, or `getTransactionInfo()` for a single signed transaction.
+
+### 📚 Other App Store Server API endpoints
+
+The `AppleAppStore\Validator` now covers Apple's full API surface:
+
+| Area | Methods |
+|---|---|
+| Transactions | `getTransactionHistory()`, `getTransactionInfo()`, `getAppTransactionInfo()`, `finishTransaction()`, `setAppAccountToken()`, `sendConsumptionInformation()` |
+| Order / refunds | `lookUpOrderId()`, `getRefundHistory()` |
+| Subscriptions | `getAllSubscriptionStatuses()`, `extendSubscriptionRenewalDate()`, `extendSubscriptionRenewalDatesForAllActiveSubscribers()`, `getStatusOfSubscriptionRenewalDateExtensions()` |
+| Notifications | `requestTestNotification()`, `getTestNotificationStatus()`, `getNotificationHistory()` |
+
+Each returns a typed response object (`Transaction`, `AppTransaction`, `SubscriptionStatusResponse`, `RefundHistoryResponse`, `NotificationHistoryResponse`, …). See the [App Store Server API docs](https://developer.apple.com/documentation/appstoreserverapi) for endpoint semantics.
 
 ### 🍏 Apple iTunes (Legacy API - Deprecated)
 
@@ -187,8 +202,7 @@ The method returns `$this` for fluent chaining:
 ```php
 $response = $validator
     ->setLogger($logger)
-    ->setTransactionId($transactionId)
-    ->validate();
+    ->getTransactionHistory($transactionId);
 ```
 
 ### Log levels
