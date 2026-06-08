@@ -18,10 +18,12 @@ final class ExtendRenewalDateRequest
      * The reason code for the extension.
      *
      * Apple-defined values:
-     *   0 - Other
+     *   0 - Undeclared
      *   1 - Customer Satisfaction
      *   2 - Other
      *   3 - Service Issue or Outage
+     *
+     * @see https://developer.apple.com/documentation/appstoreserverapi/extendreasoncode
      */
     public ?int $extendReasonCode = null;
 

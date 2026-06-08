@@ -55,7 +55,7 @@ final class SendConsumptionInformationTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'PUT'
-                    && str_contains((string) $request->getUri(), '/inApps/v2/transactions/consumption/txn-abc123');
+                    && str_contains((string) $request->getUri(), '/inApps/v1/transactions/consumption/txn-abc123');
             }))
             ->willReturn(new GuzzleResponse(200, [], ''));
 

@@ -24,13 +24,6 @@ final class NotificationHistoryItem
     public readonly ?string $signedPayload;
 
     /**
-     * The result of the App Store server's first attempt to deliver this notification.
-     *
-     * @see https://developer.apple.com/documentation/appstoreserverapi/sendattemptresult
-     */
-    public readonly ?string $firstSendAttemptResult;
-
-    /**
      * All delivery attempts for this notification, in chronological order.
      *
      * @var list<SendAttemptItem>
@@ -42,8 +35,7 @@ final class NotificationHistoryItem
      */
     public function __construct(array $data = [])
     {
-        $this->signedPayload          = $this->toString($data, 'signedPayload');
-        $this->firstSendAttemptResult = $this->toString($data, 'firstSendAttemptResult');
+        $this->signedPayload = $this->toString($data, 'signedPayload');
 
         $raw      = is_array($data['sendAttempts'] ?? null) ? $data['sendAttempts'] : [];
         $attempts = [];
@@ -58,11 +50,6 @@ final class NotificationHistoryItem
     public function getSignedPayload(): ?string
     {
         return $this->signedPayload;
-    }
-
-    public function getFirstSendAttemptResult(): ?string
-    {
-        return $this->firstSendAttemptResult;
     }
 
     /**
@@ -88,10 +75,14 @@ final class NotificationHistoryItem
     }
 
     /**
-     * Returns true if the first delivery attempt was successful.
+     * Returns true if the most recent delivery attempt succeeded.
      */
     public function wasDelivered(): bool
     {
-        return $this->firstSendAttemptResult === 'SUCCESS';
+        if ($this->sendAttempts === []) {
+            return false;
+        }
+        $last = $this->sendAttempts[array_key_last($this->sendAttempts)];
+        return $last->sendAttemptResult === 'SUCCESS';
     }
 }

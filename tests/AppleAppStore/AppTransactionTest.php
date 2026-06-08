@@ -61,7 +61,7 @@ final class AppTransactionTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'GET'
-                    && str_contains((string) $request->getUri(), '/inApps/v1/transactions/appTransactions/txn-abc');
+                    && str_contains((string) $request->getUri(), '/inApps/v1/transactions/appTransaction/txn-abc');
             }))
             ->willReturn(new GuzzleResponse(400, [], json_encode([
                 'errorCode'    => 4290000,
