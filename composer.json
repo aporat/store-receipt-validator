@@ -30,7 +30,7 @@
         "ext-json": "*",
         "ext-openssl": "*",
         "guzzlehttp/guzzle": "^7.9|^8.0",
-        "guzzlehttp/psr7": "^2.6",
+        "guzzlehttp/psr7": "^2.6 || ^3.0",
         "lcobucci/clock": "^3.3",
         "lcobucci/jwt": "^5.5",
         "nesbot/carbon": "^2.72.6|^3.0",
