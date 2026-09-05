@@ -72,6 +72,18 @@ final class ReceiptUtilityTest extends TestCase
                 null,
                 true,
             ],
+            'valid ASN.1 but not PKCS7 (throws)' => [
+                // SEQUENCE { INTEGER 5 }
+                base64_encode("\x30\x03\x02\x01\x05"),
+                null,
+                true,
+            ],
+            'malformed BER (throws)' => [
+                // SEQUENCE header claiming a length longer than the payload
+                base64_encode("\x30\x82\xff\xff\x02\x01"),
+                null,
+                true,
+            ],
         ];
     }
 }
