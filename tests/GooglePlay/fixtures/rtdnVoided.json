@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "packageName": "app.example",
+  "eventTimeMillis": "1756911600000",
+  "voidedPurchaseNotification": {
+    "purchaseToken": "voided-token-123",
+    "orderId": "GPA.1000-2000-3000-40000",
+    "productType": 1,
+    "refundType": 1
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "kind": "androidpublisher#productPurchase",
+  "purchaseTimeMillis": "1756911600000",
+  "purchaseState": 0,
+  "consumptionState": 0,
+  "developerPayload": "",
+  "orderId": "GPA.7777-6666-5555-44444",
+  "acknowledgementState": 1,
+  "purchaseToken": "one-time-token",
+  "productId": "app.example.coins.100",
+  "quantity": 2,
+  "obfuscatedExternalAccountId": "ACCOUNT-1",
+  "regionCode": "US",
+  "refundableQuantity": 2
+}

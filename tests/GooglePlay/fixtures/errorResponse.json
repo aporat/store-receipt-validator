@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": 400,
+    "message": "The purchase token does not match the package name.",
+    "errors": [
+      {
+        "message": "The purchase token does not match the package name.",
+        "domain": "androidpublisher",
+        "reason": "purchaseTokenDoesNotMatchPackageName"
+      }
+    ],
+    "status": "INVALID_ARGUMENT"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "kind": "androidpublisher#subscriptionPurchaseV2",
+  "regionCode": "US",
+  "latestOrderId": "GPA.3333-4444-5555-66666..5",
+  "lineItems": [
+    {
+      "productId": "app.example.subscription",
+      "expiryTime": "2026-10-05T14:32:11.512Z",
+      "autoRenewingPlan": {
+        "autoRenewEnabled": true,
+        "recurringPrice": {
+          "currencyCode": "USD",
+          "units": "9",
+          "nanos": 990000000
+        }
+      },
+      "offerDetails": {
+        "basePlanId": "annually",
+        "offerId": "intro-7day",
+        "offerTags": ["intro", "campaign-fall"]
+      },
+      "latestSuccessfulOrderId": "GPA.3333-4444-5555-66666..5"
+    }
+  ],
+  "startTime": "2025-10-05T14:32:11.512Z",
+  "subscriptionState": "SUBSCRIPTION_STATE_ACTIVE",
+  "acknowledgementState": "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED",
+  "externalAccountIdentifiers": {
+    "obfuscatedExternalAccountId": "5E8A3B2C-1D4F-4E6A-9B7C-8D9E0F1A2B3C",
+    "obfuscatedExternalProfileId": "profile-1"
+  }
+}

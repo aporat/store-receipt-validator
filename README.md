@@ -2,7 +2,7 @@
 
 [![Latest Stable Version](https://img.shields.io/packagist/v/aporat/store-receipt-validator.svg?style=flat-square&logo=composer)](https://packagist.org/packages/aporat/store-receipt-validator)  [![Downloads](https://img.shields.io/packagist/dt/aporat/store-receipt-validator.svg?style=flat-square&logo=composer)](https://packagist.org/packages/aporat/store-receipt-validator)  [![Codecov](https://img.shields.io/codecov/c/github/aporat/store-receipt-validator?style=flat-square)](https://codecov.io/github/aporat/store-receipt-validator)  ![GitHub Actions](https://img.shields.io/github/actions/workflow/status/aporat/store-receipt-validator/ci.yml?style=flat-square)  [![License](https://img.shields.io/packagist/l/aporat/store-receipt-validator.svg?style=flat-square)](LICENSE)
 
-A modern PHP library for validating in-app purchase receipts from the Apple App Store (including legacy iTunes) and Amazon Appstore. Supports both production and sandbox environments with detailed response parsing.
+A modern PHP library for validating in-app purchases from the Apple App Store (including legacy iTunes), Google Play and Amazon Appstore. Supports both production and sandbox environments with detailed response parsing.
 
 ---
 
@@ -10,6 +10,8 @@ A modern PHP library for validating in-app purchase receipts from the Apple App 
 
 - ✅ Apple App Store **Server API (v2)** support
 - ✅ Apple iTunes **Legacy API** support (deprecated by Apple, still available here)
+- ✅ Google Play **Developer API (Android Publisher v3)** support: subscriptions, one-time products, voided purchases
+- ✅ Google Play **Real-time Developer Notifications** parsing (Pub/Sub envelope included)
 - ✅ Amazon Appstore receipt validation
 - ✅ App Store **Server Notifications v1 & v2** parsing
 - ✅ Strong typing (PHP 8.4+), enums, and modern error handling
@@ -150,6 +152,89 @@ foreach ($response->getLatestReceiptInfo() as $tx) {
 }
 ```
 
+### 🤖 Google Play
+
+Authentication uses a Google Cloud service account that has been granted access to your app in the Play Console ("Users and permissions" → invite the service account email with *View financial data* / *Manage orders*). Download its JSON key and pass the contents to the validator. Tokens are minted with the OAuth 2.0 JWT bearer flow and cached in memory; no extra Google SDK is required.
+
+```php
+use ReceiptValidator\Environment;
+use ReceiptValidator\Exceptions\ValidationException;
+use ReceiptValidator\GooglePlay\Validator as GooglePlayValidator;
+
+$validator = new GooglePlayValidator(
+    packageName: 'com.example.app',
+    credentials: file_get_contents('/path/to/service-account.json'),
+);
+
+try {
+    // The purchase token from BillingClient's Purchase.getPurchaseToken()
+    $purchase = $validator->getSubscriptionPurchaseV2($purchaseToken);
+} catch (ValidationException $e) {
+    echo 'Validation failed: ' . $e->getMessage() . PHP_EOL;
+    exit(1);
+}
+
+echo 'State: ' . $purchase->getSubscriptionState()->name . PHP_EOL;
+echo 'Entitled: ' . ($purchase->isEntitled() ? 'yes' : 'no') . PHP_EOL;
+echo 'Expires: ' . $purchase->getExpiryTime()?->toIso8601String() . PHP_EOL;
+echo 'Test purchase: ' . ($purchase->isTestPurchase() ? 'yes' : 'no') . PHP_EOL; // Environment::SANDBOX
+echo 'Obfuscated account ID: ' . $purchase->getObfuscatedExternalAccountId() . PHP_EOL;
+
+foreach ($purchase->getLineItems() as $item) {
+    echo 'Product ID: ' . $item->getProductId() . PHP_EOL;
+    echo 'Base plan: ' . $item->getBasePlanId() . PHP_EOL;
+    echo 'Order ID: ' . $item->getLatestSuccessfulOrderId() . PHP_EOL;
+    echo 'Auto-renewing: ' . ($item->isAutoRenewEnabled() ? 'yes' : 'no') . PHP_EOL;
+}
+```
+
+> ℹ️ Google has no sandbox endpoint. Licence-tester purchases come back from the production API with a `testPurchase` marker, which the response exposes as `isTestPurchase()` and `Environment::SANDBOX`.
+
+#### Other Google Play endpoints
+
+| Area | Methods |
+|---|---|
+| Subscriptions | `getSubscriptionPurchaseV2()`, `acknowledgeSubscription()`, `revokeSubscription()` |
+| One-time products | `getProductPurchase()`, `acknowledgeProduct()`, `consumeProduct()` |
+| Refunds | `getVoidedPurchases()` |
+
+```php
+use ReceiptValidator\GooglePlay\RevocationContext;
+use ReceiptValidator\GooglePlay\VoidedPurchasesParams;
+use ReceiptValidator\GooglePlay\VoidedPurchaseType;
+
+$product = $validator->getProductPurchase('com.example.coins.100', $purchaseToken);
+if ($product->isPurchased() && !$product->isAcknowledged()) {
+    $validator->acknowledgeProduct('com.example.coins.100', $purchaseToken);
+}
+
+$validator->revokeSubscription($purchaseToken, RevocationContext::proratedRefund());
+
+$voided = $validator->getVoidedPurchases(new VoidedPurchasesParams(type: VoidedPurchaseType::INCLUDE_SUBSCRIPTIONS));
+foreach ($voided->getVoidedPurchases() as $refund) {
+    echo $refund->getOrderId() . ' voided at ' . $refund->getVoidedTime()?->toIso8601String() . PHP_EOL;
+}
+```
+
+#### Bringing your own access tokens
+
+If you already use `google/auth` (or want to share a token cache), implement `GooglePlay\JWT\AccessTokenProvider` or wrap a callable:
+
+```php
+use Google\Auth\Credentials\ServiceAccountCredentials;
+use ReceiptValidator\GooglePlay\JWT\CallbackAccessTokenProvider;
+
+$credentials = new ServiceAccountCredentials(
+    'https://www.googleapis.com/auth/androidpublisher',
+    '/path/to/service-account.json'
+);
+
+$validator = new GooglePlayValidator('com.example.app');
+$validator->setAccessTokenProvider(
+    new CallbackAccessTokenProvider(fn () => $credentials->fetchAuthToken()['access_token'])
+);
+```
+
 ### 🛒 Amazon Appstore
 
 ```php
@@ -270,6 +355,50 @@ public function subscriptions(Request $request): JsonResponse {
     } catch (ValidationException $e) {
         echo 'Invalid notification: ' . $e->getMessage() . PHP_EOL;
     }
+}
+```
+
+---
+
+## 🤖 Google Play Real-time Developer Notifications
+
+Play publishes notifications to a Cloud Pub/Sub topic; a push subscription POSTs them to your endpoint wrapped in a Pub/Sub envelope. `ServerNotification::fromPubSubMessage()` unwraps the envelope and decodes the notification.
+
+Unlike Apple's notifications, the payload is **not signed and carries no purchase data**: it only tells you which purchase token changed. Always re-read the purchase from the API before changing entitlement, and authenticate the push itself (Pub/Sub's OIDC bearer token) at the HTTP layer.
+
+```php
+use ReceiptValidator\Exceptions\ValidationException;
+use ReceiptValidator\GooglePlay\ServerNotification;
+use ReceiptValidator\GooglePlay\SubscriptionNotificationType;
+
+public function googlePlay(Request $request): JsonResponse {
+    try {
+        $notification = ServerNotification::fromPubSubMessage($request->all());
+    } catch (ValidationException $e) {
+        // Undecodable messages will never succeed: acknowledge them so Pub/Sub stops retrying.
+        return response()->json(['status' => 'ignored']);
+    }
+
+    if ($notification->isTestNotification()) {
+        return response()->json(['status' => 'test']);
+    }
+
+    if ($sub = $notification->getSubscriptionNotification()) {
+        echo 'Type: ' . $sub->getNotificationType()->name . PHP_EOL;
+        echo 'Product: ' . $sub->getSubscriptionId() . PHP_EOL;
+
+        $purchase = $validator->getSubscriptionPurchaseV2($sub->getPurchaseToken());
+
+        if ($sub->getNotificationType()->revokesEntitlement() || !$purchase->isEntitled()) {
+            // remove access
+        }
+    }
+
+    if ($voided = $notification->getVoidedPurchaseNotification()) {
+        echo 'Refunded order: ' . $voided->getOrderId() . PHP_EOL;
+    }
+
+    return response()->json(['status' => 'handled']);
 }
 ```
 

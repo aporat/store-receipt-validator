@@ -89,9 +89,18 @@ abstract class AbstractValidator
     /**
      * Validate the receipt.
      *
+     * Concrete validators override this with a store-specific signature. The default
+     * implementation exists for validators whose API has no single "validate" call
+     * (e.g. Google Play), so callers are pointed at the endpoint methods instead.
+     *
      * @throws ValidationException
      */
-    abstract public function validate(): mixed;
+    public function validate(): mixed
+    {
+        throw new ValidationException(
+            static::class . ' does not implement validate(); call one of its endpoint methods directly.'
+        );
+    }
 
     /**
      * Get the PSR-18 HTTP client.

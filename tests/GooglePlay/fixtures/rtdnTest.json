@@ -1,0 +1,8 @@
+{
+  "version": "1.0",
+  "packageName": "app.example",
+  "eventTimeMillis": "1756911600000",
+  "testNotification": {
+    "version": "1.0"
+  }
+}
