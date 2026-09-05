@@ -1,0 +1,10 @@
+{
+  "kind": "androidpublisher#productPurchase",
+  "purchaseTimeMillis": "1756911600000",
+  "purchaseState": 2,
+  "consumptionState": 1,
+  "orderId": "GPA.0000-0000-0000-00000",
+  "purchaseType": 0,
+  "acknowledgementState": 0,
+  "productId": "app.example.coins.100"
+}

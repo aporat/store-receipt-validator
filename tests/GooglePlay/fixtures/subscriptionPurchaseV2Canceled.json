@@ -1,0 +1,50 @@
+{
+  "kind": "androidpublisher#subscriptionPurchaseV2",
+  "regionCode": "GB",
+  "latestOrderId": "GPA.1111-2222-3333-44444",
+  "lineItems": [
+    {
+      "productId": "app.example.subscription",
+      "expiryTime": "2026-09-20T00:00:00Z",
+      "autoRenewingPlan": {
+        "autoRenewEnabled": false,
+        "priceChangeDetails": {
+          "newPrice": {"currencyCode": "GBP", "units": "8", "nanos": 490000000},
+          "priceChangeMode": "PRICE_INCREASE",
+          "priceChangeState": "OUTSTANDING",
+          "expectedNewPriceChargeTime": "2026-09-20T00:00:00Z"
+        }
+      },
+      "offerDetails": {
+        "basePlanId": "monthly"
+      },
+      "deferredItemReplacement": {
+        "productId": "app.example.subscription.plus"
+      },
+      "latestSuccessfulOrderId": "GPA.1111-2222-3333-44444..2"
+    },
+    {
+      "productId": "app.example.addon",
+      "expiryTime": "2027-01-01T00:00:00Z",
+      "prepaidPlan": {
+        "allowExtendAfterTime": "2026-12-25T00:00:00Z"
+      },
+      "latestSuccessfulOrderId": "GPA.9999-8888-7777-66666"
+    }
+  ],
+  "startTime": "2026-08-20T00:00:00Z",
+  "subscriptionState": "SUBSCRIPTION_STATE_CANCELED",
+  "linkedPurchaseToken": "older-token",
+  "canceledStateContext": {
+    "userInitiatedCancellation": {
+      "cancelSurveyResult": {"reason": "CANCEL_SURVEY_REASON_TOO_EXPENSIVE"},
+      "cancelTime": "2026-09-01T10:00:00Z"
+    }
+  },
+  "testPurchase": {},
+  "acknowledgementState": "ACKNOWLEDGEMENT_STATE_PENDING",
+  "subscribeWithGoogleInfo": {
+    "profileId": "p1",
+    "emailAddress": "user@example.com"
+  }
+}

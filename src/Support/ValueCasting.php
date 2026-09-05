@@ -39,6 +39,25 @@ trait ValueCasting
         return CarbonImmutable::createFromTimestampMs((int)$v)->utc();
     }
 
+    /**
+     * Parse an RFC 3339 / ISO 8601 timestamp string (e.g. "2026-09-01T12:34:56.789Z"),
+     * the format used by Google APIs, into a UTC CarbonImmutable.
+     *
+     * @param array<string,mixed> $data
+     */
+    protected function toDateFromRfc3339(array $data, string $key): ?CarbonImmutable
+    {
+        $v = $data[$key] ?? null;
+        if (!is_string($v) || trim($v) === '') {
+            return null;
+        }
+        try {
+            return CarbonImmutable::parse($v)->utc();
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
 
     /**
      * Helper to convert a mixed value into an Environment enum.

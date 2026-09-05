@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use ReceiptValidator\AbstractValidator;
 use ReceiptValidator\Environment;
+use ReceiptValidator\Exceptions\ValidationException;
 
 final class AbstractValidatorTest extends TestCase
 {
@@ -58,6 +59,16 @@ final class AbstractValidatorTest extends TestCase
         $this->assertSame($injected, $v->getClientInstance());
     }
 
+    public function testDefaultValidateThrows(): void
+    {
+        $v = new NoValidateValidator();
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('does not implement validate()');
+
+        $v->validate();
+    }
+
     public function testEndpointForEnvironmentResolvesFromMap(): void
     {
         $v = $this->newValidator();
@@ -98,6 +109,21 @@ final class TestableValidator extends AbstractValidator
         return [
             Environment::PRODUCTION->value => self::PROD,
             Environment::SANDBOX->value    => self::SANDBOX,
+        ];
+    }
+}
+
+/**
+ * Subclass that relies on the base validate() implementation.
+ */
+final class NoValidateValidator extends AbstractValidator
+{
+    /** @return array{production:string,sandbox:string} */
+    protected function endpointMap(): array
+    {
+        return [
+            Environment::PRODUCTION->value => 'https://api.example.com',
+            Environment::SANDBOX->value    => 'https://sandbox.example.com',
         ];
     }
 }
