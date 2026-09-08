@@ -36,7 +36,6 @@
         "lcobucci/clock": "^3.3",
         "lcobucci/jwt": "^5.5",
         "nesbot/carbon": "^2.72.6|^3.0",
-        "phpseclib/phpseclib": "^4.0",
         "psr/http-client": "^1.0",
         "psr/http-factory": "^1.0",
         "psr/http-message": "^2.0",

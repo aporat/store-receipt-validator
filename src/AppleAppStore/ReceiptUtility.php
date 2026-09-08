@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\AppleAppStore;
 
-use Exception;
-use phpseclib4\File\ASN1;
-use phpseclib4\File\ASN1\Constructed;
-use phpseclib4\File\ASN1\Maps\ContentInfo;
-use phpseclib4\File\ASN1\Maps\SignedData;
-use Stringable;
+use ReceiptValidator\Support\Asn1Node;
 use ValueError;
 
 /**
@@ -18,35 +13,14 @@ use ValueError;
  */
 final class ReceiptUtility
 {
-    /** PKCS #7: signedData OID (dotted form and phpseclib's symbolic name) */
+    /** PKCS #7: signedData OID */
     private const string PKCS7_OID = '1.2.840.113549.1.7.2';
-    private const string PKCS7_OID_NAME = 'id-signedData';
 
     /** Receipt attribute: in-app array */
     private const int IN_APP_ARRAY_TYPE = 17;
 
     /** In-app attribute: transaction identifier */
     private const int TRANSACTION_IDENTIFIER_TYPE = 1703;
-
-    /**
-     * ASN.1 schema shared by the receipt attribute set and the in-app purchase set:
-     * SET OF SEQUENCE { type INTEGER, version INTEGER, value OCTET STRING }.
-     *
-     * @var array<string, mixed>
-     */
-    private const array ATTRIBUTE_SET_MAP = [
-        'type' => ASN1::TYPE_SET,
-        'min' => 0,
-        'max' => -1,
-        'children' => [
-            'type' => ASN1::TYPE_SEQUENCE,
-            'children' => [
-                'type'    => ['type' => ASN1::TYPE_INTEGER],
-                'version' => ['type' => ASN1::TYPE_INTEGER],
-                'value'   => ['type' => ASN1::TYPE_OCTET_STRING],
-            ],
-        ],
-    ];
 
     private function __construct()
     {
@@ -103,39 +77,40 @@ final class ReceiptUtility
     /**
      * Decode outer PKCS#7 and return the set of receipt attributes as [type, value] pairs.
      *
+     * ContentInfo ::= SEQUENCE { contentType OID, content [0] EXPLICIT SignedData }
+     * SignedData  ::= SEQUENCE { version, digestAlgorithms, encapContentInfo, ... }
+     * EncapsulatedContentInfo ::= SEQUENCE { eContentType OID, eContent [0] EXPLICIT OCTET STRING }
+     *
      * @return list<array{string, string}>
      * @throws ValueError
      */
     private static function getReceiptAttributeSet(string $der): array
     {
         try {
-            $contentInfo = self::map($der, ContentInfo::MAP);
-            $oid = self::toString($contentInfo['contentType']);
-        } catch (Exception $e) {
+            $contentInfo = Asn1Node::decode($der);
+            $contentType = $contentInfo->child(0);
+
+            $isPkcs7 = $contentInfo->is(Asn1Node::TAG_SEQUENCE)
+                && $contentType !== null
+                && $contentType->is(Asn1Node::TAG_OBJECT_IDENTIFIER)
+                && $contentType->oid() === self::PKCS7_OID;
+        } catch (ValueError $e) {
             throw new ValueError('Receipt is not a valid PKCS #7 container.', 0, $e);
         }
 
-        if ($oid !== self::PKCS7_OID && $oid !== self::PKCS7_OID_NAME) {
+        if (!$isPkcs7) {
             throw new ValueError('Receipt is not a valid PKCS #7 container.');
         }
 
+        $eContent = $contentInfo->child(1)?->child(0)?->child(2)?->child(1)?->child(0);
+
+        if ($eContent === null || !$eContent->is(Asn1Node::TAG_OCTET_STRING)) {
+            throw new ValueError('Could not find the receipt attribute set in the payload.');
+        }
+
         try {
-            // ContentInfo.content is an EXPLICIT [0] wrapper around SignedData; re-decode its raw bytes.
-            $content = $contentInfo['content'];
-            if (!$content instanceof Stringable) {
-                throw new ValueError('Could not find the receipt attribute set in the payload.');
-            }
-
-            $signedData = self::map((string) $content, SignedData::MAP);
-            $encap = $signedData['encapContentInfo'];
-            $eContent = $encap instanceof Constructed ? $encap['eContent'] : null;
-
-            if (!$eContent instanceof Stringable) {
-                throw new ValueError('Could not find the receipt attribute set in the payload.');
-            }
-
-            return self::decodeAttributeSet((string) $eContent);
-        } catch (Exception $e) {
+            return self::decodeAttributeSet($eContent->octets());
+        } catch (ValueError $e) {
             throw new ValueError('Could not find the receipt attribute set in the payload.', 0, $e);
         }
     }
@@ -144,80 +119,61 @@ final class ReceiptUtility
     {
         try {
             $inAppSet = self::decodeAttributeSet($inAppPurchaseData);
-        } catch (Exception) {
+        } catch (ValueError) {
             return null;
         }
 
         foreach ($inAppSet as [$type, $value]) {
-            if ($type === (string) self::TRANSACTION_IDENTIFIER_TYPE) {
-                try {
-                    $content = ASN1::decodeBER($value)['content'] ?? null;
-                } catch (Exception) {
-                    return null;
-                }
-
-                return $content instanceof Constructed ? null : self::toStringOrNull($content);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Decode a BER-encoded attribute set into [type, value] pairs.
-     *
-     * @return list<array{string, string}>
-     * @throws Exception on malformed input (phpseclib exceptions)
-     */
-    private static function decodeAttributeSet(string $ber): array
-    {
-        $pairs = [];
-
-        foreach (self::map($ber, self::ATTRIBUTE_SET_MAP) as $attribute) {
-            if (!$attribute instanceof Constructed) {
+            if ($type !== (string) self::TRANSACTION_IDENTIFIER_TYPE) {
                 continue;
             }
 
-            $pairs[] = [self::toString($attribute['type']), self::toString($attribute['value'])];
-        }
+            try {
+                $node = Asn1Node::decode($value);
+            } catch (ValueError) {
+                return null;
+            }
 
-        return $pairs;
-    }
-
-    /**
-     * Decode BER and bind it to an ASN.1 map, requiring a constructed (SEQUENCE/SET) result.
-     *
-     * @param array<string, mixed> $mapping
-     * @throws Exception on malformed input (phpseclib exceptions)
-     */
-    private static function map(string $ber, array $mapping): Constructed
-    {
-        $mapped = ASN1::map(ASN1::decodeBER($ber), $mapping);
-
-        if (!$mapped instanceof Constructed) {
-            throw new ValueError('Unexpected ASN.1 structure: expected a constructed type.');
-        }
-
-        return $mapped;
-    }
-
-    private static function toString(mixed $value): string
-    {
-        $string = self::toStringOrNull($value);
-
-        if ($string === null) {
-            throw new ValueError('Unexpected ASN.1 structure: expected a scalar value.');
-        }
-
-        return $string;
-    }
-
-    private static function toStringOrNull(mixed $value): ?string
-    {
-        if ($value instanceof Stringable || is_scalar($value)) {
-            return (string) $value;
+            return $node->constructed ? null : $node->content;
         }
 
         return null;
+    }
+
+    /**
+     * Decode a BER-encoded attribute set into [type, value] pairs:
+     * SET OF SEQUENCE { type INTEGER, version INTEGER, value OCTET STRING }.
+     *
+     * @return list<array{string, string}>
+     * @throws ValueError on malformed input
+     */
+    private static function decodeAttributeSet(string $ber): array
+    {
+        $set = Asn1Node::decode($ber);
+
+        if (!$set->is(Asn1Node::TAG_SET)) {
+            throw new ValueError('Unexpected ASN.1 structure: expected a SET of attributes.');
+        }
+
+        $pairs = [];
+
+        foreach ($set->children as $attribute) {
+            $type = $attribute->child(0);
+            $value = $attribute->child(2);
+
+            if (
+                !$attribute->is(Asn1Node::TAG_SEQUENCE)
+                || $type === null
+                || !$type->is(Asn1Node::TAG_INTEGER)
+                || $value === null
+                || !$value->is(Asn1Node::TAG_OCTET_STRING)
+            ) {
+                continue;
+            }
+
+            $pairs[] = [$type->integer(), $value->octets()];
+        }
+
+        return $pairs;
     }
 }
