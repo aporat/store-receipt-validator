@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\AppleAppStore;
 
+use InvalidArgumentException;
 use Lcobucci\JWT\Signer\Ecdsa\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token\Plain as Token;
@@ -52,6 +53,9 @@ class Validator extends AbstractValidator
 
     /** App bundle ID. */
     protected string $bundleId;
+
+    /** Verifier for Apple-signed JWS payloads. */
+    protected ?TokenVerifier $tokenVerifier = null;
 
     /**
      * @param string $signingKey The contents of your .p8 key
@@ -413,7 +417,7 @@ class Validator extends AbstractValidator
         }
 
         $token    = TokenGenerator::decodeToken($data['signedTransactionInfo']);
-        $verifier = new TokenVerifier();
+        $verifier = $this->getTokenVerifier();
 
         if (!$verifier->verify($token)) {
             throw new ValidationException('Transaction info JWS signature verification failed.');
@@ -444,13 +448,151 @@ class Validator extends AbstractValidator
         }
 
         $token    = TokenGenerator::decodeToken($data['signedAppTransactionInfo']);
-        $verifier = new TokenVerifier();
+        $verifier = $this->getTokenVerifier();
 
         if (!$verifier->verify($token)) {
             throw new ValidationException('App transaction JWS signature verification failed.');
         }
 
         return new AppTransaction($token->claims()->all());
+    }
+
+    /**
+     * Verify and decode a signed transaction (JWS) without calling Apple.
+     *
+     * Use this for StoreKit 2's `VerificationResult.jwsRepresentation` sent up by
+     * your app, or any `signedTransactionInfo` you already hold. The signature and
+     * Apple certificate chain are verified, and the transaction's `bundleId` and
+     * `environment` must match this validator's.
+     *
+     * The payload reflects the transaction at the time it was signed. For the
+     * current state (e.g. a later refund), call {@see getTransactionInfo()} or
+     * {@see getAllSubscriptionStatuses()}.
+     *
+     * @see https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo
+     *
+     * @throws ValidationException
+     */
+    public function verifySignedTransaction(string $signedTransaction): Transaction
+    {
+        $claims = $this->verifySignedPayload($signedTransaction);
+
+        $this->assertClaimMatches($claims, 'bundleId', $this->bundleId, 'bundle ID');
+        $this->assertEnvironmentMatches($claims, 'environment');
+
+        return new Transaction($claims);
+    }
+
+    /**
+     * Verify and decode a signed subscription renewal info (JWS) without calling Apple.
+     *
+     * Use this for StoreKit 2's `Product.SubscriptionInfo.RenewalInfo` JWS, or any
+     * `signedRenewalInfo` you already hold. Renewal info carries no bundle ID, so
+     * only the signature, certificate chain and `environment` are checked.
+     *
+     * @throws ValidationException
+     */
+    public function verifySignedRenewalInfo(string $signedRenewalInfo): RenewalInfo
+    {
+        $claims = $this->verifySignedPayload($signedRenewalInfo);
+
+        $this->assertEnvironmentMatches($claims, 'environment');
+
+        return new RenewalInfo($claims);
+    }
+
+    /**
+     * Verify and decode a signed app transaction (JWS) without calling Apple.
+     *
+     * Use this for StoreKit 2's `AppTransaction.shared` JWS representation. The
+     * signature and Apple certificate chain are verified, and the payload's
+     * `bundleId` and `receiptType` must match this validator's.
+     *
+     * @throws ValidationException
+     */
+    public function verifySignedAppTransaction(string $signedAppTransaction): AppTransaction
+    {
+        $claims = $this->verifySignedPayload($signedAppTransaction);
+
+        $this->assertClaimMatches($claims, 'bundleId', $this->bundleId, 'bundle ID');
+        $this->assertEnvironmentMatches($claims, 'receiptType');
+
+        return new AppTransaction($claims);
+    }
+
+    /**
+     * Replace the verifier used for Apple-signed JWS payloads.
+     *
+     * Intended for tests that sign payloads with their own certificate chain.
+     */
+    public function setTokenVerifier(TokenVerifier $tokenVerifier): static
+    {
+        $this->tokenVerifier = $tokenVerifier;
+
+        return $this;
+    }
+
+    protected function getTokenVerifier(): TokenVerifier
+    {
+        return $this->tokenVerifier ??= new TokenVerifier();
+    }
+
+    /**
+     * Decode a JWS, verify it was signed by Apple, and return its claims.
+     *
+     * @return array<string, mixed>
+     * @throws ValidationException
+     */
+    private function verifySignedPayload(string $jws): array
+    {
+        $token = TokenGenerator::decodeToken($jws);
+
+        if (!$this->getTokenVerifier()->verify($token)) {
+            throw new ValidationException('JWS signature verification failed.');
+        }
+
+        return $token->claims()->all();
+    }
+
+    /**
+     * @param array<string, mixed> $claims
+     * @throws ValidationException
+     */
+    private function assertClaimMatches(array $claims, string $key, string $expected, string $label): void
+    {
+        $actual = $claims[$key] ?? null;
+
+        if (!is_string($actual) || $actual !== $expected) {
+            throw new ValidationException(sprintf(
+                'Signed payload %s does not match: expected "%s", got "%s".',
+                $label,
+                $expected,
+                is_scalar($actual) ? (string) $actual : ''
+            ));
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $claims
+     * @throws ValidationException
+     */
+    private function assertEnvironmentMatches(array $claims, string $key): void
+    {
+        $raw = $claims[$key] ?? null;
+
+        try {
+            $environment = is_string($raw) ? Environment::fromString($raw) : null;
+        } catch (InvalidArgumentException) {
+            $environment = null;
+        }
+
+        if ($environment !== $this->environment) {
+            throw new ValidationException(sprintf(
+                'Signed payload environment does not match: expected "%s", got "%s".',
+                $this->environment->value,
+                is_scalar($raw) ? (string) $raw : ''
+            ));
+        }
     }
 
     /**
