@@ -9,6 +9,7 @@ A modern PHP library for validating in-app purchases from the Apple App Store (i
 ## ✨ Features
 
 - ✅ Apple App Store **Server API (v2)** support
+- ✅ Apple **StoreKit 2** signed transaction (`jwsRepresentation`) verification, offline
 - ✅ Apple iTunes **Legacy API** support (deprecated by Apple, still available here)
 - ✅ Google Play **Developer API (Android Publisher v3)** support: subscriptions, one-time products, voided purchases
 - ✅ Google Play **Real-time Developer Notifications** parsing (Pub/Sub envelope included)
@@ -106,6 +107,48 @@ The `AppleAppStore\Validator` now covers Apple's full API surface:
 | Notifications | `requestTestNotification()`, `getTestNotificationStatus()`, `getNotificationHistory()` |
 
 Each returns a typed response object (`Transaction`, `AppTransaction`, `SubscriptionStatusResponse`, `RefundHistoryResponse`, `NotificationHistoryResponse`, …). See the [App Store Server API docs](https://developer.apple.com/documentation/appstoreserverapi) for endpoint semantics.
+
+### 🔏 StoreKit 2 (`jwsRepresentation`)
+
+StoreKit 2 apps no longer send an app receipt. Each `VerificationResult` carries a
+signed transaction (JWS) in `jwsRepresentation`, which your app can send to your server.
+
+**Verify it offline** — checks the signature, the Apple certificate chain, and that
+the payload's bundle ID and environment match the validator:
+
+```php
+use ReceiptValidator\AppleAppStore\Validator as AppleValidator;
+use ReceiptValidator\Environment;
+use ReceiptValidator\Exceptions\ValidationException;
+
+$validator = new AppleValidator(
+    signingKey: $signingKey,
+    keyId: $keyId,
+    issuerId: $issuerId,
+    bundleId: 'com.myapp',
+    environment: Environment::PRODUCTION
+);
+
+try {
+    $transaction = $validator->verifySignedTransaction($jwsRepresentation);
+} catch (ValidationException $e) {
+    // Bad signature, untrusted chain, or bundle/environment mismatch
+    exit(1);
+}
+
+echo $transaction->getProductId() . PHP_EOL;
+echo $transaction->getTransactionId() . PHP_EOL;
+```
+
+`verifySignedRenewalInfo()` and `verifySignedAppTransaction()` do the same for a
+subscription's renewal info and for `AppTransaction.shared`.
+
+A signed transaction reflects the purchase **at the time it was signed**. To see its
+current state (for example, a later refund), look it up with the App Store Server API:
+
+```php
+$current = $validator->getTransactionInfo($transaction->getTransactionId());
+```
 
 ### 🍏 Apple iTunes (Legacy API - Deprecated)
 

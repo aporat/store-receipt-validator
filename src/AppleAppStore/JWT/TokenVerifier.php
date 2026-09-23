@@ -17,8 +17,10 @@ use ReceiptValidator\Exceptions\ValidationException;
  *
  * This class validates the token's algorithm, extracts the X.509 certificate
  * chain from the header, verifies that the chain is rooted to a trusted Apple
- * certificate, and finally, verifies the token's signature using the public
- * key from the leaf certificate.
+ * certificate, checks that the leaf and intermediate certificates carry Apple's
+ * App Store marker extensions and were valid when the token was signed, and
+ * finally verifies the token's signature using the public key from the leaf
+ * certificate.
  */
 final class TokenVerifier
 {
@@ -30,8 +32,30 @@ final class TokenVerifier
         'b52cb02fd567e0359fe8fa4d4c41037970fe01b0', // Apple Inc. Root Certificate
     ];
 
+    /** Marker extension present on Apple's App Store receipt-signing (leaf) certificates. */
+    private const string LEAF_MARKER_OID = '1.2.840.113635.100.6.11.1';
+
+    /** Marker extension present on Apple's WWDR intermediate certificates. */
+    private const string INTERMEDIATE_MARKER_OID = '1.2.840.113635.100.6.2.1';
+
     private const int EXPECTED_CHAIN_LENGTH = 3;
     private const string EXPECTED_ALGORITHM = 'ES256';
+
+    /** @var list<string> */
+    private array $trustedFingerprints;
+
+    /**
+     * @param list<string>|null $trustedFingerprints SHA-1 fingerprints of the [intermediate, root]
+     *                                               certificates to trust. Defaults to Apple's.
+     *                                               Only override this in tests.
+     */
+    public function __construct(?array $trustedFingerprints = null)
+    {
+        $this->trustedFingerprints = array_map(
+            strtolower(...),
+            $trustedFingerprints ?? self::APPLE_CERTIFICATE_FINGERPRINTS
+        );
+    }
 
     /**
      * Verifies the integrity and authenticity of the JWS token.
@@ -45,7 +69,7 @@ final class TokenVerifier
         $this->validateHeaders($token);
 
         $chain = $this->extractAndParseCertificateChain($token);
-        $this->verifyCertificateChain($chain);
+        $this->verifyCertificateChain($chain, $this->effectiveTimestamp($token));
 
         $this->assertSignature($token, $chain[0]);
 
@@ -66,7 +90,7 @@ final class TokenVerifier
             throw new ValidationException('Token algorithm must be ES256.');
         }
 
-        if (!isset($headers['x5c']) || !is_array($headers['x5c']) || count($headers['x5c']) < self::EXPECTED_CHAIN_LENGTH) {
+        if (!isset($headers['x5c']) || !is_array($headers['x5c']) || count($headers['x5c']) !== self::EXPECTED_CHAIN_LENGTH) {
             throw new ValidationException('Token header must contain a valid x5c certificate chain.');
         }
     }
@@ -84,7 +108,7 @@ final class TokenVerifier
         $x5c = $token->headers()->get('x5c');
 
         foreach ($x5c as $certData) {
-            $parsedCert = $this->base64DerToCert($certData);
+            $parsedCert = is_string($certData) ? $this->base64DerToCert($certData) : false;
             if ($parsedCert === false) {
                 throw new ValidationException('Failed to parse a certificate from the x5c header.');
             }
@@ -95,12 +119,32 @@ final class TokenVerifier
     }
 
     /**
+     * Returns the time (Unix seconds) at which the certificate chain must be valid.
+     *
+     * Apple's signed payloads carry a `signedDate` claim (milliseconds). Checking
+     * validity at that moment lets older, legitimately signed payloads keep
+     * verifying after Apple rotates its signing certificate. Payloads without
+     * the claim are checked against the current time.
+     */
+    private function effectiveTimestamp(Token $token): int
+    {
+        $signedDate = $token->claims()->get('signedDate');
+
+        if (is_int($signedDate) || (is_string($signedDate) && ctype_digit($signedDate))) {
+            return intdiv((int) $signedDate, 1000);
+        }
+
+        return time();
+    }
+
+    /**
      * Verifies the certificate chain against trusted Apple root fingerprints and chain of trust.
      *
      * @param array<OpenSSLCertificate> $chain The certificate chain [leaf, intermediate, root].
+     * @param int $timestamp Unix time at which every certificate must be valid.
      * @throws ValidationException
      */
-    private function verifyCertificateChain(array $chain): void
+    private function verifyCertificateChain(array $chain, int $timestamp): void
     {
         [$leaf, $intermediate, $root] = $chain;
 
@@ -109,7 +153,7 @@ final class TokenVerifier
             strtolower(openssl_x509_fingerprint($root) ?: ''),
         ];
 
-        if ($fingerprints !== self::APPLE_CERTIFICATE_FINGERPRINTS) {
+        if ($fingerprints !== $this->trustedFingerprints) {
             throw new ValidationException('Certificate chain is not rooted to a trusted Apple certificate.');
         }
 
@@ -119,6 +163,40 @@ final class TokenVerifier
 
         if (openssl_x509_verify($intermediate, $root) !== 1) {
             throw new ValidationException('Intermediate certificate could not be verified with the root certificate.');
+        }
+
+        $this->assertHasExtension($leaf, self::LEAF_MARKER_OID, 'Leaf certificate is not an App Store signing certificate.');
+        $this->assertHasExtension($intermediate, self::INTERMEDIATE_MARKER_OID, 'Intermediate certificate is not an Apple WWDR certificate.');
+
+        foreach ($chain as $certificate) {
+            $this->assertValidAt($certificate, $timestamp);
+        }
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function assertHasExtension(OpenSSLCertificate $certificate, string $oid, string $message): void
+    {
+        $parsed = openssl_x509_parse($certificate);
+
+        if (!is_array($parsed) || !isset($parsed['extensions'][$oid])) {
+            throw new ValidationException($message);
+        }
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function assertValidAt(OpenSSLCertificate $certificate, int $timestamp): void
+    {
+        $parsed = openssl_x509_parse($certificate);
+
+        $from = is_array($parsed) ? ($parsed['validFrom_time_t'] ?? null) : null;
+        $to   = is_array($parsed) ? ($parsed['validTo_time_t'] ?? null) : null;
+
+        if (!is_int($from) || !is_int($to) || $timestamp < $from || $timestamp > $to) {
+            throw new ValidationException('Certificate in the x5c chain was not valid at the time the token was signed.');
         }
     }
 
