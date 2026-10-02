@@ -4,3 +4,13 @@ parameters:
         - src
     excludePaths:
         - vendor
+    # Only one phpseclib major is installed at a time; the decoder for the other
+    # one legitimately references classes that are not present.
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        -
+            identifier: class.notFound
+            path: src/AppleAppStore/Asn1/Phpseclib3AttributeSetDecoder.php
+        -
+            identifier: class.notFound
+            path: src/AppleAppStore/Asn1/Phpseclib4AttributeSetDecoder.php

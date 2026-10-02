@@ -7,11 +7,65 @@ namespace ReceiptValidator\Tests\AppleAppStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use ReceiptValidator\AppleAppStore\Asn1\AttributeSetDecoder;
 use ReceiptValidator\AppleAppStore\ReceiptUtility;
 
 #[CoversClass(ReceiptUtility::class)]
 final class ReceiptUtilityTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        ReceiptUtility::setDecoder(null);
+    }
+
+    public function testInAppSetThatFailsToDecodeYieldsNull(): void
+    {
+        $decoder = new class implements AttributeSetDecoder {
+            public function decodePkcs7Receipt(string $der): array
+            {
+                return [['17', 'garbage']];
+            }
+
+            public function decodeAttributeSet(string $ber): array
+            {
+                throw new \ValueError('nope');
+            }
+
+            public function decodeScalar(string $ber): ?string
+            {
+                return null;
+            }
+        };
+
+        ReceiptUtility::setDecoder($decoder);
+
+        self::assertNull(ReceiptUtility::extractTransactionIdFromAppReceipt(base64_encode('x')));
+    }
+
+    public function testTransactionIdThatFailsToDecodeYieldsNull(): void
+    {
+        $decoder = new class implements AttributeSetDecoder {
+            public function decodePkcs7Receipt(string $der): array
+            {
+                return [['17', 'in-app']];
+            }
+
+            public function decodeAttributeSet(string $ber): array
+            {
+                return [['1', 'other'], ['1703', 'tx']];
+            }
+
+            public function decodeScalar(string $ber): ?string
+            {
+                throw new \ValueError('nope');
+            }
+        };
+
+        ReceiptUtility::setDecoder($decoder);
+
+        self::assertNull(ReceiptUtility::extractTransactionIdFromAppReceipt(base64_encode('x')));
+    }
+
     #[DataProvider('transactionReceiptProvider')]
     public function testExtractTransactionIdFromTransactionReceipt(string $base64Receipt, ?string $expected): void
     {
