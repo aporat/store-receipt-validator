@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ReceiptValidator;
 
+use Composer\InstalledVersions;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\RequestOptions;
@@ -16,6 +17,9 @@ use ReceiptValidator\Exceptions\ValidationException;
 
 abstract class AbstractValidator
 {
+    /** Composer package name, used to resolve the installed version for the User-Agent header. */
+    public const string PACKAGE_NAME = 'aporat/store-receipt-validator';
+
     /** PSR-3 logger. Defaults to NullLogger so logging is opt-in. */
     protected LoggerInterface $logger;
 
@@ -34,6 +38,25 @@ abstract class AbstractValidator
     public function __construct()
     {
         $this->logger = new NullLogger();
+    }
+
+    /**
+     * The User-Agent value sent with outgoing requests, e.g. "store-receipt-validator/php/10.1.0".
+     *
+     * Identifying the library lets store backends attribute traffic when investigating
+     * errors or rate limits, as Apple's official server libraries do. The version is
+     * read from Composer's installed packages and falls back to "unknown" when the
+     * library is not installed through Composer.
+     */
+    public static function userAgent(): string
+    {
+        $version = 'unknown';
+
+        if (class_exists(InstalledVersions::class) && InstalledVersions::isInstalled(self::PACKAGE_NAME)) {
+            $version = InstalledVersions::getPrettyVersion(self::PACKAGE_NAME) ?? $version;
+        }
+
+        return sprintf('store-receipt-validator/php/%s', $version);
     }
 
     /**
