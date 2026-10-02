@@ -440,7 +440,7 @@ class Validator extends AbstractValidator
      */
     public function getAppTransactionInfo(string $transactionId): AppTransaction
     {
-        $uri  = sprintf('/inApps/v1/transactions/appTransaction/%s', $transactionId);
+        $uri  = sprintf('/inApps/v1/transactions/appTransactions/%s', $transactionId);
         $data = $this->makeRawRequest('GET', $uri);
 
         if (empty($data['signedAppTransactionInfo']) || !is_string($data['signedAppTransactionInfo'])) {
