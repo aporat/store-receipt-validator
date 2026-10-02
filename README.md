@@ -4,6 +4,8 @@
 
 A modern PHP library for validating in-app purchases from the Apple App Store (including legacy iTunes), Google Play and Amazon Appstore. Supports both production and sandbox environments with detailed response parsing.
 
+> **Using Laravel?** Use [aporat/laravel-appstore-purchases](https://github.com/aporat/laravel-appstore-purchases) instead. It is a Laravel package built on top of this library, and adds Laravel events for App Store and Google Play server notifications, config-based setup and container bindings.
+
 ---
 
 ## ✨ Features
