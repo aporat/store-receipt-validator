@@ -739,15 +739,33 @@ class Validator extends AbstractValidator
      * Returns the status for every auto-renewable subscription the customer
      * holds in your app, grouped by subscription group.
      *
+     * Pass one or more {@see SubscriptionStatus} values to have Apple return only
+     * subscriptions in any of those states, for example active plus billing grace period.
+     *
+     * @param string $originalTransactionId Any transaction ID that belongs to the customer.
+     * @param list<SubscriptionStatus|int> $statuses Optional status filter; empty means all.
+     *
      * @see https://developer.apple.com/documentation/appstoreserverapi/get-all-subscription-statuses
      *
      * @throws ValidationException
      */
-    public function getAllSubscriptionStatuses(string $originalTransactionId): SubscriptionStatusResponse
-    {
+    public function getAllSubscriptionStatuses(
+        string $originalTransactionId,
+        array $statuses = [],
+    ): SubscriptionStatusResponse {
         $uri = sprintf('/inApps/v1/subscriptions/%s', $originalTransactionId);
 
-        return new SubscriptionStatusResponse($this->makeRawRequest('GET', $uri));
+        $queryParams = [];
+        if ($statuses !== []) {
+            $queryParams['status'] = array_values(array_unique(array_map(
+                static fn (SubscriptionStatus|int $status): int => $status instanceof SubscriptionStatus
+                    ? $status->value
+                    : SubscriptionStatus::from($status)->value,
+                $statuses
+            )));
+        }
+
+        return new SubscriptionStatusResponse($this->makeRawRequest('GET', $uri, $queryParams));
     }
 
     /**
