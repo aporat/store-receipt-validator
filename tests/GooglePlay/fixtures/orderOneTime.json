@@ -1,0 +1,34 @@
+{
+  "orderId": "GPA.7777-6666-5555-44444",
+  "purchaseToken": "one-time-token",
+  "state": "PROCESSED",
+  "salesChannel": "PLAY_STORE",
+  "createTime": "2026-09-03T15:00:00Z",
+  "total": {"currencyCode": "EUR", "units": "4", "nanos": 0},
+  "orderDetails": {"taxInclusive": false},
+  "orderHistory": {"processedEvent": {"eventTime": "2026-09-03T15:00:02Z"}},
+  "lineItems": [
+    {
+      "productTitle": "100 coins",
+      "productId": "app.example.coins.100",
+      "listingPrice": {"currencyCode": "EUR", "units": "2", "nanos": 0},
+      "total": {"currencyCode": "EUR", "units": "4", "nanos": 0},
+      "oneTimePurchaseDetails": {
+        "quantity": 2,
+        "offerId": "coins-launch",
+        "purchaseOptionId": "default",
+        "rentalDetails": {}
+      }
+    },
+    {
+      "productTitle": "Example Pro",
+      "productId": "app.example.pro",
+      "subscriptionDetails": {"basePlanId": "monthly", "offerPhase": "FREE_TRIAL"}
+    },
+    {
+      "productTitle": "Example (paid app)",
+      "productId": "app.example",
+      "paidAppDetails": {}
+    }
+  ]
+}

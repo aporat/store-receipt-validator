@@ -1,0 +1,7 @@
+{
+  "orders": [
+    {"orderId": "GPA.0001", "state": "PROCESSED"},
+    "not-an-order",
+    {"orderId": "GPA.0002", "state": "PENDING"}
+  ]
+}

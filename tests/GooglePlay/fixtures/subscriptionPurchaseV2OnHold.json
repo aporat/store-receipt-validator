@@ -1,0 +1,55 @@
+{
+  "kind": "androidpublisher#subscriptionPurchaseV2",
+  "regionCode": "DE",
+  "lineItems": [
+    {
+      "productId": "app.example.subscription",
+      "expiryTime": "2026-09-01T00:00:00Z",
+      "autoRenewingPlan": {
+        "autoRenewEnabled": true,
+        "recurringPrice": {"currencyCode": "EUR", "units": "12", "nanos": 0},
+        "installmentDetails": {
+          "initialCommittedPaymentsCount": 12,
+          "subsequentCommittedPaymentsCount": 1,
+          "remainingCommittedPaymentsCount": 4,
+          "pendingCancellation": {}
+        },
+        "priceStepUpConsentDetails": {
+          "state": "PENDING",
+          "consentDeadlineTime": "2026-10-01T00:00:00Z",
+          "newPrice": {"currencyCode": "EUR", "units": "14", "nanos": 500000000}
+        }
+      },
+      "offerDetails": {"basePlanId": "monthly-installments", "offerId": "welcome", "offerTags": []},
+      "offerPhase": {"freeTrial": {}},
+      "signupPromotion": {"vanityCode": {"promotionCode": "SUMMER26"}},
+      "itemReplacement": {
+        "productId": "app.example.subscription.lite",
+        "replacementMode": "CHARGE_PRORATED_PRICE",
+        "basePlanId": "monthly",
+        "offerId": "lite-offer"
+      },
+      "deferredItemRemoval": {},
+      "latestSuccessfulOrderId": "GPA.5555-4444-3333-22222..3"
+    },
+    {
+      "productId": "app.example.addon",
+      "expiryTime": "2026-09-01T00:00:00Z",
+      "autoRenewingPlan": {"autoRenewEnabled": true},
+      "offerPhase": {"prorationPeriod": {"originalOfferPhaseType": "INTRODUCTORY"}},
+      "signupPromotion": {"oneTimeCode": {}},
+      "latestSuccessfulOrderId": "GPA.5555-4444-3333-22222..3"
+    }
+  ],
+  "startTime": "2025-09-01T00:00:00Z",
+  "subscriptionState": "SUBSCRIPTION_STATE_ON_HOLD",
+  "onHoldStateContext": {
+    "renewalDeclined": {"pendingOrderId": "GPA.5555-4444-3333-22222..4"}
+  },
+  "outOfAppPurchaseContext": {
+    "expiredPurchaseToken": "replaced-token",
+    "expiredExternalAccountIdentifiers": {"obfuscatedExternalAccountId": "old-account"}
+  },
+  "acknowledgementState": "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED",
+  "etag": "etag-on-hold"
+}

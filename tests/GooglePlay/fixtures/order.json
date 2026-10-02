@@ -1,0 +1,59 @@
+{
+  "orderId": "GPA.3333-4444-5555-66666..5",
+  "purchaseToken": "sub-token-123",
+  "state": "REFUNDED",
+  "salesChannel": "IN_APP",
+  "createTime": "2026-09-05T14:32:11Z",
+  "lastEventTime": "2026-09-10T09:00:00Z",
+  "buyerAddress": {"buyerCountry": "US", "buyerState": "CA", "buyerPostcode": "94105"},
+  "total": {"currencyCode": "USD", "units": "10", "nanos": 890000000},
+  "tax": {"currencyCode": "USD", "units": "0", "nanos": 900000000},
+  "orderDetails": {"taxInclusive": true},
+  "developerRevenueInBuyerCurrency": {"currencyCode": "USD", "units": "8", "nanos": 490000000},
+  "orderHistory": {
+    "processedEvent": {"eventTime": "2026-09-05T14:32:15Z"},
+    "refundEvent": {
+      "eventTime": "2026-09-10T09:00:00Z",
+      "refundReason": "CHARGEBACK",
+      "refundDetails": {
+        "total": {"currencyCode": "USD", "units": "10", "nanos": 890000000},
+        "tax": {"currencyCode": "USD", "units": "0", "nanos": 900000000}
+      }
+    },
+    "partialRefundEvents": [
+      {
+        "createTime": "2026-09-07T00:00:00Z",
+        "processTime": "2026-09-07T00:05:00Z",
+        "state": "PROCESSED_SUCCESSFULLY",
+        "refundDetails": {"total": {"currencyCode": "USD", "units": "2", "nanos": 0}}
+      },
+      {
+        "createTime": "2026-09-08T00:00:00Z",
+        "state": "PENDING"
+      }
+    ]
+  },
+  "pointsDetails": {
+    "pointsOfferId": "points-10",
+    "pointsCouponValue": {"currencyCode": "USD", "units": "1", "nanos": 0},
+    "pointsDiscountRateMicros": "100000",
+    "pointsSpent": "250"
+  },
+  "lineItems": [
+    {
+      "productTitle": "Example Premium (annual)",
+      "productId": "app.example.subscription",
+      "listingPrice": {"currencyCode": "USD", "units": "9", "nanos": 990000000},
+      "total": {"currencyCode": "USD", "units": "10", "nanos": 890000000},
+      "tax": {"currencyCode": "USD", "units": "0", "nanos": 900000000},
+      "subscriptionDetails": {
+        "basePlanId": "annually",
+        "offerId": "intro-7day",
+        "offerPhase": "INTRODUCTORY",
+        "offerPhaseDetails": {"introductoryPriceDetails": {}},
+        "servicePeriodStartTime": "2026-09-05T14:32:11Z",
+        "servicePeriodEndTime": "2027-09-05T14:32:11Z"
+      }
+    }
+  ]
+}

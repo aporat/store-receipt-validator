@@ -50,22 +50,38 @@ final readonly class SubscriptionLineItem extends AbstractTransaction
      */
     public array $offerTags;
 
+    /** Which phase of the offer the user is in (free trial, intro price, base price). */
+    public SubscriptionOfferPhase $offerPhase;
+
+    /** For a proration period, the phase the user was in before the plan change. */
+    public ?string $prorationOriginalOfferPhase;
+
     /** The product this item will be replaced with at the next renewal, if a deferred replacement is pending. */
     public ?string $deferredItemReplacementProductId;
 
-    /**
-     * The recurring price of an auto-renewing plan (`{currencyCode, units, nanos}`), if present.
-     *
-     * @var array<string, mixed>|null
-     */
-    public ?array $recurringPrice;
+    /** True when this item will be removed at the next renewal. */
+    public bool $deferredItemRemoval;
 
-    /**
-     * Pending or applied price change details for an auto-renewing plan, if present.
-     *
-     * @var array<string, mixed>|null
-     */
-    public ?array $priceChangeDetails;
+    /** The item this one replaced (or is replacing), when the purchase was an upgrade or downgrade. */
+    public ?ItemReplacement $itemReplacement;
+
+    /** The recurring price of an auto-renewing plan, if present. */
+    public ?Money $recurringPrice;
+
+    /** Pending or applied price change on an auto-renewing plan, if present. */
+    public ?PriceChangeDetails $priceChangeDetails;
+
+    /** Installment commitment details, for installment plans. */
+    public ?InstallmentPlan $installmentPlan;
+
+    /** A price step-up awaiting or holding consent, if any. */
+    public ?PriceStepUpConsentDetails $priceStepUpConsentDetails;
+
+    /** The kind of promotion code redeemed at signup, if any. */
+    public ?SignupPromotionType $signupPromotionType;
+
+    /** The vanity code redeemed at signup, when the promotion was a vanity code. */
+    public ?string $promotionCode;
 
     /**
      * @param array<string, mixed> $data A single entry from `lineItems`.
@@ -88,11 +104,22 @@ final readonly class SubscriptionLineItem extends AbstractTransaction
         $prepaid      = is_array($data['prepaidPlan'] ?? null) ? $data['prepaidPlan'] : null;
         $offer        = is_array($data['offerDetails'] ?? null) ? $data['offerDetails'] : [];
         $deferred     = is_array($data['deferredItemReplacement'] ?? null) ? $data['deferredItemReplacement'] : [];
+        $replacement  = is_array($data['itemReplacement'] ?? null) ? $data['itemReplacement'] : null;
+        $phase        = is_array($data['offerPhase'] ?? null) ? $data['offerPhase'] : [];
+        $promotion    = is_array($data['signupPromotion'] ?? null) ? $data['signupPromotion'] : [];
 
         $this->isAutoRenewingPlan = $autoRenewing !== null;
         $this->autoRenewEnabled   = $autoRenewing !== null && $this->toBool($autoRenewing, 'autoRenewEnabled');
-        $this->recurringPrice     = is_array($autoRenewing['recurringPrice'] ?? null) ? $autoRenewing['recurringPrice'] : null;
-        $this->priceChangeDetails = is_array($autoRenewing['priceChangeDetails'] ?? null) ? $autoRenewing['priceChangeDetails'] : null;
+        $this->recurringPrice     = Money::fromArray($autoRenewing['recurringPrice'] ?? null);
+
+        $priceChange              = is_array($autoRenewing['priceChangeDetails'] ?? null) ? $autoRenewing['priceChangeDetails'] : null;
+        $this->priceChangeDetails = $priceChange !== null ? new PriceChangeDetails($priceChange) : null;
+
+        $installment           = is_array($autoRenewing['installmentDetails'] ?? null) ? $autoRenewing['installmentDetails'] : null;
+        $this->installmentPlan = $installment !== null ? new InstallmentPlan($installment) : null;
+
+        $stepUp                          = is_array($autoRenewing['priceStepUpConsentDetails'] ?? null) ? $autoRenewing['priceStepUpConsentDetails'] : null;
+        $this->priceStepUpConsentDetails = $stepUp !== null ? new PriceStepUpConsentDetails($stepUp) : null;
 
         $this->isPrepaidPlan               = $prepaid !== null;
         $this->prepaidAllowExtendAfterTime = $prepaid !== null ? $this->toDateFromRfc3339($prepaid, 'allowExtendAfterTime') : null;
@@ -101,7 +128,27 @@ final readonly class SubscriptionLineItem extends AbstractTransaction
         $this->offerId    = $this->toString($offer, 'offerId');
         $this->offerTags  = array_values(array_map('strval', is_array($offer['offerTags'] ?? null) ? $offer['offerTags'] : []));
 
+        $this->offerPhase = match (true) {
+            isset($phase['freeTrial'])         => SubscriptionOfferPhase::FREE_TRIAL,
+            isset($phase['introductoryPrice']) => SubscriptionOfferPhase::INTRODUCTORY_PRICE,
+            isset($phase['basePrice'])         => SubscriptionOfferPhase::BASE_PRICE,
+            isset($phase['prorationPeriod'])   => SubscriptionOfferPhase::PRORATION_PERIOD,
+            default                            => SubscriptionOfferPhase::UNSPECIFIED,
+        };
+        $proration                         = is_array($phase['prorationPeriod'] ?? null) ? $phase['prorationPeriod'] : [];
+        $this->prorationOriginalOfferPhase = $this->toString($proration, 'originalOfferPhaseType');
+
         $this->deferredItemReplacementProductId = $this->toString($deferred, 'productId');
+        $this->deferredItemRemoval              = array_key_exists('deferredItemRemoval', $data) && $data['deferredItemRemoval'] !== null;
+        $this->itemReplacement                  = $replacement !== null ? new ItemReplacement($replacement) : null;
+
+        $this->signupPromotionType = match (true) {
+            isset($promotion['oneTimeCode']) => SignupPromotionType::ONE_TIME_CODE,
+            isset($promotion['vanityCode'])  => SignupPromotionType::VANITY_CODE,
+            default                          => null,
+        };
+        $vanity              = is_array($promotion['vanityCode'] ?? null) ? $promotion['vanityCode'] : [];
+        $this->promotionCode = $this->toString($vanity, 'promotionCode');
     }
 
     public function getExpiryTime(): ?CarbonInterface
@@ -150,21 +197,69 @@ final readonly class SubscriptionLineItem extends AbstractTransaction
         return $this->offerTags;
     }
 
+    public function getOfferPhase(): SubscriptionOfferPhase
+    {
+        return $this->offerPhase;
+    }
+
+    public function isInFreeTrial(): bool
+    {
+        return $this->offerPhase === SubscriptionOfferPhase::FREE_TRIAL;
+    }
+
+    public function isInIntroductoryPrice(): bool
+    {
+        return $this->offerPhase === SubscriptionOfferPhase::INTRODUCTORY_PRICE;
+    }
+
+    public function getProrationOriginalOfferPhase(): ?string
+    {
+        return $this->prorationOriginalOfferPhase;
+    }
+
     public function getDeferredItemReplacementProductId(): ?string
     {
         return $this->deferredItemReplacementProductId;
     }
 
-    /** @return array<string, mixed>|null */
-    public function getRecurringPrice(): ?array
+    public function hasDeferredItemRemoval(): bool
+    {
+        return $this->deferredItemRemoval;
+    }
+
+    public function getItemReplacement(): ?ItemReplacement
+    {
+        return $this->itemReplacement;
+    }
+
+    public function getRecurringPrice(): ?Money
     {
         return $this->recurringPrice;
     }
 
-    /** @return array<string, mixed>|null */
-    public function getPriceChangeDetails(): ?array
+    public function getPriceChangeDetails(): ?PriceChangeDetails
     {
         return $this->priceChangeDetails;
+    }
+
+    public function getInstallmentPlan(): ?InstallmentPlan
+    {
+        return $this->installmentPlan;
+    }
+
+    public function getPriceStepUpConsentDetails(): ?PriceStepUpConsentDetails
+    {
+        return $this->priceStepUpConsentDetails;
+    }
+
+    public function getSignupPromotionType(): ?SignupPromotionType
+    {
+        return $this->signupPromotionType;
+    }
+
+    public function getPromotionCode(): ?string
+    {
+        return $this->promotionCode;
     }
 
     /**

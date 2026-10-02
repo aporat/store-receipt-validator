@@ -179,7 +179,9 @@ class Validator extends AbstractValidator
      * and is not recommended for subscriptions with add-ons, but the REST path still
      * carries the segment, so this library keeps asking for it.
      *
-     * @param string $subscriptionId The subscription product ID.
+     * @param string      $subscriptionId      The subscription product ID.
+     * @param string|null $obfuscatedAccountId Obfuscated app account ID to attach (max 64 chars).
+     * @param string|null $obfuscatedProfileId Obfuscated app profile ID to attach (max 64 chars).
      *
      * @see https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptions/acknowledge
      *
@@ -189,6 +191,8 @@ class Validator extends AbstractValidator
         string $subscriptionId,
         string $purchaseToken,
         ?string $developerPayload = null,
+        ?string $obfuscatedAccountId = null,
+        ?string $obfuscatedProfileId = null,
     ): void {
         $this->assertNotEmpty($subscriptionId, 'subscription ID');
         $this->assertNotEmpty($purchaseToken, 'purchase token');
@@ -199,9 +203,20 @@ class Validator extends AbstractValidator
             rawurlencode($purchaseToken)
         );
 
-        $body = $developerPayload !== null ? ['developerPayload' => $developerPayload] : new \stdClass();
+        $body = [];
+        if ($developerPayload !== null) {
+            $body['developerPayload'] = $developerPayload;
+        }
 
-        $this->makeRawRequest('POST', $uri, [], $body);
+        $externalIds = array_filter([
+            'obfuscatedAccountId' => $obfuscatedAccountId,
+            'obfuscatedProfileId' => $obfuscatedProfileId,
+        ], static fn (?string $v): bool => $v !== null && $v !== '');
+        if ($externalIds !== []) {
+            $body['externalAccountIds'] = $externalIds;
+        }
+
+        $this->makeRawRequest('POST', $uri, [], $body === [] ? new \stdClass() : $body);
     }
 
     /**
@@ -402,6 +417,97 @@ class Validator extends AbstractValidator
     }
 
     // ---------------------------------------------------------------------
+    // Orders
+    // ---------------------------------------------------------------------
+
+    /**
+     * Get an order: the amount charged, tax, buyer country, the service period a
+     * subscription payment covered, and its refund state.
+     *
+     * @param string $orderId An order ID such as "GPA.1234-5678-9012-34567".
+     *
+     * @see https://developers.google.com/android-publisher/api-ref/rest/v3/orders/get
+     *
+     * @throws ValidationException
+     */
+    public function getOrder(string $orderId): Order
+    {
+        $this->assertNotEmpty($orderId, 'order ID');
+
+        $uri = sprintf('/orders/%s', rawurlencode($orderId));
+
+        return new Order($this->makeRawRequest('GET', $uri), $this->environment);
+    }
+
+    /**
+     * Get up to 1000 orders in one call. Orders Google cannot find are left out of
+     * the result rather than failing the request.
+     *
+     * @param array<int, string> $orderIds
+     * @return array<int, Order>
+     *
+     * @see https://developers.google.com/android-publisher/api-ref/rest/v3/orders/batchget
+     *
+     * @throws ValidationException
+     */
+    public function getOrders(array $orderIds): array
+    {
+        $orderIds = array_values(array_filter($orderIds, static fn (string $id): bool => $id !== ''));
+
+        if ($orderIds === [] || count($orderIds) > 1000) {
+            throw new ValidationException('Google Play batch order lookup takes between 1 and 1000 order IDs.');
+        }
+
+        $data = $this->makeRawRequest('GET', '/orders:batchGet', ['orderIds' => $orderIds]);
+
+        $orders = [];
+        foreach (is_array($data['orders'] ?? null) ? $data['orders'] : [] as $order) {
+            if (is_array($order)) {
+                $orders[] = new Order($order, $this->environment);
+            }
+        }
+
+        return $orders;
+    }
+
+    /**
+     * Refund an order. With $revoke the item or subscription is also taken away
+     * immediately; without it the user keeps what they bought.
+     *
+     * Google recommends refunding with revoke when a purchase fails server-side
+     * validation. Orders older than three years cannot be refunded.
+     *
+     * @see https://developers.google.com/android-publisher/api-ref/rest/v3/orders/refund
+     *
+     * @throws ValidationException
+     */
+    public function refundOrder(string $orderId, bool $revoke = false): void
+    {
+        $this->assertNotEmpty($orderId, 'order ID');
+
+        $uri = sprintf('/orders/%s:refund', rawurlencode($orderId));
+
+        $this->makeRawRequest('POST', $uri, $revoke ? ['revoke' => 'true'] : []);
+    }
+
+    /**
+     * Answer a chargeback review started by a pending refund review notification.
+     *
+     * @see https://developers.google.com/android-publisher/api-ref/rest/v3/orders/reviewrefund
+     *
+     * @throws ValidationException
+     */
+    public function reviewRefund(string $orderId, ReviewRefundRequest $request): void
+    {
+        $this->assertNotEmpty($orderId, 'order ID');
+        $this->assertNotEmpty($request->pendingRefundToken, 'pending refund token');
+
+        $uri = sprintf('/orders/%s:reviewrefund', rawurlencode($orderId));
+
+        $this->makeRawRequest('POST', $uri, [], $request->toArray());
+    }
+
+    // ---------------------------------------------------------------------
     // Transport
     // ---------------------------------------------------------------------
 
@@ -419,7 +525,8 @@ class Validator extends AbstractValidator
      * @param array<string, mixed>|object|null $requestBody Serialised as JSON when not null.
      * @return array<string, mixed>
      *
-     * @throws ValidationException
+     * @throws APIException        On a non-2xx response.
+     * @throws ValidationException On connection failures and undecodable bodies.
      */
     protected function makeRawRequest(
         string $method,
@@ -429,7 +536,7 @@ class Validator extends AbstractValidator
     ): array {
         $url = sprintf('%s/applications/%s%s', $this->endpointForEnvironment(), rawurlencode($this->packageName), $uri);
         if (!empty($queryParams)) {
-            $url .= '?' . http_build_query($queryParams, '', '&', PHP_QUERY_RFC3986);
+            $url .= '?' . $this->buildQueryString($queryParams);
         }
 
         $this->logger->debug('Google Play API request', [
@@ -491,7 +598,12 @@ class Validator extends AbstractValidator
 
             $label = $reason !== null ? "$statusCode $reason" : (string) $statusCode;
 
-            throw new ValidationException("Google Play API error [$label]: $errorMessage", $statusCode);
+            throw new APIException(
+                "Google Play API error [$label]: $errorMessage",
+                $statusCode,
+                $reason,
+                $reason !== null ? APIError::tryFrom($reason) : null,
+            );
         }
 
         if ($body === '') {
@@ -544,6 +656,25 @@ class Validator extends AbstractValidator
             };
 
         return [$reason, $message];
+    }
+
+    /**
+     * Build a query string that repeats array-valued keys (`orderIds=a&orderIds=b`)
+     * rather than using PHP's bracket notation, as Google's APIs expect.
+     *
+     * @param array<string, mixed> $params
+     */
+    private function buildQueryString(array $params): string
+    {
+        $parts = [];
+
+        foreach ($params as $key => $value) {
+            foreach (is_array($value) ? $value : [$value] as $v) {
+                $parts[] = rawurlencode($key) . '=' . rawurlencode((string) $v);
+            }
+        }
+
+        return implode('&', $parts);
     }
 
     /**
