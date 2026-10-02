@@ -45,6 +45,19 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 - `EndpointPathsTest`, a single table of every App Store Server API endpoint with its verb,
   documented path and Apple docs link, plus a guard that fails when an endpoint method has no row
   ([#241](https://github.com/aporat/store-receipt-validator/pull/241)).
+- Amazon `Transaction` exposes the rest of the documented RVS response: `cancelReason`,
+  `fulfillmentDate`, `fulfillmentResult`, `betaProduct`, `promotions`, `deferredDate`, `deferredSku`,
+  `countryCode`, `baseReceipts`, `purchaseMetadataMap` and `parentProductId`, with `ProductType`,
+  `CancelReason`, `FulfillmentResult`, `PromotionType` and `PromotionStatus` enums and a `Promotion`
+  value object.
+- Amazon subscription helpers `isEntitled()`, `isCanceled()`, `getExpiresAt()`, `isInFreeTrial()`,
+  `isInGracePeriod()`, `isQuickSubscribe()`, `isAddOnSubscription()` and `getActivePromotion()` on
+  `Transaction`, with the most common ones mirrored on `Response`, plus `Response::getTransaction()`.
+- `Amazon\Validator::validate()` accepts the receipt ID and user ID as arguments, and `getUserId()`
+  and `getReceiptId()` read them back.
+- `Amazon\APIError::fromException()`, `isCanceledReceipt()` and `isRetryable()` let callers tell a
+  revoked receipt (HTTP 410) and a throttled request (HTTP 429) apart from other failures.
+- `Accept` and `User-Agent` headers on Amazon RVS requests.
 
 ### Changed
 - App Store Server API requests go to Apple's documented hosts, `api.storekit.apple.com` and
@@ -70,12 +83,31 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 - `phpseclib/phpseclib` constraint is `^3.0 || ^4.0`. `ReceiptUtility` selects the matching ASN.1
   decoder at runtime ([#234](https://github.com/aporat/store-receipt-validator/pull/234), fixes
   [#232](https://github.com/aporat/store-receipt-validator/issues/232)).
+- **Breaking:** `Amazon\APIError` is keyed by HTTP status code (400, 410, 429, 496, 497 and 500).
+  Amazon documents RVS outcomes by status only; the previous message-string cases never matched a
+  real response. `fromString()` is removed and `message()` is kept.
+- **Breaking:** `Amazon\Response::getProductType()` and the `productType` property hold a
+  `ProductType` enum instead of a string.
+- `Amazon\Response` wraps a single `Transaction` and delegates to it instead of parsing the body a
+  second time.
+- Amazon RVS errors are mapped from the status code before the body is parsed, so an empty or
+  non-JSON error body yields the documented message instead of an "invalid JSON" error.
+- Amazon connection failures redact the shared secret from the message and no longer chain the
+  HTTP client's exception. Clients quote the request URL in their messages, and the URL carries the
+  secret as a path segment.
 
 ### Fixed
 - `getAppTransactionInfo()` called `/inApps/v1/transactions/appTransaction/{id}` since 10.0.0; the
   documented path is the plural `appTransactions`
   ([#235](https://github.com/aporat/store-receipt-validator/pull/235), fixes
   [#231](https://github.com/aporat/store-receipt-validator/issues/231)).
+- Amazon `autoRenewing` and `gracePeriodEndDate` were read with a leading capital letter, which
+  Amazon never sends, so `isAutoRenewing()` was always false and `getGracePeriodEndDate()` always
+  null on real responses. The camelCase keys are read now; the old spelling is kept as a fallback.
+- `Amazon\Response::getUserId()` always returned null because RVS does not echo the user ID. The
+  validator now supplies the one it sent.
+- The README Amazon example called a no-argument constructor and a `setDeveloperSecret()` method
+  that do not exist.
 
 ## [10.0.0] - 2026-09-05
 
