@@ -798,6 +798,7 @@ class Validator extends AbstractValidator
         return [
             'Authorization' => 'Bearer ' . $token->toString(),
             'Accept'        => 'application/json',
+            'User-Agent'    => self::userAgent(),
         ];
     }
 }

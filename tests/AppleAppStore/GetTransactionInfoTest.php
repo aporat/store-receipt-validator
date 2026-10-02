@@ -67,6 +67,29 @@ final class GetTransactionInfoTest extends TestCase
         $this->validator->getTransactionInfo('txn-abc123');
     }
 
+    public function testRequestsIdentifyTheLibraryInUserAgent(): void
+    {
+        $mockClient = $this->createMock(ClientInterface::class);
+        $this->validator->setHttpClient($mockClient);
+
+        $mockClient
+            ->expects($this->once())
+            ->method('sendRequest')
+            ->with($this->callback(static function (RequestInterface $request): bool {
+                $userAgent = $request->getHeaderLine('User-Agent');
+
+                return $userAgent === Validator::userAgent()
+                    && preg_match('#^store-receipt-validator/php/\S+$#', $userAgent) === 1;
+            }))
+            ->willReturn(new GuzzleResponse(400, [], json_encode([
+                'errorCode'    => 4290000,
+                'errorMessage' => 'Rate limit exceeded',
+            ], JSON_THROW_ON_ERROR)));
+
+        $this->expectException(ValidationException::class);
+        $this->validator->getTransactionInfo('txn-abc123');
+    }
+
     public function testGetTransactionInfoThrowsWhenSignedTransactionInfoMissing(): void
     {
         $this->mockClient
