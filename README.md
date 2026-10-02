@@ -126,6 +126,18 @@ $validator->sendConsumptionInformation($transactionId, $request);
 
 Pass a `ConsumptionRequestV1` instead to call the deprecated v1 endpoint.
 
+`getAllSubscriptionStatuses()` accepts an optional status filter, so Apple returns
+only subscriptions in any of the given states:
+
+```php
+use ReceiptValidator\AppleAppStore\SubscriptionStatus;
+
+$statuses = $validator->getAllSubscriptionStatuses($transactionId, [
+    SubscriptionStatus::Active,
+    SubscriptionStatus::InBillingGracePeriod,
+]);
+```
+
 Each returns a typed response object (`Transaction`, `AppTransaction`, `SubscriptionStatusResponse`, `RefundHistoryResponse`, `NotificationHistoryResponse`, …). See the [App Store Server API docs](https://developer.apple.com/documentation/appstoreserverapi) for endpoint semantics.
 
 ### 🔏 StoreKit 2 (`jwsRepresentation`)

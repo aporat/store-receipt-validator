@@ -75,6 +75,70 @@ final class SubscriptionStatusTest extends TestCase
         self::assertInstanceOf(SubscriptionStatusResponse::class, $response);
     }
 
+    public function testGetAllSubscriptionStatusesSendsNoStatusFilterByDefault(): void
+    {
+        $json       = (string) file_get_contents(__DIR__ . '/fixtures/subscriptionStatusResponse.json');
+        $mockClient = $this->createMock(ClientInterface::class);
+        $validator  = $this->makeValidator($mockClient);
+
+        $mockClient
+            ->expects($this->once())
+            ->method('sendRequest')
+            ->with($this->callback(static fn (RequestInterface $request): bool =>
+                $request->getUri()->getQuery() === ''))
+            ->willReturn(new GuzzleResponse(200, [], $json));
+
+        $validator->getAllSubscriptionStatuses('1000000000000001');
+        $this->addToAssertionCount(1);
+    }
+
+    public function testGetAllSubscriptionStatusesRepeatsStatusQueryParameter(): void
+    {
+        $json       = (string) file_get_contents(__DIR__ . '/fixtures/subscriptionStatusResponse.json');
+        $mockClient = $this->createMock(ClientInterface::class);
+        $validator  = $this->makeValidator($mockClient);
+
+        $mockClient
+            ->expects($this->once())
+            ->method('sendRequest')
+            ->with($this->callback(static fn (RequestInterface $request): bool =>
+                $request->getUri()->getQuery() === 'status=1&status=4'))
+            ->willReturn(new GuzzleResponse(200, [], $json));
+
+        $validator->getAllSubscriptionStatuses('1000000000000001', [
+            SubscriptionStatus::Active,
+            SubscriptionStatus::InBillingGracePeriod,
+        ]);
+        $this->addToAssertionCount(1);
+    }
+
+    public function testGetAllSubscriptionStatusesAcceptsIntegersAndDedupes(): void
+    {
+        $json       = (string) file_get_contents(__DIR__ . '/fixtures/subscriptionStatusResponse.json');
+        $mockClient = $this->createMock(ClientInterface::class);
+        $validator  = $this->makeValidator($mockClient);
+
+        $mockClient
+            ->expects($this->once())
+            ->method('sendRequest')
+            ->with($this->callback(static fn (RequestInterface $request): bool =>
+                $request->getUri()->getQuery() === 'status=2&status=5'))
+            ->willReturn(new GuzzleResponse(200, [], $json));
+
+        $validator->getAllSubscriptionStatuses('1000000000000001', [2, SubscriptionStatus::Revoked, 2]);
+        $this->addToAssertionCount(1);
+    }
+
+    public function testGetAllSubscriptionStatusesRejectsUnknownStatus(): void
+    {
+        $mockClient = $this->createMock(ClientInterface::class);
+        $mockClient->expects($this->never())->method('sendRequest');
+        $validator = $this->makeValidator($mockClient);
+
+        $this->expectException(\ValueError::class);
+        $validator->getAllSubscriptionStatuses('1000000000000001', [9]);
+    }
+
     /**
      * @covers \ReceiptValidator\AppleAppStore\Validator::getAllSubscriptionStatuses
      */
