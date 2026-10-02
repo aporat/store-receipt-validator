@@ -106,6 +106,26 @@ The `AppleAppStore\Validator` now covers Apple's full API surface:
 | Subscriptions | `getAllSubscriptionStatuses()`, `extendSubscriptionRenewalDate()`, `extendSubscriptionRenewalDatesForAllActiveSubscribers()`, `getStatusOfSubscriptionRenewalDateExtensions()` |
 | Notifications | `requestTestNotification()`, `getTestNotificationStatus()`, `getNotificationHistory()` |
 
+`sendConsumptionInformation()` targets Apple's v2 endpoint and requires a delivery status:
+
+```php
+use ReceiptValidator\AppleAppStore\ConsumptionRequest;
+use ReceiptValidator\AppleAppStore\DeliveryStatus;
+use ReceiptValidator\AppleAppStore\RefundPreference;
+
+$request = new ConsumptionRequest(
+    customerConsented: true,
+    sampleContentProvided: false,
+    deliveryStatus: DeliveryStatus::DELIVERED,
+);
+$request->refundPreference = RefundPreference::GRANT_PRORATED;
+$request->setConsumptionPercent(40); // sent as 40000 milliunits
+
+$validator->sendConsumptionInformation($transactionId, $request);
+```
+
+Pass a `ConsumptionRequestV1` instead to call the deprecated v1 endpoint.
+
 Each returns a typed response object (`Transaction`, `AppTransaction`, `SubscriptionStatusResponse`, `RefundHistoryResponse`, `NotificationHistoryResponse`, …). See the [App Store Server API docs](https://developer.apple.com/documentation/appstoreserverapi) for endpoint semantics.
 
 ### 🔏 StoreKit 2 (`jwsRepresentation`)
