@@ -7,10 +7,13 @@ namespace ReceiptValidator\Tests\GooglePlay;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\AcknowledgementState;
+use ReceiptValidator\GooglePlay\ConsumptionState;
+use ReceiptValidator\GooglePlay\ProductPurchaseState;
 use ReceiptValidator\GooglePlay\APIError;
 use ReceiptValidator\GooglePlay\OneTimeProductNotificationType;
 use ReceiptValidator\GooglePlay\RefundType;
 use ReceiptValidator\GooglePlay\RevocationContext;
+use ReceiptValidator\GooglePlay\SubscriptionCancellationType;
 use ReceiptValidator\GooglePlay\SubscriptionNotificationType;
 use ReceiptValidator\GooglePlay\SubscriptionState;
 use ReceiptValidator\GooglePlay\VoidedProductType;
@@ -18,6 +21,9 @@ use ReceiptValidator\GooglePlay\VoidedProductType;
 #[CoversClass(APIError::class)]
 #[CoversClass(SubscriptionState::class)]
 #[CoversClass(AcknowledgementState::class)]
+#[CoversClass(ConsumptionState::class)]
+#[CoversClass(ProductPurchaseState::class)]
+#[CoversClass(SubscriptionCancellationType::class)]
 #[CoversClass(SubscriptionNotificationType::class)]
 #[CoversClass(OneTimeProductNotificationType::class)]
 #[CoversClass(VoidedProductType::class)]
@@ -86,6 +92,23 @@ final class EnumsTest extends TestCase
 
         self::assertSame(RefundType::QUANTITY_BASED_PARTIAL, RefundType::fromInt(2));
         self::assertSame(RefundType::UNKNOWN, RefundType::fromInt(3));
+    }
+
+    public function testV2StringMappings(): void
+    {
+        self::assertSame(ProductPurchaseState::PURCHASED, ProductPurchaseState::fromV2String('PURCHASED'));
+        self::assertSame(ProductPurchaseState::CANCELED, ProductPurchaseState::fromV2String('CANCELLED'));
+        self::assertSame(ProductPurchaseState::PENDING, ProductPurchaseState::fromV2String('PENDING'));
+        self::assertNull(ProductPurchaseState::fromV2String('PURCHASE_STATE_UNSPECIFIED'));
+        self::assertNull(ProductPurchaseState::fromV2String(null));
+
+        self::assertSame(ConsumptionState::YET_TO_BE_CONSUMED, ConsumptionState::fromV2String('CONSUMPTION_STATE_YET_TO_BE_CONSUMED'));
+        self::assertSame(ConsumptionState::CONSUMED, ConsumptionState::fromV2String('CONSUMPTION_STATE_CONSUMED'));
+        self::assertNull(ConsumptionState::fromV2String('CONSUMPTION_STATE_UNSPECIFIED'));
+        self::assertNull(ConsumptionState::fromV2String(null));
+
+        self::assertSame('USER_REQUESTED_STOP_RENEWALS', SubscriptionCancellationType::USER_REQUESTED_STOP_RENEWALS->value);
+        self::assertSame('DEVELOPER_REQUESTED_STOP_PAYMENTS', SubscriptionCancellationType::DEVELOPER_REQUESTED_STOP_PAYMENTS->value);
     }
 
     public function testRevocationContextBodies(): void

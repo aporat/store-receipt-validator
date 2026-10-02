@@ -1,0 +1,23 @@
+{
+  "kind": "androidpublisher#productPurchaseV2",
+  "orderId": "GPA.0000-0000-0000-00000",
+  "purchaseStateContext": {
+    "purchaseState": "PENDING"
+  },
+  "testPurchaseContext": {
+    "fopType": "TEST"
+  },
+  "acknowledgementState": "ACKNOWLEDGEMENT_STATE_PENDING",
+  "productLineItem": [
+    {
+      "productId": "app.example.expansion",
+      "productOfferDetails": {
+        "purchaseOptionId": "preorder",
+        "preorderOfferDetails": {
+          "preorderReleaseTime": "2026-12-01T00:00:00Z"
+        },
+        "consumptionState": "SOMETHING_NEW"
+      }
+    }
+  ]
+}

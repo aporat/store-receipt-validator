@@ -1,0 +1,12 @@
+{
+  "itemExpiryTimeDetails": [
+    {
+      "productId": "app.example.subscription",
+      "expiryTime": "2026-11-05T14:32:11Z"
+    },
+    {
+      "productId": "app.example.addon",
+      "expiryTime": "2026-11-06T00:00:00Z"
+    }
+  ]
+}

@@ -46,6 +46,9 @@ final class SubscriptionPurchase extends AbstractResponse
     /** True for purchases made by a licence-testing account. */
     public readonly bool $testPurchase;
 
+    /** Entity tag of this state; required by {@see Validator::deferSubscription()}. */
+    public readonly ?string $etag;
+
     /** The developer-supplied account identifier (`externalAccountIdentifiers.externalAccountId`). */
     public readonly ?string $externalAccountId;
 
@@ -89,6 +92,7 @@ final class SubscriptionPurchase extends AbstractResponse
         $this->linkedPurchaseToken = $this->toString($data, 'linkedPurchaseToken');
         $this->acknowledgementState = AcknowledgementState::fromString($this->toString($data, 'acknowledgementState') ?? '');
         $this->testPurchase        = $isTest;
+        $this->etag                = $this->toString($data, 'etag');
 
         $identifiers = is_array($data['externalAccountIdentifiers'] ?? null) ? $data['externalAccountIdentifiers'] : [];
         $this->externalAccountId           = $this->toString($identifiers, 'externalAccountId');
@@ -153,6 +157,11 @@ final class SubscriptionPurchase extends AbstractResponse
     public function isTestPurchase(): bool
     {
         return $this->testPurchase;
+    }
+
+    public function getEtag(): ?string
+    {
+        return $this->etag;
     }
 
     public function getExternalAccountId(): ?string

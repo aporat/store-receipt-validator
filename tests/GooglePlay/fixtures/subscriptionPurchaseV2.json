@@ -24,6 +24,7 @@
   ],
   "startTime": "2025-10-05T14:32:11.512Z",
   "subscriptionState": "SUBSCRIPTION_STATE_ACTIVE",
+  "etag": "etag-123",
   "acknowledgementState": "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED",
   "externalAccountIdentifiers": {
     "obfuscatedExternalAccountId": "5E8A3B2C-1D4F-4E6A-9B7C-8D9E0F1A2B3C",

@@ -19,8 +19,11 @@ use ReceiptValidator\Exceptions\ValidationException;
 use ReceiptValidator\GooglePlay\JWT\CallbackAccessTokenProvider;
 use ReceiptValidator\GooglePlay\JWT\ServiceAccountCredentials;
 use ReceiptValidator\GooglePlay\JWT\ServiceAccountTokenProvider;
+use ReceiptValidator\GooglePlay\DeferSubscriptionResponse;
 use ReceiptValidator\GooglePlay\ProductPurchase;
+use ReceiptValidator\GooglePlay\ProductPurchaseV2;
 use ReceiptValidator\GooglePlay\RevocationContext;
+use ReceiptValidator\GooglePlay\SubscriptionCancellationType;
 use ReceiptValidator\GooglePlay\SubscriptionPurchase;
 use ReceiptValidator\GooglePlay\SubscriptionState;
 use ReceiptValidator\GooglePlay\Validator;
@@ -30,6 +33,7 @@ use ReceiptValidator\GooglePlay\VoidedPurchaseType;
 use RuntimeException;
 
 #[CoversClass(Validator::class)]
+#[CoversClass(DeferSubscriptionResponse::class)]
 final class ValidatorTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
@@ -253,6 +257,108 @@ final class ValidatorTest extends TestCase
         $this->expectExceptionMessage('product ID cannot be empty');
 
         $validator->getProductPurchase('', 'tok');
+    }
+
+    public function testGetProductPurchaseV2(): void
+    {
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => $r->getMethod() === 'GET'
+                && (string) $r->getUri() === self::BASE . '/purchases/productsv2/tokens/tok%2Fv2',
+            new GuzzleResponse(200, [], $this->fixture('productPurchaseV2'))
+        );
+
+        $purchase = $this->newValidator($client)->getProductPurchaseV2('tok/v2');
+
+        self::assertInstanceOf(ProductPurchaseV2::class, $purchase);
+        self::assertSame('tok/v2', $purchase->getPurchaseToken());
+        self::assertTrue($purchase->isPurchased());
+        self::assertSame(['app.example.coins.100', 'app.example.movie'], $purchase->getProductIds());
+    }
+
+    public function testGetProductPurchaseV2RequiresToken(): void
+    {
+        $validator = $this->newValidator(Mockery::mock(ClientInterface::class));
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('purchase token cannot be empty');
+
+        $validator->getProductPurchaseV2('');
+    }
+
+    public function testCancelSubscription(): void
+    {
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => $r->getMethod() === 'POST'
+                && (string) $r->getUri() === self::BASE . '/purchases/subscriptionsv2/tokens/tok:cancel'
+                && $r->getHeaderLine('Content-Type') === 'application/json'
+                && (string) $r->getBody() === '{"cancellationContext":{"cancellationType":"DEVELOPER_REQUESTED_STOP_PAYMENTS"}}',
+            new GuzzleResponse(200, [], '')
+        );
+
+        $this->newValidator($client)->cancelSubscription('tok', SubscriptionCancellationType::DEVELOPER_REQUESTED_STOP_PAYMENTS);
+    }
+
+    public function testCancelSubscriptionRequiresToken(): void
+    {
+        $validator = $this->newValidator(Mockery::mock(ClientInterface::class));
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('purchase token cannot be empty');
+
+        $validator->cancelSubscription('', SubscriptionCancellationType::USER_REQUESTED_STOP_RENEWALS);
+    }
+
+    public function testDeferSubscriptionWithSeconds(): void
+    {
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => $r->getMethod() === 'POST'
+                && (string) $r->getUri() === self::BASE . '/purchases/subscriptionsv2/tokens/tok:defer'
+                && (string) $r->getBody() === '{"deferralContext":{"etag":"etag-123","deferDuration":"604800s"}}',
+            new GuzzleResponse(200, [], $this->fixture('deferSubscriptionResponse'))
+        );
+
+        $response = $this->newValidator($client)->deferSubscription('tok', 'etag-123', 604800);
+
+        self::assertInstanceOf(DeferSubscriptionResponse::class, $response);
+        self::assertSame(['app.example.subscription', 'app.example.addon'], array_keys($response->getItemExpiryTimes()));
+        self::assertSame('2026-11-05T14:32:11+00:00', $response->getExpiryTime('app.example.subscription')?->toIso8601String());
+        self::assertSame('2026-11-06T00:00:00+00:00', $response->getExpiryTime()?->toIso8601String());
+        self::assertNull($response->getExpiryTime('missing'));
+        self::assertSame(['itemExpiryTimeDetails'], array_keys($response->getRawData()));
+    }
+
+    public function testDeferSubscriptionWithIntervalAndValidateOnly(): void
+    {
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => (string) $r->getBody()
+                === '{"deferralContext":{"etag":"e","deferDuration":"90000s","validateOnly":true}}',
+            new GuzzleResponse(200, [], '{}')
+        );
+
+        $response = $this->newValidator($client)->deferSubscription('tok', 'e', new \DateInterval('P1DT1H'), true);
+
+        self::assertSame([], $response->getItemExpiryTimes());
+        self::assertNull($response->getExpiryTime());
+    }
+
+    public function testDeferSubscriptionRejectsNonPositiveDuration(): void
+    {
+        $validator = $this->newValidator(Mockery::mock(ClientInterface::class));
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('defer duration must be positive');
+
+        $validator->deferSubscription('tok', 'e', 0);
+    }
+
+    public function testDeferSubscriptionRequiresEtag(): void
+    {
+        $validator = $this->newValidator(Mockery::mock(ClientInterface::class));
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('etag cannot be empty');
+
+        $validator->deferSubscription('tok', '', 60);
     }
 
     public function testAcknowledgeProduct(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\GooglePlay;
 
+use DateInterval;
 use Psr\Http\Client\ClientExceptionInterface;
 use ReceiptValidator\AbstractValidator;
 use ReceiptValidator\Environment;
@@ -204,6 +205,75 @@ class Validator extends AbstractValidator
     }
 
     /**
+     * Cancel a subscription without refunding it.
+     *
+     * USER_REQUESTED_STOP_RENEWALS stops the next renewal on the user's behalf and the
+     * user can still restore the subscription; DEVELOPER_REQUESTED_STOP_PAYMENTS stops
+     * the next payment and cannot be undone. Access continues until the current period
+     * ends. To end access immediately with a refund use {@see revokeSubscription()}.
+     *
+     * @see https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptionsv2/cancel
+     *
+     * @throws ValidationException
+     */
+    public function cancelSubscription(string $purchaseToken, SubscriptionCancellationType $type): void
+    {
+        $this->assertNotEmpty($purchaseToken, 'purchase token');
+
+        $uri = sprintf('/purchases/subscriptionsv2/tokens/%s:cancel', rawurlencode($purchaseToken));
+
+        $this->makeRawRequest('POST', $uri, [], [
+            'cancellationContext' => ['cancellationType' => $type->value],
+        ]);
+    }
+
+    /**
+     * Extend a subscription by a duration, pushing every line item's expiry out.
+     *
+     * The etag must match the subscription's current one (see
+     * {@see SubscriptionPurchase::getEtag()}); Google rejects a stale etag so that two
+     * deferrals cannot race. With $validateOnly the new expiry times are computed and
+     * returned but nothing is changed.
+     *
+     * @param int|DateInterval $deferDuration How much to extend by, in seconds or as an interval.
+     *
+     * @see https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptionsv2/defer
+     *
+     * @throws ValidationException
+     */
+    public function deferSubscription(
+        string $purchaseToken,
+        string $etag,
+        int|DateInterval $deferDuration,
+        bool $validateOnly = false,
+    ): DeferSubscriptionResponse {
+        $this->assertNotEmpty($purchaseToken, 'purchase token');
+        $this->assertNotEmpty($etag, 'etag');
+
+        $seconds = $deferDuration instanceof DateInterval
+            ? \Carbon\CarbonInterval::instance($deferDuration)->totalSeconds
+            : $deferDuration;
+
+        if ($seconds <= 0) {
+            throw new ValidationException('Google Play defer duration must be positive.');
+        }
+
+        $context = [
+            'etag'          => $etag,
+            'deferDuration' => sprintf('%ds', (int) round($seconds)),
+        ];
+        if ($validateOnly) {
+            $context['validateOnly'] = true;
+        }
+
+        $uri = sprintf('/purchases/subscriptionsv2/tokens/%s:defer', rawurlencode($purchaseToken));
+
+        return new DeferSubscriptionResponse(
+            $this->makeRawRequest('POST', $uri, [], ['deferralContext' => $context])
+        );
+    }
+
+    /**
      * Revoke a subscription purchase immediately and issue a refund.
      *
      * @see https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptionsv2/revoke
@@ -224,7 +294,27 @@ class Validator extends AbstractValidator
     // ---------------------------------------------------------------------
 
     /**
-     * Get the state of a one-time (in-app) product purchase.
+     * Get the state of a one-time (in-app) product purchase by token alone.
+     *
+     * This is the current one-time product lookup and the one to use with purchase
+     * options, multi-quantity, rentals and pre-orders. The v1 {@see getProductPurchase()}
+     * needs the product ID as well.
+     *
+     * @see https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.productsv2/getproductpurchasev2
+     *
+     * @throws ValidationException
+     */
+    public function getProductPurchaseV2(string $purchaseToken): ProductPurchaseV2
+    {
+        $this->assertNotEmpty($purchaseToken, 'purchase token');
+
+        $uri = sprintf('/purchases/productsv2/tokens/%s', rawurlencode($purchaseToken));
+
+        return new ProductPurchaseV2($this->makeRawRequest('GET', $uri), $purchaseToken);
+    }
+
+    /**
+     * Get the state of a one-time (in-app) product purchase (v1, requires the product ID).
      *
      * @see https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.products/get
      *

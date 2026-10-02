@@ -64,6 +64,19 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 - Google Play `SubscriptionNotificationType` cases `ITEMS_CHANGED` (17), `CANCELLATION_SCHEDULED`
   (18) and `PRICE_STEP_UP_CONSENT_UPDATED` (22); `PRICE_CHANGE_CONFIRMED` (8) is marked deprecated
   as Google no longer sends it.
+- `GooglePlay\Validator::getProductPurchaseV2()` for `purchases.productsv2`, the current one-time
+  product lookup: token only, one `ProductLineItem` per product with quantity, purchase option,
+  offer token, consumption state, rental and pre-order details, and a `ProductPurchaseV2` response
+  with the purchase state, acknowledgement state, completion time and test-purchase marker.
+- `GooglePlay\Validator::cancelSubscription()` for `purchases.subscriptionsv2.cancel`, with the
+  `SubscriptionCancellationType` enum (`USER_REQUESTED_STOP_RENEWALS` or
+  `DEVELOPER_REQUESTED_STOP_PAYMENTS`).
+- `GooglePlay\Validator::deferSubscription()` for `purchases.subscriptionsv2.defer`, taking the
+  subscription's etag and a duration in seconds or as a `DateInterval`, with `validateOnly` for dry
+  runs. Returns a `DeferSubscriptionResponse` with the new expiry per product.
+- `SubscriptionPurchase::getEtag()`, needed by `deferSubscription()`.
+- `ProductPurchaseState::fromV2String()` and `ConsumptionState::fromV2String()` map the string
+  enums used by `purchases.productsv2` onto the existing integer-backed cases.
 
 ### Changed
 - App Store Server API requests go to Apple's documented hosts, `api.storekit.apple.com` and

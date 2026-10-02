@@ -28,6 +28,7 @@ final class SubscriptionPurchaseTest extends TestCase
         $purchase = new SubscriptionPurchase($this->fixture('subscriptionPurchaseV2'));
 
         self::assertSame('androidpublisher#subscriptionPurchaseV2', $purchase->getKind());
+        self::assertSame('etag-123', $purchase->getEtag());
         self::assertSame('US', $purchase->getRegionCode());
         self::assertSame('GPA.3333-4444-5555-66666..5', $purchase->getLatestOrderId());
         self::assertSame('2025-10-05T14:32:11.512000Z', $purchase->getStartTime()?->toIso8601ZuluString('microsecond'));
@@ -84,6 +85,7 @@ final class SubscriptionPurchaseTest extends TestCase
         self::assertSame(AcknowledgementState::PENDING, $purchase->getAcknowledgementState());
         self::assertFalse($purchase->isAcknowledged());
         self::assertTrue($purchase->isTestPurchase());
+        self::assertNull($purchase->getEtag());
         self::assertSame(Environment::SANDBOX, $purchase->getEnvironment());
         self::assertSame('older-token', $purchase->getLinkedPurchaseToken());
         self::assertSame($data['canceledStateContext'], $purchase->getCanceledStateContext());

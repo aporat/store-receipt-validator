@@ -302,20 +302,33 @@ foreach ($purchase->getLineItems() as $item) {
 
 | Area | Methods |
 |---|---|
-| Subscriptions | `getSubscriptionPurchaseV2()`, `acknowledgeSubscription()`, `revokeSubscription()` |
-| One-time products | `getProductPurchase()`, `acknowledgeProduct()`, `consumeProduct()` |
+| Subscriptions | `getSubscriptionPurchaseV2()`, `acknowledgeSubscription()`, `cancelSubscription()`, `deferSubscription()`, `revokeSubscription()` |
+| One-time products | `getProductPurchaseV2()`, `getProductPurchase()`, `acknowledgeProduct()`, `consumeProduct()` |
 | Refunds | `getVoidedPurchases()` |
 
 ```php
 use ReceiptValidator\GooglePlay\RevocationContext;
+use ReceiptValidator\GooglePlay\SubscriptionCancellationType;
 use ReceiptValidator\GooglePlay\VoidedPurchasesParams;
 use ReceiptValidator\GooglePlay\VoidedPurchaseType;
 
-$product = $validator->getProductPurchase('com.example.coins.100', $purchaseToken);
+// One-time products: the v2 lookup needs only the token and returns one line item per product
+$product = $validator->getProductPurchaseV2($purchaseToken);
 if ($product->isPurchased() && !$product->isAcknowledged()) {
-    $validator->acknowledgeProduct('com.example.coins.100', $purchaseToken);
+    foreach ($product->getLineItems() as $item) {
+        echo $item->getProductId() . ' x' . $item->getQuantity() . PHP_EOL;
+        $validator->acknowledgeProduct($item->getProductId(), $purchaseToken);
+    }
 }
 
+// Stop the next renewal without a refund; access continues until the period ends
+$validator->cancelSubscription($purchaseToken, SubscriptionCancellationType::USER_REQUESTED_STOP_RENEWALS);
+
+// Extend a subscription by a week (etag comes from the latest getSubscriptionPurchaseV2() call)
+$deferred = $validator->deferSubscription($purchaseToken, $purchase->getEtag(), 7 * 24 * 3600);
+echo 'New expiry: ' . $deferred->getExpiryTime()?->toIso8601String() . PHP_EOL;
+
+// End access now and refund the unused part of the period
 $validator->revokeSubscription($purchaseToken, RevocationContext::proratedRefund());
 
 $voided = $validator->getVoidedPurchases(new VoidedPurchasesParams(type: VoidedPurchaseType::INCLUDE_SUBSCRIPTIONS));
