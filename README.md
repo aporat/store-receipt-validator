@@ -170,6 +170,39 @@ current state (for example, a later refund), look it up with the App Store Serve
 $current = $validator->getTransactionInfo($transaction->getTransactionId());
 ```
 
+### 🖊️ Signing offer requests for StoreKit
+
+Some StoreKit features need a signature from your server before the app can use
+them. The signature creators take the same In-App Purchase key you use for the
+App Store Server API.
+
+```php
+use ReceiptValidator\AppleAppStore\Signature\PromotionalOfferV2SignatureCreator;
+use ReceiptValidator\AppleAppStore\Signature\IntroductoryOfferEligibilitySignatureCreator;
+use ReceiptValidator\AppleAppStore\Signature\AdvancedCommerceInAppSignatureCreator;
+use ReceiptValidator\AppleAppStore\Signature\PromotionalOfferSignatureCreator;
+
+// StoreKit 2 promotional offer (JWS). transactionId is optional but recommended.
+$creator = new PromotionalOfferV2SignatureCreator($signingKey, $keyId, $issuerId, 'com.myapp');
+$jws     = $creator->createSignature('com.myapp.monthly', 'SPRING_PROMO', $transactionId);
+
+// Introductory offer eligibility (JWS)
+$creator = new IntroductoryOfferEligibilitySignatureCreator($signingKey, $keyId, $issuerId, 'com.myapp');
+$jws     = $creator->createSignature('com.myapp.monthly', allowIntroductoryOffer: true, transactionId: $transactionId);
+
+// Advanced Commerce API in-app request (JWS)
+$creator = new AdvancedCommerceInAppSignatureCreator($signingKey, $keyId, $issuerId, 'com.myapp');
+$jws     = $creator->createSignature($advancedCommerceRequest);
+
+// StoreKit 1 promotional offer (Base64 ECDSA signature)
+$creator   = new PromotionalOfferSignatureCreator($signingKey, $keyId, 'com.myapp');
+$signature = $creator->createSignature('com.myapp.monthly', 'SPRING_PROMO', $appAccountToken, $nonce, $timestampMs);
+```
+
+Return the result to your app, which passes it to the matching StoreKit API. See
+[Generating JWS to sign App Store requests](https://developer.apple.com/documentation/storekit/generating-jws-to-sign-app-store-requests)
+and [Generating a signature for promotional offers](https://developer.apple.com/documentation/storekit/generating-a-signature-for-promotional-offers).
+
 ### 🍏 Apple iTunes (Legacy API - Deprecated)
 
 ```php
