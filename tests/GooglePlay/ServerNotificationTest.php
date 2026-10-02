@@ -9,17 +9,20 @@ use PHPUnit\Framework\TestCase;
 use ReceiptValidator\Exceptions\ValidationException;
 use ReceiptValidator\GooglePlay\OneTimeProductNotification;
 use ReceiptValidator\GooglePlay\OneTimeProductNotificationType;
+use ReceiptValidator\GooglePlay\PendingRefundReviewNotification;
 use ReceiptValidator\GooglePlay\RefundType;
 use ReceiptValidator\GooglePlay\ServerNotification;
 use ReceiptValidator\GooglePlay\SubscriptionNotification;
 use ReceiptValidator\GooglePlay\SubscriptionNotificationType;
 use ReceiptValidator\GooglePlay\VoidedProductType;
+use ReceiptValidator\GooglePlay\VoidedReason;
 use ReceiptValidator\GooglePlay\VoidedPurchaseNotification;
 
 #[CoversClass(ServerNotification::class)]
 #[CoversClass(SubscriptionNotification::class)]
 #[CoversClass(OneTimeProductNotification::class)]
 #[CoversClass(VoidedPurchaseNotification::class)]
+#[CoversClass(PendingRefundReviewNotification::class)]
 final class ServerNotificationTest extends TestCase
 {
     /** @return array<string, mixed> */
@@ -56,10 +59,12 @@ final class ServerNotificationTest extends TestCase
         self::assertTrue($n->isSubscriptionNotification());
         self::assertFalse($n->isOneTimeProductNotification());
         self::assertFalse($n->isVoidedPurchaseNotification());
+        self::assertFalse($n->isPendingRefundReviewNotification());
         self::assertFalse($n->isTestNotification());
         self::assertSame('sub-token-123', $n->getPurchaseToken());
         self::assertNull($n->getOneTimeProductNotification());
         self::assertNull($n->getVoidedPurchaseNotification());
+        self::assertNull($n->getPendingRefundReviewNotification());
 
         $sub = $n->getSubscriptionNotification();
         self::assertInstanceOf(SubscriptionNotification::class, $sub);
@@ -99,6 +104,40 @@ final class ServerNotificationTest extends TestCase
         self::assertSame('GPA.1000-2000-3000-40000', $voided->getOrderId());
         self::assertSame(VoidedProductType::SUBSCRIPTION, $voided->getProductType());
         self::assertSame(RefundType::FULL, $voided->getRefundType());
+    }
+
+    public function testParsesPendingRefundReviewNotification(): void
+    {
+        $n = new ServerNotification($this->fixture('rtdnPendingRefundReview'));
+
+        self::assertTrue($n->isPendingRefundReviewNotification());
+        self::assertFalse($n->isSubscriptionNotification());
+        self::assertFalse($n->isVoidedPurchaseNotification());
+        self::assertFalse($n->isTestNotification());
+        self::assertNull($n->getPurchaseToken());
+
+        $review = $n->getPendingRefundReviewNotification();
+        self::assertInstanceOf(PendingRefundReviewNotification::class, $review);
+        self::assertSame('1.0', $review->getVersion());
+        self::assertSame('pending-refund-token-123', $review->getPendingRefundToken());
+        self::assertSame('GPA.1234-5678-9012-34567', $review->getOrderId());
+        self::assertSame(VoidedReason::CHARGEBACK, $review->getRefundReason());
+        self::assertSame(7, $review->getRawRefundReason());
+        self::assertSame('user-account-id', $review->getObfuscatedAccountId());
+        self::assertSame('user-profile-id', $review->getObfuscatedProfileId());
+    }
+
+    public function testPendingRefundReviewWithUnknownReason(): void
+    {
+        $review = new PendingRefundReviewNotification(['refundReason' => 99]);
+
+        self::assertNull($review->getVersion());
+        self::assertSame('', $review->getPendingRefundToken());
+        self::assertNull($review->getOrderId());
+        self::assertNull($review->getRefundReason());
+        self::assertSame(99, $review->getRawRefundReason());
+        self::assertNull($review->getObfuscatedAccountId());
+        self::assertNull($review->getObfuscatedProfileId());
     }
 
     public function testParsesTestNotification(): void

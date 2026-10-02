@@ -544,6 +544,11 @@ public function googlePlay(Request $request): JsonResponse {
         echo 'Refunded order: ' . $voided->getOrderId() . PHP_EOL;
     }
 
+    if ($review = $notification->getPendingRefundReviewNotification()) {
+        // A chargeback awaiting your decision; answer via orders.reviewrefund with the token.
+        echo 'Chargeback on order ' . $review->getOrderId() . ': ' . $review->getPendingRefundToken() . PHP_EOL;
+    }
+
     return response()->json(['status' => 'handled']);
 }
 ```

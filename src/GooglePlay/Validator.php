@@ -174,6 +174,10 @@ class Validator extends AbstractValidator
      * Google refunds and revokes subscriptions that are not acknowledged within three
      * days. Acknowledge either in the app via the billing client or here.
      *
+     * Google notes that since 21 May 2025 the subscription ID is no longer required
+     * and is not recommended for subscriptions with add-ons, but the REST path still
+     * carries the segment, so this library keeps asking for it.
+     *
      * @param string $subscriptionId The subscription product ID.
      *
      * @see https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptions/acknowledge
@@ -194,7 +198,7 @@ class Validator extends AbstractValidator
             rawurlencode($purchaseToken)
         );
 
-        $body = $developerPayload !== null ? ['developerPayload' => $developerPayload] : [];
+        $body = $developerPayload !== null ? ['developerPayload' => $developerPayload] : new \stdClass();
 
         $this->makeRawRequest('POST', $uri, [], $body);
     }
@@ -258,7 +262,7 @@ class Validator extends AbstractValidator
             rawurlencode($purchaseToken)
         );
 
-        $body = $developerPayload !== null ? ['developerPayload' => $developerPayload] : [];
+        $body = $developerPayload !== null ? ['developerPayload' => $developerPayload] : new \stdClass();
 
         $this->makeRawRequest('POST', $uri, [], $body);
     }
@@ -318,8 +322,11 @@ class Validator extends AbstractValidator
      * $uri is relative to `/applications/{packageName}`. Endpoints that return 200 or
      * 204 with an empty body (acknowledge, consume, revoke) return an empty array.
      *
-     * @param array<string, mixed>      $queryParams
-     * @param array<string, mixed>|null $requestBody Serialised as JSON when not null.
+     * An empty object (`new \stdClass()`) serialises as `{}`; an empty PHP array would
+     * serialise as `[]`, which Google rejects because the body must be a JSON object.
+     *
+     * @param array<string, mixed>        $queryParams
+     * @param array<string, mixed>|object|null $requestBody Serialised as JSON when not null.
      * @return array<string, mixed>
      *
      * @throws ValidationException
@@ -328,7 +335,7 @@ class Validator extends AbstractValidator
         string $method,
         string $uri,
         array $queryParams = [],
-        ?array $requestBody = null,
+        array|object|null $requestBody = null,
     ): array {
         $url = sprintf('%s/applications/%s%s', $this->endpointForEnvironment(), rawurlencode($this->packageName), $uri);
         if (!empty($queryParams)) {

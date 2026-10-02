@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "packageName": "app.example",
+  "eventTimeMillis": "1756911600000",
+  "pendingRefundReviewNotification": {
+    "version": "1.0",
+    "pendingRefundToken": "pending-refund-token-123",
+    "orderId": "GPA.1234-5678-9012-34567",
+    "refundReason": 7,
+    "obfuscatedAccountId": "user-account-id",
+    "obfuscatedProfileId": "user-profile-id"
+  }
+}

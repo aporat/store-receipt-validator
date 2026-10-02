@@ -69,6 +69,10 @@ final class EnumsTest extends TestCase
     {
         self::assertSame(SubscriptionNotificationType::REVOKED, SubscriptionNotificationType::fromInt(12));
         self::assertSame(SubscriptionNotificationType::PRICE_CHANGE_UPDATED, SubscriptionNotificationType::fromInt(19));
+        self::assertSame(SubscriptionNotificationType::ITEMS_CHANGED, SubscriptionNotificationType::fromInt(17));
+        self::assertSame(SubscriptionNotificationType::CANCELLATION_SCHEDULED, SubscriptionNotificationType::fromInt(18));
+        self::assertSame(SubscriptionNotificationType::PRICE_STEP_UP_CONSENT_UPDATED, SubscriptionNotificationType::fromInt(22));
+        self::assertFalse(SubscriptionNotificationType::CANCELLATION_SCHEDULED->revokesEntitlement());
         self::assertSame(SubscriptionNotificationType::UNKNOWN, SubscriptionNotificationType::fromInt(999));
         self::assertTrue(SubscriptionNotificationType::REVOKED->revokesEntitlement());
         self::assertFalse(SubscriptionNotificationType::CANCELED->revokesEntitlement());

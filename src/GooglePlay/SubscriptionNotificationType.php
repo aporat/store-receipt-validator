@@ -21,14 +21,21 @@ enum SubscriptionNotificationType: int
     case ON_HOLD                   = 5;
     case IN_GRACE_PERIOD           = 6;
     case RESTARTED                 = 7;
+    /** @deprecated Google no longer sends this; price changes arrive as PRICE_CHANGE_UPDATED. */
     case PRICE_CHANGE_CONFIRMED    = 8;
     case DEFERRED                  = 9;
     case PAUSED                    = 10;
     case PAUSE_SCHEDULE_CHANGED    = 11;
     case REVOKED                   = 12;
     case EXPIRED                   = 13;
+    /** An item in a multi-product subscription was added, removed or replaced. */
+    case ITEMS_CHANGED             = 17;
+    /** An installment subscription will cancel at the end of its commitment period. */
+    case CANCELLATION_SCHEDULED    = 18;
     case PRICE_CHANGE_UPDATED      = 19;
     case PENDING_PURCHASE_CANCELED = 20;
+    /** A price step-up consent period began, or the user gave consent. */
+    case PRICE_STEP_UP_CONSENT_UPDATED = 22;
 
     /**
      * Safer version of from() that falls back to UNKNOWN on unknown values.

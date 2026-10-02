@@ -58,6 +58,12 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 - `Amazon\APIError::fromException()`, `isCanceledReceipt()` and `isRetryable()` let callers tell a
   revoked receipt (HTTP 410) and a throttled request (HTTP 429) apart from other failures.
 - `Accept` and `User-Agent` headers on Amazon RVS requests.
+- Google Play `PendingRefundReviewNotification` for the `pendingRefundReviewNotification` RTDN
+  payload (chargeback reviews), exposed via `ServerNotification::getPendingRefundReviewNotification()`
+  and `isPendingRefundReviewNotification()`.
+- Google Play `SubscriptionNotificationType` cases `ITEMS_CHANGED` (17), `CANCELLATION_SCHEDULED`
+  (18) and `PRICE_STEP_UP_CONSENT_UPDATED` (22); `PRICE_CHANGE_CONFIRMED` (8) is marked deprecated
+  as Google no longer sends it.
 
 ### Changed
 - App Store Server API requests go to Apple's documented hosts, `api.storekit.apple.com` and
@@ -97,6 +103,10 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
   secret as a path segment.
 
 ### Fixed
+- Google Play `ServerNotification` rejected `pendingRefundReviewNotification` pushes with a
+  "does not contain a recognised payload" exception, which left Pub/Sub retrying them.
+- Google Play `acknowledgeSubscription()` and `acknowledgeProduct()` sent `[]` as the request body
+  when no developer payload was given. Google expects a JSON object, so the body is now `{}`.
 - `getAppTransactionInfo()` called `/inApps/v1/transactions/appTransaction/{id}` since 10.0.0; the
   documented path is the plural `appTransactions`
   ([#235](https://github.com/aporat/store-receipt-validator/pull/235), fixes
