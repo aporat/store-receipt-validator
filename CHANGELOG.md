@@ -10,6 +10,8 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 
 ## [Unreleased]
 
+## [11.0.0] - 2026-10-02
+
 ### Added
 - `AppleAppStore\Validator::verifySignedTransaction()`, `verifySignedRenewalInfo()` and
   `verifySignedAppTransaction()` verify StoreKit 2 JWS payloads offline, checking the signature,
@@ -49,121 +51,156 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
   `fulfillmentDate`, `fulfillmentResult`, `betaProduct`, `promotions`, `deferredDate`, `deferredSku`,
   `countryCode`, `baseReceipts`, `purchaseMetadataMap` and `parentProductId`, with `ProductType`,
   `CancelReason`, `FulfillmentResult`, `PromotionType` and `PromotionStatus` enums and a `Promotion`
-  value object.
+  value object
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 - Amazon subscription helpers `isEntitled()`, `isCanceled()`, `getExpiresAt()`, `isInFreeTrial()`,
   `isInGracePeriod()`, `isQuickSubscribe()`, `isAddOnSubscription()` and `getActivePromotion()` on
-  `Transaction`, with the most common ones mirrored on `Response`, plus `Response::getTransaction()`.
+  `Transaction`, with the most common ones mirrored on `Response`, plus `Response::getTransaction()`
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 - `Amazon\Validator::validate()` accepts the receipt ID and user ID as arguments, and `getUserId()`
-  and `getReceiptId()` read them back.
+  and `getReceiptId()` read them back
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 - `Amazon\APIError::fromException()`, `isCanceledReceipt()` and `isRetryable()` let callers tell a
-  revoked receipt (HTTP 410) and a throttled request (HTTP 429) apart from other failures.
-- `Accept` and `User-Agent` headers on Amazon RVS requests.
+  revoked receipt (HTTP 410) and a throttled request (HTTP 429) apart from other failures
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
+- `Accept` and `User-Agent` headers on Amazon RVS requests
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 - Google Play `PendingRefundReviewNotification` for the `pendingRefundReviewNotification` RTDN
   payload (chargeback reviews), exposed via `ServerNotification::getPendingRefundReviewNotification()`
-  and `isPendingRefundReviewNotification()`.
+  and `isPendingRefundReviewNotification()`
+  ([#247](https://github.com/aporat/store-receipt-validator/pull/247)).
 - Google Play `SubscriptionNotificationType` cases `ITEMS_CHANGED` (17), `CANCELLATION_SCHEDULED`
   (18) and `PRICE_STEP_UP_CONSENT_UPDATED` (22); `PRICE_CHANGE_CONFIRMED` (8) is marked deprecated
-  as Google no longer sends it.
+  as Google no longer sends it
+  ([#247](https://github.com/aporat/store-receipt-validator/pull/247)).
 - `GooglePlay\Validator::getProductPurchaseV2()` for `purchases.productsv2`, the current one-time
   product lookup: token only, one `ProductLineItem` per product with quantity, purchase option,
   offer token, consumption state, rental and pre-order details, and a `ProductPurchaseV2` response
-  with the purchase state, acknowledgement state, completion time and test-purchase marker.
+  with the purchase state, acknowledgement state, completion time and test-purchase marker
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `GooglePlay\Validator::cancelSubscription()` for `purchases.subscriptionsv2.cancel`, with the
   `SubscriptionCancellationType` enum (`USER_REQUESTED_STOP_RENEWALS` or
-  `DEVELOPER_REQUESTED_STOP_PAYMENTS`).
+  `DEVELOPER_REQUESTED_STOP_PAYMENTS`)
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `GooglePlay\Validator::deferSubscription()` for `purchases.subscriptionsv2.defer`, taking the
   subscription's etag and a duration in seconds or as a `DateInterval`, with `validateOnly` for dry
-  runs. Returns a `DeferSubscriptionResponse` with the new expiry per product.
-- `SubscriptionPurchase::getEtag()`, needed by `deferSubscription()`.
+  runs. Returns a `DeferSubscriptionResponse` with the new expiry per product
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
+- `SubscriptionPurchase::getEtag()`, needed by `deferSubscription()`
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `ProductPurchaseState::fromV2String()` and `ConsumptionState::fromV2String()` map the string
-  enums used by `purchases.productsv2` onto the existing integer-backed cases.
+  enums used by `purchases.productsv2` onto the existing integer-backed cases
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `GooglePlay\Validator::getOrder()`, `getOrders()` (up to 1000 IDs, sent as repeated `orderIds`
   query parameters), `refundOrder()` (with the `revoke` flag Google recommends for failed
   validations) and `reviewRefund()` for the `orders` resource. `Order` exposes state, sales channel,
   totals, tax, buyer address, developer revenue, processed/cancellation/refund events with reason and
   amounts, partial refunds, Play Points, and one `OrderLineItem` per product with listing price,
-  totals, offer, purchase option, base plan, offer phase and service period.
+  totals, offer, purchase option, base plan, offer phase and service period
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `ReviewRefundRequest` and `RefundPreference` for answering a chargeback review, with
-  `withConsumptionPercent()` to convert a plain percentage to milliunits.
+  `withConsumptionPercent()` to convert a plain percentage to milliunits
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `GooglePlay\APIException` (extends `ValidationException`) is thrown for non-2xx responses and
-  carries `getStatusCode()`, `getReason()`, `getError()` and `isRetryable()`.
+  carries `getStatusCode()`, `getReason()`, `getError()` and `isRetryable()`
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `GooglePlay\Money` value object with `getAmount()`, `getAmountMicros()`, `toDecimalString()`,
-  `isZero()` and `toArray()`.
+  `isZero()` and `toArray()`
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `SubscriptionLineItem` reads the rest of the documented schema: `getOfferPhase()` with
   `isInFreeTrial()` / `isInIntroductoryPrice()`, `getProrationOriginalOfferPhase()`,
   `getSignupPromotionType()` / `getPromotionCode()`, `getItemReplacement()`,
   `hasDeferredItemRemoval()`, `getInstallmentPlan()` and `getPriceStepUpConsentDetails()`, with
   `SubscriptionOfferPhase`, `SignupPromotionType`, `ReplacementMode`, `ConsentState`,
   `PriceChangeMode` and `PriceChangeState` enums and `ItemReplacement`, `InstallmentPlan`,
-  `PriceStepUpConsentDetails` and `PriceChangeDetails` value objects.
+  `PriceStepUpConsentDetails` and `PriceChangeDetails` value objects
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `SubscriptionPurchase::getRenewalDeclinedOrderId()` / `isRenewalDeclined()` (from the on-hold
-  and grace-period contexts), `getOutOfAppExpiredPurchaseToken()` and `isInFreeTrial()`.
+  and grace-period contexts), `getOutOfAppExpiredPurchaseToken()` and `isInFreeTrial()`
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `CanceledStateContext` with `CancellationSource` and `CancelSurveyReason` enums, and
-  `SubscribeWithGoogleInfo`, replacing the raw arrays.
+  `SubscribeWithGoogleInfo`, replacing the raw arrays
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - `acknowledgeSubscription()` accepts optional obfuscated account and profile IDs, sent as
-  `externalAccountIds`.
+  `externalAccountIds`
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 
 ### Changed
-- Google Play `SubscriptionLineItem::getRecurringPrice()` and `PriceChangeDetails::getNewPrice()`
-  return `Money` instead of a raw array, `getPriceChangeDetails()` returns `PriceChangeDetails`, and
+- **Breaking:** Google Play `SubscriptionLineItem::getRecurringPrice()` and
+  `PriceChangeDetails::getNewPrice()` return `Money` instead of a raw array,
+  `getPriceChangeDetails()` returns `PriceChangeDetails`, and
   `SubscriptionPurchase::getCanceledStateContext()` / `getSubscribeWithGoogleInfo()` return typed
-  objects instead of raw arrays. The raw payload is still available via `getRawData()`.
+  objects instead of raw arrays. The raw payload is still available via `getRawData()`
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - Google Play non-2xx responses throw `GooglePlay\APIException`; it extends `ValidationException`,
-  so existing catch blocks are unaffected.
-- App Store Server API requests go to Apple's documented hosts, `api.storekit.apple.com` and
-  `api.storekit-sandbox.apple.com`, instead of the legacy `*.itunes.apple.com` names. **Add the new
-  hosts to any egress allowlist before upgrading**
+  so existing catch blocks are unaffected
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
+- **Breaking:** App Store Server API requests go to Apple's documented hosts,
+  `api.storekit.apple.com` and `api.storekit-sandbox.apple.com`, instead of the legacy
+  `*.itunes.apple.com` names. Add the new hosts to any egress allowlist before upgrading
   ([#242](https://github.com/aporat/store-receipt-validator/pull/242)).
-- `sendConsumptionInformation()` targets the v2 endpoint (`/inApps/v2/transactions/consumption`)
-  again, as it did in 9.0.0 before 10.0.0 reverted it to v1, aligning with App Store Server API 1.19
-  and Apple's official libraries. `ConsumptionRequest` is the v2 model: `deliveryStatus` and
-  `refundPreference` take the new enums, and legacy v1 integers are still accepted and mapped.
-  `deliveryStatus` is required by v2, so a request without one now throws before any HTTP call. Pass
-  a `ConsumptionRequestV1` to keep using the v1 endpoint
+- **Breaking:** `sendConsumptionInformation()` targets the v2 endpoint
+  (`/inApps/v2/transactions/consumption`) again, as it did in 9.0.0 before 10.0.0 reverted it to
+  v1, aligning with App Store Server API 1.19 and Apple's official libraries. `ConsumptionRequest`
+  is the v2 model: `deliveryStatus` and `refundPreference` take the new enums, and legacy v1
+  integers are still accepted and mapped. `deliveryStatus` is required by v2, so a request without
+  one now throws before any HTTP call. Pass a `ConsumptionRequestV1` to keep using the v1 endpoint
   ([#236](https://github.com/aporat/store-receipt-validator/pull/236)).
 - `ServerNotification` reads the bundle ID, environment and app Apple ID from whichever payload
   section Apple populated (`data`, `summary`, `appData` or `externalPurchaseToken`). Summary and
   external purchase notifications previously reported an empty bundle ID and defaulted to sandbox. A
   notification with no environment now throws instead of being treated as sandbox
   ([#239](https://github.com/aporat/store-receipt-validator/pull/239)).
-- `TokenVerifier` now requires the App Store signing marker on the leaf certificate, the WWDR marker
-  on the intermediate, an `x5c` chain of exactly three certificates, and every certificate to be
-  valid at the payload's `signedDate`
+- **Breaking:** `TokenVerifier` now requires the App Store signing marker on the leaf certificate,
+  the WWDR marker on the intermediate, an `x5c` chain of exactly three certificates, and every
+  certificate to be valid at the payload's `signedDate`. Payloads signed with a chain that does not
+  match Apple's, including hand-rolled test chains, are rejected
   ([#230](https://github.com/aporat/store-receipt-validator/pull/230)).
 - `phpseclib/phpseclib` constraint is `^3.0 || ^4.0`. `ReceiptUtility` selects the matching ASN.1
   decoder at runtime ([#234](https://github.com/aporat/store-receipt-validator/pull/234), fixes
   [#232](https://github.com/aporat/store-receipt-validator/issues/232)).
 - **Breaking:** `Amazon\APIError` is keyed by HTTP status code (400, 410, 429, 496, 497 and 500).
   Amazon documents RVS outcomes by status only; the previous message-string cases never matched a
-  real response. `fromString()` is removed and `message()` is kept.
+  real response. `fromString()` is removed and `message()` is kept
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 - **Breaking:** `Amazon\Response::getProductType()` and the `productType` property hold a
-  `ProductType` enum instead of a string.
+  `ProductType` enum instead of a string
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 - `Amazon\Response` wraps a single `Transaction` and delegates to it instead of parsing the body a
-  second time.
+  second time
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 - Amazon RVS errors are mapped from the status code before the body is parsed, so an empty or
-  non-JSON error body yields the documented message instead of an "invalid JSON" error.
+  non-JSON error body yields the documented message instead of an "invalid JSON" error
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 - Amazon connection failures redact the shared secret from the message and no longer chain the
   HTTP client's exception. Clients quote the request URL in their messages, and the URL carries the
-  secret as a path segment.
+  secret as a path segment
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 
 ### Fixed
 - Google Play test fixture used an undocumented `CANCEL_SURVEY_REASON_TOO_EXPENSIVE`; the documented
-  value is `CANCEL_SURVEY_REASON_COST_RELATED`.
+  value is `CANCEL_SURVEY_REASON_COST_RELATED`
+  ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
 - Google Play `ServerNotification` rejected `pendingRefundReviewNotification` pushes with a
-  "does not contain a recognised payload" exception, which left Pub/Sub retrying them.
+  "does not contain a recognised payload" exception, which left Pub/Sub retrying them
+  ([#247](https://github.com/aporat/store-receipt-validator/pull/247)).
 - Google Play `acknowledgeSubscription()` and `acknowledgeProduct()` sent `[]` as the request body
-  when no developer payload was given. Google expects a JSON object, so the body is now `{}`.
+  when no developer payload was given. Google expects a JSON object, so the body is now `{}`
+  ([#247](https://github.com/aporat/store-receipt-validator/pull/247)).
 - `getAppTransactionInfo()` called `/inApps/v1/transactions/appTransaction/{id}` since 10.0.0; the
   documented path is the plural `appTransactions`
   ([#235](https://github.com/aporat/store-receipt-validator/pull/235), fixes
   [#231](https://github.com/aporat/store-receipt-validator/issues/231)).
 - Amazon `autoRenewing` and `gracePeriodEndDate` were read with a leading capital letter, which
   Amazon never sends, so `isAutoRenewing()` was always false and `getGracePeriodEndDate()` always
-  null on real responses. The camelCase keys are read now; the old spelling is kept as a fallback.
+  null on real responses. The camelCase keys are read now; the old spelling is kept as a fallback
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 - `Amazon\Response::getUserId()` always returned null because RVS does not echo the user ID. The
-  validator now supplies the one it sent.
+  validator now supplies the one it sent
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 - The README Amazon example called a no-argument constructor and a `setDeveloperSecret()` method
-  that do not exist.
+  that do not exist
+  ([#245](https://github.com/aporat/store-receipt-validator/pull/245)).
 
 ## [10.0.0] - 2026-09-05
 
@@ -1547,7 +1584,8 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
   and `google/apiclient 1.0.4-beta`, with PSR-0 autoloading of the `ReceiptValidator` namespace from
   `src/`.
 
-[Unreleased]: https://github.com/aporat/store-receipt-validator/compare/10.0.0...HEAD
+[Unreleased]: https://github.com/aporat/store-receipt-validator/compare/11.0.0...HEAD
+[11.0.0]: https://github.com/aporat/store-receipt-validator/compare/10.0.0...11.0.0
 [10.0.0]: https://github.com/aporat/store-receipt-validator/compare/9.0.0...10.0.0
 [9.0.0]: https://github.com/aporat/store-receipt-validator/compare/8.0.0...9.0.0
 [8.0.0]: https://github.com/aporat/store-receipt-validator/compare/7.1.0...8.0.0
