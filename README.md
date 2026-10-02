@@ -401,17 +401,30 @@ $response = $validator
 
 ### 🔔 V2 Notifications (App Store Server API)
 
+Verify the notification through your `Validator` so that, in addition to Apple's
+signature, the notification is checked to belong to **your** app and environment.
+In production, also pass your app's numeric Apple ID so it is checked too:
+
 ```php
-use ReceiptValidator\AppleAppStore\ServerNotification;
+use ReceiptValidator\AppleAppStore\Validator as AppleValidator;
+use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
+
+$validator = new AppleValidator(
+    signingKey: $signingKey,
+    keyId: $keyId,
+    issuerId: $issuerId,
+    bundleId: 'com.myapp',
+    environment: Environment::PRODUCTION,
+    appAppleId: 1234567890, // from App Store Connect; Apple omits it from sandbox payloads
+);
 
 public function subscriptions(Request $request): JsonResponse {
     try {
-        $notification = new ServerNotification($request->all());
+        $notification = $validator->verifyNotification($request->all());
 
         echo 'Type: ' . $notification->getNotificationType()->value . PHP_EOL;
         echo 'Subtype: ' . ($notification->getSubtype()?->value ?? 'N/A') . PHP_EOL;
-        echo 'Bundle ID: ' . $notification->getBundleId() . PHP_EOL;
 
         $tx = $notification->getTransaction();
         if ($tx !== null) {
@@ -427,6 +440,10 @@ public function subscriptions(Request $request): JsonResponse {
     }
 }
 ```
+
+Constructing `new ServerNotification($request->all())` directly still works and
+verifies Apple's signature only; compare `getBundleId()` and `getEnvironment()`
+yourself in that case.
 
 ### 🔔 V1 Notifications (iTunes - Deprecated)
 

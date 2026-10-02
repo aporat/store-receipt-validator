@@ -57,19 +57,26 @@ class Validator extends AbstractValidator
     /** Verifier for Apple-signed JWS payloads. */
     protected ?TokenVerifier $tokenVerifier = null;
 
+    /** The app's numeric App Store identifier, checked on production payloads when set. */
+    protected ?int $appAppleId = null;
+
     /**
      * @param string $signingKey The contents of your .p8 key
      * @param string $keyId      The Key ID from App Store Connect
      * @param string $issuerId   Your Issuer ID
      * @param string $bundleId   Your app's bundle identifier
      * @param Environment $environment Target environment (defaults to PRODUCTION)
+     * @param int|null $appAppleId Your app's numeric Apple ID from App Store Connect. Recommended in
+     *                             production: when set, signed app transactions and notifications must
+     *                             carry it. Apple omits it from sandbox payloads, so it is not checked there.
      */
     public function __construct(
         string $signingKey,
         string $keyId,
         string $issuerId,
         string $bundleId,
-        Environment $environment = Environment::PRODUCTION
+        Environment $environment = Environment::PRODUCTION,
+        ?int $appAppleId = null,
     ) {
         parent::__construct();
         $this->signingKey   = $signingKey;
@@ -77,6 +84,22 @@ class Validator extends AbstractValidator
         $this->issuerId     = $issuerId;
         $this->bundleId     = $bundleId;
         $this->environment  = $environment;
+        $this->appAppleId   = $appAppleId;
+    }
+
+    /**
+     * Set the app's numeric Apple ID to enforce on production payloads.
+     */
+    public function setAppAppleId(?int $appAppleId): static
+    {
+        $this->appAppleId = $appAppleId;
+
+        return $this;
+    }
+
+    public function getAppAppleId(): ?int
+    {
+        return $this->appAppleId;
     }
 
     /**
@@ -516,8 +539,51 @@ class Validator extends AbstractValidator
 
         $this->assertClaimMatches($claims, 'bundleId', $this->bundleId, 'bundle ID');
         $this->assertEnvironmentMatches($claims, 'receiptType');
+        $this->assertAppAppleIdMatches($claims['appAppleId'] ?? null);
 
         return new AppTransaction($claims);
+    }
+
+    /**
+     * Verify an App Store Server Notification V2 and confirm it belongs to this app.
+     *
+     * Beyond the signature and certificate chain check that {@see ServerNotification}
+     * performs on its own, this requires the notification's bundle ID and environment
+     * to match this validator, and in production its app Apple ID when one is configured.
+     * A correctly signed notification for another app or environment is rejected.
+     *
+     * @param array<string, mixed>|string $payload The request body containing `signedPayload`,
+     *                                             or the `signedPayload` JWS string itself.
+     *
+     * @see https://developer.apple.com/documentation/appstoreservernotifications/receiving-app-store-server-notifications
+     *
+     * @throws ValidationException
+     */
+    public function verifyNotification(array|string $payload): ServerNotification
+    {
+        $data = is_string($payload) ? ['signedPayload' => $payload] : $payload;
+
+        $notification = new ServerNotification($data, $this->getTokenVerifier());
+
+        if ($notification->getBundleId() !== $this->bundleId) {
+            throw new ValidationException(sprintf(
+                'Server notification bundle ID does not match: expected "%s", got "%s".',
+                $this->bundleId,
+                $notification->getBundleId()
+            ));
+        }
+
+        if ($notification->getEnvironment() !== $this->environment) {
+            throw new ValidationException(sprintf(
+                'Server notification environment does not match: expected "%s", got "%s".',
+                $this->environment->value,
+                $notification->getEnvironment()->value
+            ));
+        }
+
+        $this->assertAppAppleIdMatches($notification->getAppAppleId());
+
+        return $notification;
     }
 
     /**
@@ -567,6 +633,28 @@ class Validator extends AbstractValidator
                 'Signed payload %s does not match: expected "%s", got "%s".',
                 $label,
                 $expected,
+                is_scalar($actual) ? (string) $actual : ''
+            ));
+        }
+    }
+
+    /**
+     * In production, require the payload's app Apple ID to match the configured one.
+     *
+     * Skipped when no app Apple ID is configured, and in sandbox, where Apple omits it.
+     *
+     * @throws ValidationException
+     */
+    private function assertAppAppleIdMatches(mixed $actual): void
+    {
+        if ($this->appAppleId === null || $this->environment !== Environment::PRODUCTION) {
+            return;
+        }
+
+        if (!is_numeric($actual) || (int) $actual !== $this->appAppleId) {
+            throw new ValidationException(sprintf(
+                'Signed payload app Apple ID does not match: expected %d, got "%s".',
+                $this->appAppleId,
                 is_scalar($actual) ? (string) $actual : ''
             ));
         }
