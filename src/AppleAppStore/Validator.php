@@ -25,10 +25,10 @@ use Throwable;
 class Validator extends AbstractValidator
 {
     /** Sandbox endpoint URL. */
-    public const string ENDPOINT_SANDBOX = 'https://api.storekit-sandbox.itunes.apple.com';
+    public const string ENDPOINT_SANDBOX = 'https://api.storekit-sandbox.apple.com';
 
     /** Production endpoint URL. */
-    public const string ENDPOINT_PRODUCTION = 'https://api.storekit.itunes.apple.com';
+    public const string ENDPOINT_PRODUCTION = 'https://api.storekit.apple.com';
 
     /** @return array{production:string, sandbox:string} */
     protected function endpointMap(): array

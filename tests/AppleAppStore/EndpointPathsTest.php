@@ -268,13 +268,12 @@ final class EndpointPathsTest extends TestCase
 
     public function testSandboxAndProductionHosts(): void
     {
-        // Apple's documentation and official libraries now use api.storekit.apple.com and
-        // api.storekit-sandbox.apple.com. The legacy *.itunes.apple.com hosts still answer
-        // and are what this library has always sent, so they stay pinned here until a
-        // deliberate change, since a hostname switch can break callers' egress allowlists.
+        // The base URLs Apple documents and its official libraries use. Versions before
+        // 10.1.0 sent the legacy api.storekit.itunes.apple.com and
+        // api.storekit-sandbox.itunes.apple.com hosts, which still answer.
         $hosts = [
-            [Environment::SANDBOX, 'api.storekit-sandbox.itunes.apple.com'],
-            [Environment::PRODUCTION, 'api.storekit.itunes.apple.com'],
+            [Environment::SANDBOX, 'api.storekit-sandbox.apple.com'],
+            [Environment::PRODUCTION, 'api.storekit.apple.com'],
         ];
 
         foreach ($hosts as [$env, $host]) {
