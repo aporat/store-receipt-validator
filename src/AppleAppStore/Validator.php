@@ -733,18 +733,33 @@ class Validator extends AbstractValidator
     }
 
     /**
-     * Send consumption information for a consumable in-app purchase to the App Store.
+     * Send consumption information for an in-app purchase to the App Store.
      *
-     * This informs Apple about how much of a consumable purchase a customer has used,
-     * which Apple considers when deciding whether to grant a refund request.
+     * This informs Apple about how much of a purchase a customer has used and
+     * whether it was delivered, which Apple considers when deciding a refund request.
+     *
+     * A {@see ConsumptionRequest} targets the current v2 endpoint. Passing the
+     * deprecated {@see ConsumptionRequestV1} targets the v1 endpoint instead.
      *
      * @see https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information
      *
      * @throws ValidationException
      */
-    public function sendConsumptionInformation(string $transactionId, ConsumptionRequest $request): void
-    {
-        $uri = sprintf('/inApps/v1/transactions/consumption/%s', $transactionId);
+    public function sendConsumptionInformation(
+        string $transactionId,
+        ConsumptionRequest|ConsumptionRequestV1 $request,
+    ): void {
+        if ($request instanceof ConsumptionRequestV1) {
+            $uri = sprintf('/inApps/v1/transactions/consumption/%s', $transactionId);
+        } else {
+            if ($request->getDeliveryStatus() === null) {
+                throw new ValidationException(
+                    'deliveryStatus is required by the Send Consumption Information endpoint; set it to a DeliveryStatus case.'
+                );
+            }
+
+            $uri = sprintf('/inApps/v2/transactions/consumption/%s', $transactionId);
+        }
 
         $this->makeRawRequest('PUT', $uri, [], $request->toArray());
     }

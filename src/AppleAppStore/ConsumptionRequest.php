@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace ReceiptValidator\AppleAppStore;
 
 /**
- * Request body for the Send Consumption Information endpoint.
+ * Request body for the v2 Send Consumption Information endpoint.
  *
- * @see https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information
+ * For the deprecated v1 endpoint, use {@see ConsumptionRequestV1}.
+ *
+ * @see https://developer.apple.com/documentation/appstoreserverapi/consumptionrequest
  */
 final class ConsumptionRequest
 {
     /**
      * A Boolean value that indicates whether the customer consented to provide
      * consumption data to the App Store.
+     *
+     * Apple rejects requests where this is not true.
      */
     public bool $customerConsented;
 
@@ -25,39 +29,77 @@ final class ConsumptionRequest
 
     /**
      * A value that indicates whether the app successfully delivered an in-app
-     * purchase that works properly.
+     * purchase that works properly. Required by Apple.
      *
-     * Apple-defined values:
-     *   0 - Delivered and working
-     *   1 - Delivered but not working
-     *   2 - Not delivered due to a quality issue
-     *   3 - Not delivered due to a server outage
-     *   4 - Not delivered due to an in-game currency change
-     *   5 - Not delivered for other reasons
+     * Prefer a {@see DeliveryStatus} case. A legacy v1 integer (0-5) is still
+     * accepted and mapped via {@see DeliveryStatus::fromLegacyValue()}.
      */
-    public ?int $deliveryStatus = null;
+    public DeliveryStatus|int|null $deliveryStatus = null;
 
     /**
-     * A value that indicates the extent to which the customer consumed the in-app
-     * purchase (0–100, in increments of 10).
+     * The percentage of the in-app purchase the customer consumed, expressed as an
+     * integer in milliunits with three decimal places of precision:
+     * 40% is 40000, 67.932% is 67932 and 100% is 100000.
+     *
+     * Use {@see setConsumptionPercent()} to pass a plain percentage instead.
+     *
+     * Must be 0 when deliveryStatus is not DELIVERED, and must be omitted for
+     * auto-renewable subscriptions.
      */
     public ?int $consumptionPercentage = null;
 
     /**
-     * A value that indicates your preference for how the App Store should proceed
-     * when the customer requests a refund.
+     * Your preferred outcome for the refund request.
      *
-     * Apple-defined values:
-     *   0 - Undeclared (you have no preference)
-     *   1 - No refund
-     *   2 - Grant refund
+     * Prefer a {@see RefundPreference} case. A legacy v1 integer (0-3) is still
+     * accepted and mapped via {@see RefundPreference::fromLegacyValue()}.
      */
-    public ?int $refundPreference = null;
+    public RefundPreference|int|null $refundPreference = null;
 
-    public function __construct(bool $customerConsented, bool $sampleContentProvided)
-    {
+    public function __construct(
+        bool $customerConsented,
+        bool $sampleContentProvided,
+        DeliveryStatus|int|null $deliveryStatus = null,
+    ) {
         $this->customerConsented     = $customerConsented;
         $this->sampleContentProvided = $sampleContentProvided;
+        $this->deliveryStatus        = $deliveryStatus;
+    }
+
+    /**
+     * Set the consumption percentage from a plain percentage (0-100).
+     *
+     * The value is converted to the milliunits Apple expects, so 67.932 becomes 67932.
+     */
+    public function setConsumptionPercent(float $percent): self
+    {
+        if ($percent < 0 || $percent > 100) {
+            throw new \InvalidArgumentException('Consumption percent must be between 0 and 100.');
+        }
+
+        $this->consumptionPercentage = (int) round($percent * 1000);
+
+        return $this;
+    }
+
+    /**
+     * The delivery status as the v2 enum, resolving any legacy integer value.
+     */
+    public function getDeliveryStatus(): ?DeliveryStatus
+    {
+        return is_int($this->deliveryStatus)
+            ? DeliveryStatus::fromLegacyValue($this->deliveryStatus)
+            : $this->deliveryStatus;
+    }
+
+    /**
+     * The refund preference as the v2 enum, resolving any legacy integer value.
+     */
+    public function getRefundPreference(): ?RefundPreference
+    {
+        return is_int($this->refundPreference)
+            ? RefundPreference::fromLegacyValue($this->refundPreference)
+            : $this->refundPreference;
     }
 
     /**
@@ -72,16 +114,18 @@ final class ConsumptionRequest
             'sampleContentProvided' => $this->sampleContentProvided,
         ];
 
-        if ($this->deliveryStatus !== null) {
-            $body['deliveryStatus'] = $this->deliveryStatus;
+        $deliveryStatus = $this->getDeliveryStatus();
+        if ($deliveryStatus !== null) {
+            $body['deliveryStatus'] = $deliveryStatus->value;
         }
 
         if ($this->consumptionPercentage !== null) {
             $body['consumptionPercentage'] = $this->consumptionPercentage;
         }
 
-        if ($this->refundPreference !== null) {
-            $body['refundPreference'] = $this->refundPreference;
+        $refundPreference = $this->getRefundPreference();
+        if ($refundPreference !== null) {
+            $body['refundPreference'] = $refundPreference->value;
         }
 
         return $body;
