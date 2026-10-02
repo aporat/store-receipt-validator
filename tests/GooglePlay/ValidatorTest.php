@@ -19,9 +19,14 @@ use ReceiptValidator\Exceptions\ValidationException;
 use ReceiptValidator\GooglePlay\JWT\CallbackAccessTokenProvider;
 use ReceiptValidator\GooglePlay\JWT\ServiceAccountCredentials;
 use ReceiptValidator\GooglePlay\JWT\ServiceAccountTokenProvider;
+use ReceiptValidator\GooglePlay\APIError;
+use ReceiptValidator\GooglePlay\APIException;
 use ReceiptValidator\GooglePlay\DeferSubscriptionResponse;
+use ReceiptValidator\GooglePlay\Order;
 use ReceiptValidator\GooglePlay\ProductPurchase;
 use ReceiptValidator\GooglePlay\ProductPurchaseV2;
+use ReceiptValidator\GooglePlay\RefundPreference;
+use ReceiptValidator\GooglePlay\ReviewRefundRequest;
 use ReceiptValidator\GooglePlay\RevocationContext;
 use ReceiptValidator\GooglePlay\SubscriptionCancellationType;
 use ReceiptValidator\GooglePlay\SubscriptionPurchase;
@@ -210,6 +215,120 @@ final class ValidatorTest extends TestCase
         );
 
         $this->newValidator($client)->acknowledgeSubscription('app.example.subscription', 'tok');
+    }
+
+    public function testAcknowledgeSubscriptionSendsExternalAccountIds(): void
+    {
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => (string) $r->getBody()
+                === '{"developerPayload":"p","externalAccountIds":{"obfuscatedAccountId":"acc","obfuscatedProfileId":"prof"}}',
+            new GuzzleResponse(200, [], '')
+        );
+
+        $this->newValidator($client)->acknowledgeSubscription('sub', 'tok', 'p', 'acc', 'prof');
+
+        Mockery::close();
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => (string) $r->getBody() === '{"externalAccountIds":{"obfuscatedAccountId":"acc"}}',
+            new GuzzleResponse(200, [], '')
+        );
+
+        $this->newValidator($client)->acknowledgeSubscription('sub', 'tok', null, 'acc', '');
+    }
+
+    public function testGetOrder(): void
+    {
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => $r->getMethod() === 'GET'
+                && (string) $r->getUri() === self::BASE . '/orders/GPA.3333-4444-5555-66666..5',
+            new GuzzleResponse(200, [], $this->fixture('order'))
+        );
+
+        $order = $this->newValidator($client)->getOrder('GPA.3333-4444-5555-66666..5');
+
+        self::assertInstanceOf(Order::class, $order);
+        self::assertTrue($order->isRefunded());
+        self::assertSame(Environment::SANDBOX, $order->getEnvironment());
+    }
+
+    public function testGetOrderRequiresId(): void
+    {
+        $validator = $this->newValidator(Mockery::mock(ClientInterface::class));
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('order ID cannot be empty');
+
+        $validator->getOrder('');
+    }
+
+    public function testGetOrdersRepeatsQueryKeyAndSkipsMalformedEntries(): void
+    {
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => $r->getMethod() === 'GET'
+                && (string) $r->getUri() === self::BASE . '/orders:batchGet?orderIds=GPA.0001&orderIds=GPA.0002&orderIds=GPA.00%2F3',
+            new GuzzleResponse(200, [], $this->fixture('ordersBatch'))
+        );
+
+        $orders = $this->newValidator($client)->getOrders(['GPA.0001', '', 'GPA.0002', 'GPA.00/3']);
+
+        self::assertCount(2, $orders);
+        self::assertSame('GPA.0001', $orders[0]->getOrderId());
+        self::assertTrue($orders[1]->isPending());
+    }
+
+    public function testGetOrdersRejectsEmptyAndOversizedLists(): void
+    {
+        $validator = $this->newValidator(Mockery::mock(ClientInterface::class));
+
+        try {
+            $validator->getOrders(['']);
+            self::fail('Expected exception');
+        } catch (ValidationException $e) {
+            self::assertStringContainsString('between 1 and 1000', $e->getMessage());
+        }
+
+        $this->expectException(ValidationException::class);
+        $validator->getOrders(array_fill(0, 1001, 'GPA.1'));
+    }
+
+    public function testRefundOrderWithAndWithoutRevoke(): void
+    {
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => $r->getMethod() === 'POST'
+                && (string) $r->getUri() === self::BASE . '/orders/GPA.1:refund?revoke=true'
+                && !$r->hasHeader('Content-Type'),
+            new GuzzleResponse(200, [], '')
+        );
+        $this->newValidator($client)->refundOrder('GPA.1', true);
+
+        Mockery::close();
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => (string) $r->getUri() === self::BASE . '/orders/GPA.1:refund',
+            new GuzzleResponse(200, [], '')
+        );
+        $this->newValidator($client)->refundOrder('GPA.1');
+    }
+
+    public function testReviewRefund(): void
+    {
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => $r->getMethod() === 'POST'
+                && (string) $r->getUri() === self::BASE . '/orders/GPA.1:reviewrefund'
+                && (string) $r->getBody() === '{"pendingRefundToken":"prt","refundPreference":"APPROVE"}',
+            new GuzzleResponse(200, [], '')
+        );
+
+        $this->newValidator($client)->reviewRefund('GPA.1', new ReviewRefundRequest('prt', RefundPreference::APPROVE));
+    }
+
+    public function testReviewRefundRequiresToken(): void
+    {
+        $validator = $this->newValidator(Mockery::mock(ClientInterface::class));
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('pending refund token cannot be empty');
+
+        $validator->reviewRefund('GPA.1', new ReviewRefundRequest(''));
     }
 
     public function testAcknowledgeSubscriptionRequiresSubscriptionId(): void
@@ -430,13 +549,46 @@ final class ValidatorTest extends TestCase
             new GuzzleResponse(400, [], $this->fixture('errorResponse'))
         );
 
-        $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(
-            'Google Play API error [400 purchaseTokenDoesNotMatchPackageName]: The purchase token does not belong to this package name.'
-        );
-        $this->expectExceptionCode(400);
+        try {
+            $this->newValidator($client)->getSubscriptionPurchaseV2('tok');
+            self::fail('Expected exception');
+        } catch (APIException $e) {
+            self::assertSame(
+                'Google Play API error [400 purchaseTokenDoesNotMatchPackageName]: The purchase token does not belong to this package name.',
+                $e->getMessage()
+            );
+            self::assertSame(400, $e->getCode());
+            self::assertSame(400, $e->getStatusCode());
+            self::assertSame('purchaseTokenDoesNotMatchPackageName', $e->getReason());
+            self::assertSame(APIError::PURCHASE_TOKEN_DOES_NOT_MATCH_PACKAGE_NAME, $e->getError());
+            self::assertFalse($e->isRetryable());
+        }
+    }
 
-        $this->newValidator($client)->getSubscriptionPurchaseV2('tok');
+    public function testRetryableErrorsAreFlagged(): void
+    {
+        $body   = '{"error":{"code":429,"message":"Slow down","errors":[{"reason":"rateLimitExceeded"}]}}';
+        $client = $this->mockClient(fn (): bool => true, new GuzzleResponse(429, [], $body));
+
+        try {
+            $this->newValidator($client)->getSubscriptionPurchaseV2('tok');
+            self::fail('Expected exception');
+        } catch (APIException $e) {
+            self::assertSame(APIError::RATE_LIMIT_EXCEEDED, $e->getError());
+            self::assertTrue($e->isRetryable());
+        }
+
+        Mockery::close();
+        $client = $this->mockClient(fn (): bool => true, new GuzzleResponse(502, [], ''));
+
+        try {
+            $this->newValidator($client)->getSubscriptionPurchaseV2('tok');
+            self::fail('Expected exception');
+        } catch (APIException $e) {
+            self::assertNull($e->getError());
+            self::assertNull($e->getReason());
+            self::assertTrue($e->isRetryable());
+        }
     }
 
     public function testUnknownReasonUsesGoogleMessage(): void
@@ -444,10 +596,15 @@ final class ValidatorTest extends TestCase
         $body   = '{"error":{"code":410,"message":"Token is gone.","errors":[{"reason":"somethingNew","message":"Detail"}]}}';
         $client = $this->mockClient(fn (): bool => true, new GuzzleResponse(410, [], $body));
 
-        $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('Google Play API error [410 somethingNew]: Token is gone.');
-
-        $this->newValidator($client)->getSubscriptionPurchaseV2('tok');
+        try {
+            $this->newValidator($client)->getSubscriptionPurchaseV2('tok');
+            self::fail('Expected exception');
+        } catch (APIException $e) {
+            self::assertSame('Google Play API error [410 somethingNew]: Token is gone.', $e->getMessage());
+            self::assertSame('somethingNew', $e->getReason());
+            self::assertNull($e->getError());
+            self::assertFalse($e->isRetryable());
+        }
     }
 
     public function testErrorWithoutTopLevelMessageFallsBackToDetail(): void

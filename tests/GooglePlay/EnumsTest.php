@@ -7,18 +7,42 @@ namespace ReceiptValidator\Tests\GooglePlay;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\GooglePlay\AcknowledgementState;
+use ReceiptValidator\GooglePlay\CancelSurveyReason;
+use ReceiptValidator\GooglePlay\ConsentState;
 use ReceiptValidator\GooglePlay\ConsumptionState;
+use ReceiptValidator\GooglePlay\OrderRefundReason;
+use ReceiptValidator\GooglePlay\OrderState;
+use ReceiptValidator\GooglePlay\PriceChangeMode;
+use ReceiptValidator\GooglePlay\PriceChangeState;
 use ReceiptValidator\GooglePlay\ProductPurchaseState;
 use ReceiptValidator\GooglePlay\APIError;
+use ReceiptValidator\GooglePlay\APIException;
 use ReceiptValidator\GooglePlay\OneTimeProductNotificationType;
+use ReceiptValidator\GooglePlay\RefundPreference;
 use ReceiptValidator\GooglePlay\RefundType;
+use ReceiptValidator\GooglePlay\ReplacementMode;
+use ReceiptValidator\GooglePlay\ReviewRefundRequest;
+use ReceiptValidator\GooglePlay\SalesChannel;
 use ReceiptValidator\GooglePlay\RevocationContext;
 use ReceiptValidator\GooglePlay\SubscriptionCancellationType;
 use ReceiptValidator\GooglePlay\SubscriptionNotificationType;
+use ReceiptValidator\GooglePlay\SubscriptionOfferPhase;
 use ReceiptValidator\GooglePlay\SubscriptionState;
 use ReceiptValidator\GooglePlay\VoidedProductType;
 
 #[CoversClass(APIError::class)]
+#[CoversClass(APIException::class)]
+#[CoversClass(CancelSurveyReason::class)]
+#[CoversClass(ConsentState::class)]
+#[CoversClass(OrderRefundReason::class)]
+#[CoversClass(OrderState::class)]
+#[CoversClass(PriceChangeMode::class)]
+#[CoversClass(PriceChangeState::class)]
+#[CoversClass(RefundPreference::class)]
+#[CoversClass(ReplacementMode::class)]
+#[CoversClass(ReviewRefundRequest::class)]
+#[CoversClass(SalesChannel::class)]
+#[CoversClass(SubscriptionOfferPhase::class)]
 #[CoversClass(SubscriptionState::class)]
 #[CoversClass(AcknowledgementState::class)]
 #[CoversClass(ConsumptionState::class)]
@@ -109,6 +133,73 @@ final class EnumsTest extends TestCase
 
         self::assertSame('USER_REQUESTED_STOP_RENEWALS', SubscriptionCancellationType::USER_REQUESTED_STOP_RENEWALS->value);
         self::assertSame('DEVELOPER_REQUESTED_STOP_PAYMENTS', SubscriptionCancellationType::DEVELOPER_REQUESTED_STOP_PAYMENTS->value);
+    }
+
+    public function testStringEnumsFallBackToUnspecified(): void
+    {
+        self::assertSame(CancelSurveyReason::COST_RELATED, CancelSurveyReason::fromString('CANCEL_SURVEY_REASON_COST_RELATED'));
+        self::assertSame(CancelSurveyReason::UNSPECIFIED, CancelSurveyReason::fromString('nope'));
+        self::assertSame(CancelSurveyReason::UNSPECIFIED, CancelSurveyReason::fromString(null));
+        self::assertSame(ConsentState::COMPLETED, ConsentState::fromString('COMPLETED'));
+        self::assertSame(ConsentState::UNSPECIFIED, ConsentState::fromString('x'));
+        self::assertSame(OrderRefundReason::OTHER, OrderRefundReason::fromString('OTHER'));
+        self::assertSame(OrderState::PARTIALLY_REFUNDED, OrderState::fromString('PARTIALLY_REFUNDED'));
+        self::assertSame(OrderState::UNSPECIFIED, OrderState::fromString('x'));
+        self::assertSame(PriceChangeMode::OPT_OUT_PRICE_INCREASE, PriceChangeMode::fromString('OPT_OUT_PRICE_INCREASE'));
+        self::assertSame(PriceChangeState::APPLIED, PriceChangeState::fromString('APPLIED'));
+        self::assertSame(ReplacementMode::KEEP_EXISTING, ReplacementMode::fromString('KEEP_EXISTING'));
+        self::assertSame(SalesChannel::OUTSIDE_PLAY_STORE, SalesChannel::fromString('OUTSIDE_PLAY_STORE'));
+        self::assertSame(SubscriptionOfferPhase::BASE_PRICE, SubscriptionOfferPhase::fromString('BASE_PRICE'));
+        self::assertSame(SubscriptionOfferPhase::UNSPECIFIED, SubscriptionOfferPhase::fromString(null));
+    }
+
+    public function testApiExceptionExposesStructuredError(): void
+    {
+        $known = new APIException('msg', 429, 'rateLimitExceeded', APIError::RATE_LIMIT_EXCEEDED);
+        self::assertSame(429, $known->getStatusCode());
+        self::assertSame(429, $known->getCode());
+        self::assertSame('rateLimitExceeded', $known->getReason());
+        self::assertSame(APIError::RATE_LIMIT_EXCEEDED, $known->getError());
+        self::assertTrue($known->isRetryable());
+
+        $knownFatal = new APIException('msg', 400, 'invalid', APIError::INVALID);
+        self::assertFalse($knownFatal->isRetryable());
+
+        $unknown429 = new APIException('msg', 429, 'somethingNew');
+        self::assertNull($unknown429->getError());
+        self::assertSame('somethingNew', $unknown429->getReason());
+        self::assertTrue($unknown429->isRetryable());
+
+        self::assertTrue((new APIException('msg', 503))->isRetryable());
+        self::assertFalse((new APIException('msg', 404))->isRetryable());
+        self::assertFalse((new APIException('msg', 400, 'somethingNew'))->isRetryable());
+    }
+
+    public function testReviewRefundRequestBodies(): void
+    {
+        $minimal = new ReviewRefundRequest('prt-1');
+        self::assertSame(
+            '{"pendingRefundToken":"prt-1","refundPreference":"NEUTRAL"}',
+            json_encode($minimal->toArray())
+        );
+
+        $full = (new ReviewRefundRequest(
+            'prt-2',
+            RefundPreference::DECLINE,
+            sampleContentProvided: true,
+            consumptionUsageEvents: [['obfuscatedAccountId' => 'acc', 'consumptionTime' => '2026-09-01T00:00:00Z']],
+        ))->withConsumptionPercent(87.5);
+
+        self::assertSame(87500, $full->consumptionPercentageMilliunits);
+        self::assertSame(
+            '{"pendingRefundToken":"prt-2","refundPreference":"DECLINE","sampleContentProvided":true,'
+            . '"consumptionPercentageMilliunits":87500,'
+            . '"consumptionUsageEvents":[{"obfuscatedAccountId":"acc","consumptionTime":"2026-09-01T00:00:00Z"}]}',
+            json_encode($full->toArray())
+        );
+
+        self::assertSame(100000, (new ReviewRefundRequest('p'))->withConsumptionPercent(250)->consumptionPercentageMilliunits);
+        self::assertSame(0, (new ReviewRefundRequest('p'))->withConsumptionPercent(-5)->consumptionPercentageMilliunits);
     }
 
     public function testRevocationContextBodies(): void

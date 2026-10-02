@@ -61,19 +61,23 @@ final class SubscriptionPurchase extends AbstractResponse
     /** For paused subscriptions, when Play will automatically resume it. */
     public readonly ?CarbonImmutable $autoResumeTime;
 
-    /**
-     * Cancellation details when the state is CANCELED (raw `canceledStateContext`).
-     *
-     * @var array<string, mixed>|null
-     */
-    public readonly ?array $canceledStateContext;
+    /** Cancellation details when the state is CANCELED. */
+    public readonly ?CanceledStateContext $canceledStateContext;
+
+    /** Subscriber details for Subscribe with Google purchases. */
+    public readonly ?SubscribeWithGoogleInfo $subscribeWithGoogleInfo;
 
     /**
-     * Subscriber details for Subscribe with Google purchases (raw `subscribeWithGoogleInfo`).
-     *
-     * @var array<string, mixed>|null
+     * For ON_HOLD and IN_GRACE_PERIOD, the order ID of the renewal whose payment was
+     * declined, when Google reports one.
      */
-    public readonly ?array $subscribeWithGoogleInfo;
+    public readonly ?string $renewalDeclinedOrderId;
+
+    /**
+     * For purchases made outside the app that replaced an earlier one, the purchase
+     * token that expired as a result.
+     */
+    public readonly ?string $outOfAppExpiredPurchaseToken;
 
     /**
      * @param array<string, mixed> $data The decoded `SubscriptionPurchaseV2` JSON.
@@ -102,8 +106,20 @@ final class SubscriptionPurchase extends AbstractResponse
         $paused               = is_array($data['pausedStateContext'] ?? null) ? $data['pausedStateContext'] : [];
         $this->autoResumeTime = $this->toDateFromRfc3339($paused, 'autoResumeTime');
 
-        $this->canceledStateContext    = is_array($data['canceledStateContext'] ?? null) ? $data['canceledStateContext'] : null;
-        $this->subscribeWithGoogleInfo = is_array($data['subscribeWithGoogleInfo'] ?? null) ? $data['subscribeWithGoogleInfo'] : null;
+        $canceled                   = is_array($data['canceledStateContext'] ?? null) ? $data['canceledStateContext'] : null;
+        $this->canceledStateContext = $canceled !== null ? new CanceledStateContext($canceled) : null;
+
+        $swg                           = is_array($data['subscribeWithGoogleInfo'] ?? null) ? $data['subscribeWithGoogleInfo'] : null;
+        $this->subscribeWithGoogleInfo = $swg !== null ? new SubscribeWithGoogleInfo($swg) : null;
+
+        $onHold   = is_array($data['onHoldStateContext'] ?? null) ? $data['onHoldStateContext'] : [];
+        $grace    = is_array($data['inGracePeriodStateContext'] ?? null) ? $data['inGracePeriodStateContext'] : [];
+        $declined = is_array($onHold['renewalDeclined'] ?? null) ? $onHold['renewalDeclined']
+            : (is_array($grace['renewalDeclined'] ?? null) ? $grace['renewalDeclined'] : []);
+        $this->renewalDeclinedOrderId = $this->toString($declined, 'pendingOrderId');
+
+        $outOfApp                           = is_array($data['outOfAppPurchaseContext'] ?? null) ? $data['outOfAppPurchaseContext'] : [];
+        $this->outOfAppExpiredPurchaseToken = $this->toString($outOfApp, 'expiredPurchaseToken');
 
         $items = [];
         foreach (is_array($data['lineItems'] ?? null) ? $data['lineItems'] : [] as $item) {
@@ -184,16 +200,44 @@ final class SubscriptionPurchase extends AbstractResponse
         return $this->autoResumeTime;
     }
 
-    /** @return array<string, mixed>|null */
-    public function getCanceledStateContext(): ?array
+    public function getCanceledStateContext(): ?CanceledStateContext
     {
         return $this->canceledStateContext;
     }
 
-    /** @return array<string, mixed>|null */
-    public function getSubscribeWithGoogleInfo(): ?array
+    public function getSubscribeWithGoogleInfo(): ?SubscribeWithGoogleInfo
     {
         return $this->subscribeWithGoogleInfo;
+    }
+
+    public function getRenewalDeclinedOrderId(): ?string
+    {
+        return $this->renewalDeclinedOrderId;
+    }
+
+    /** True when the subscription is on hold or in grace because a renewal payment was declined. */
+    public function isRenewalDeclined(): bool
+    {
+        return $this->renewalDeclinedOrderId !== null;
+    }
+
+    public function getOutOfAppExpiredPurchaseToken(): ?string
+    {
+        return $this->outOfAppExpiredPurchaseToken;
+    }
+
+    /**
+     * Whether any line item is in a free trial.
+     */
+    public function isInFreeTrial(): bool
+    {
+        foreach ($this->getTransactions() as $item) {
+            if ($item->isInFreeTrial()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

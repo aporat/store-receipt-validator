@@ -77,8 +77,39 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 - `SubscriptionPurchase::getEtag()`, needed by `deferSubscription()`.
 - `ProductPurchaseState::fromV2String()` and `ConsumptionState::fromV2String()` map the string
   enums used by `purchases.productsv2` onto the existing integer-backed cases.
+- `GooglePlay\Validator::getOrder()`, `getOrders()` (up to 1000 IDs, sent as repeated `orderIds`
+  query parameters), `refundOrder()` (with the `revoke` flag Google recommends for failed
+  validations) and `reviewRefund()` for the `orders` resource. `Order` exposes state, sales channel,
+  totals, tax, buyer address, developer revenue, processed/cancellation/refund events with reason and
+  amounts, partial refunds, Play Points, and one `OrderLineItem` per product with listing price,
+  totals, offer, purchase option, base plan, offer phase and service period.
+- `ReviewRefundRequest` and `RefundPreference` for answering a chargeback review, with
+  `withConsumptionPercent()` to convert a plain percentage to milliunits.
+- `GooglePlay\APIException` (extends `ValidationException`) is thrown for non-2xx responses and
+  carries `getStatusCode()`, `getReason()`, `getError()` and `isRetryable()`.
+- `GooglePlay\Money` value object with `getAmount()`, `getAmountMicros()`, `toDecimalString()`,
+  `isZero()` and `toArray()`.
+- `SubscriptionLineItem` reads the rest of the documented schema: `getOfferPhase()` with
+  `isInFreeTrial()` / `isInIntroductoryPrice()`, `getProrationOriginalOfferPhase()`,
+  `getSignupPromotionType()` / `getPromotionCode()`, `getItemReplacement()`,
+  `hasDeferredItemRemoval()`, `getInstallmentPlan()` and `getPriceStepUpConsentDetails()`, with
+  `SubscriptionOfferPhase`, `SignupPromotionType`, `ReplacementMode`, `ConsentState`,
+  `PriceChangeMode` and `PriceChangeState` enums and `ItemReplacement`, `InstallmentPlan`,
+  `PriceStepUpConsentDetails` and `PriceChangeDetails` value objects.
+- `SubscriptionPurchase::getRenewalDeclinedOrderId()` / `isRenewalDeclined()` (from the on-hold
+  and grace-period contexts), `getOutOfAppExpiredPurchaseToken()` and `isInFreeTrial()`.
+- `CanceledStateContext` with `CancellationSource` and `CancelSurveyReason` enums, and
+  `SubscribeWithGoogleInfo`, replacing the raw arrays.
+- `acknowledgeSubscription()` accepts optional obfuscated account and profile IDs, sent as
+  `externalAccountIds`.
 
 ### Changed
+- Google Play `SubscriptionLineItem::getRecurringPrice()` and `PriceChangeDetails::getNewPrice()`
+  return `Money` instead of a raw array, `getPriceChangeDetails()` returns `PriceChangeDetails`, and
+  `SubscriptionPurchase::getCanceledStateContext()` / `getSubscribeWithGoogleInfo()` return typed
+  objects instead of raw arrays. The raw payload is still available via `getRawData()`.
+- Google Play non-2xx responses throw `GooglePlay\APIException`; it extends `ValidationException`,
+  so existing catch blocks are unaffected.
 - App Store Server API requests go to Apple's documented hosts, `api.storekit.apple.com` and
   `api.storekit-sandbox.apple.com`, instead of the legacy `*.itunes.apple.com` names. **Add the new
   hosts to any egress allowlist before upgrading**
@@ -116,6 +147,8 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
   secret as a path segment.
 
 ### Fixed
+- Google Play test fixture used an undocumented `CANCEL_SURVEY_REASON_TOO_EXPENSIVE`; the documented
+  value is `CANCEL_SURVEY_REASON_COST_RELATED`.
 - Google Play `ServerNotification` rejected `pendingRefundReviewNotification` pushes with a
   "does not contain a recognised payload" exception, which left Pub/Sub retrying them.
 - Google Play `acknowledgeSubscription()` and `acknowledgeProduct()` sent `[]` as the request body

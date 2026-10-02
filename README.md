@@ -298,12 +298,30 @@ foreach ($purchase->getLineItems() as $item) {
 
 > ℹ️ Google has no sandbox endpoint. Licence-tester purchases come back from the production API with a `testPurchase` marker, which the response exposes as `isTestPurchase()` and `Environment::SANDBOX`.
 
+Non-2xx responses throw `GooglePlay\APIException` (a `ValidationException`) carrying the HTTP status, Google's `reason` string and the matching `APIError`, so you can retry or branch without parsing the message:
+
+```php
+use ReceiptValidator\GooglePlay\APIError;
+use ReceiptValidator\GooglePlay\APIException;
+
+try {
+    $purchase = $validator->getSubscriptionPurchaseV2($purchaseToken);
+} catch (APIException $e) {
+    if ($e->isRetryable()) {            // 429, 5xx, quota or backend errors
+        // schedule a retry
+    } elseif ($e->getError() === APIError::PURCHASE_TOKEN_NO_LONGER_VALID) {
+        // the token was superseded; drop it
+    }
+}
+```
+
 #### Other Google Play endpoints
 
 | Area | Methods |
 |---|---|
 | Subscriptions | `getSubscriptionPurchaseV2()`, `acknowledgeSubscription()`, `cancelSubscription()`, `deferSubscription()`, `revokeSubscription()` |
 | One-time products | `getProductPurchaseV2()`, `getProductPurchase()`, `acknowledgeProduct()`, `consumeProduct()` |
+| Orders | `getOrder()`, `getOrders()`, `refundOrder()`, `reviewRefund()` |
 | Refunds | `getVoidedPurchases()` |
 
 ```php
@@ -330,6 +348,17 @@ echo 'New expiry: ' . $deferred->getExpiryTime()?->toIso8601String() . PHP_EOL;
 
 // End access now and refund the unused part of the period
 $validator->revokeSubscription($purchaseToken, RevocationContext::proratedRefund());
+
+// Orders are the financial record: what was charged, tax, buyer country, service period, refund state
+$order = $validator->getOrder($purchase->getLatestLineItem()?->getLatestSuccessfulOrderId());
+echo 'Charged: ' . $order->getTotal() . ' (tax ' . $order->getTax() . ')' . PHP_EOL; // "10.89 USD (tax 0.9 USD)"
+echo 'Period: ' . $order->getLineItems()[0]->getServicePeriodEndTime()?->toDateString() . PHP_EOL;
+if ($order->isRefunded() && $order->isChargeback()) {
+    // remove access
+}
+
+// Google's recommendation when a purchase fails your own validation: refund and revoke
+$validator->refundOrder($order->getOrderId(), revoke: true);
 
 $voided = $validator->getVoidedPurchases(new VoidedPurchasesParams(type: VoidedPurchaseType::INCLUDE_SUBSCRIPTIONS));
 foreach ($voided->getVoidedPurchases() as $refund) {
@@ -527,6 +556,8 @@ Unlike Apple's notifications, the payload is **not signed and carries no purchas
 
 ```php
 use ReceiptValidator\Exceptions\ValidationException;
+use ReceiptValidator\GooglePlay\RefundPreference;
+use ReceiptValidator\GooglePlay\ReviewRefundRequest;
 use ReceiptValidator\GooglePlay\ServerNotification;
 use ReceiptValidator\GooglePlay\SubscriptionNotificationType;
 
@@ -558,8 +589,12 @@ public function googlePlay(Request $request): JsonResponse {
     }
 
     if ($review = $notification->getPendingRefundReviewNotification()) {
-        // A chargeback awaiting your decision; answer via orders.reviewrefund with the token.
-        echo 'Chargeback on order ' . $review->getOrderId() . ': ' . $review->getPendingRefundToken() . PHP_EOL;
+        // A chargeback awaiting your decision. Tell Google whether to approve it.
+        $validator->reviewRefund($review->getOrderId(), new ReviewRefundRequest(
+            $review->getPendingRefundToken(),
+            RefundPreference::DECLINE,
+            sampleContentProvided: true,
+        )->withConsumptionPercent(80));
     }
 
     return response()->json(['status' => 'handled']);

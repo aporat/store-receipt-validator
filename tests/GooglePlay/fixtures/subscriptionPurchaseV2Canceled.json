@@ -37,7 +37,7 @@
   "linkedPurchaseToken": "older-token",
   "canceledStateContext": {
     "userInitiatedCancellation": {
-      "cancelSurveyResult": {"reason": "CANCEL_SURVEY_REASON_TOO_EXPENSIVE"},
+      "cancelSurveyResult": {"reason": "CANCEL_SURVEY_REASON_COST_RELATED"},
       "cancelTime": "2026-09-01T10:00:00Z"
     }
   },
