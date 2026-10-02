@@ -15,13 +15,14 @@ concurrency:
 
 jobs:
     test:
-        name: PHP ${{ matrix.php }} on ${{ matrix.os }}
+        name: PHP ${{ matrix.php }} / phpseclib ${{ matrix.phpseclib }} on ${{ matrix.os }}
         runs-on: ${{ matrix.os }}
         strategy:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
                 php: ['8.4', '8.5']
+                phpseclib: ['^3.0', '^4.0']
 
         steps:
             - name: Checkout code
@@ -50,6 +51,9 @@ jobs:
 
             - name: Install dependencies
               uses: ramsey/composer-install@v4
+
+            - name: Pin phpseclib major
+              run: composer update phpseclib/phpseclib --with phpseclib/phpseclib:${{ matrix.phpseclib }} --no-interaction
 
             - name: Run tests
               run: composer test

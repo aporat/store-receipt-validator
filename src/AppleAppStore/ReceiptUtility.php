@@ -4,26 +4,37 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\AppleAppStore;
 
-use phpseclib3\File\ASN1;
+use ReceiptValidator\AppleAppStore\Asn1\AttributeSetDecoder;
+use ReceiptValidator\AppleAppStore\Asn1\Phpseclib3AttributeSetDecoder;
+use ReceiptValidator\AppleAppStore\Asn1\Phpseclib4AttributeSetDecoder;
 use ValueError;
 
 /**
  * Low-level helpers to pull transaction identifiers out of Apple receipts.
  * No signature or PKI validation is performed here.
+ *
+ * Works with phpseclib 3 or 4; the matching decoder is picked at runtime.
  */
 final class ReceiptUtility
 {
-    /** PKCS #7: signedData OID */
-    private const string PKCS7_OID = '1.2.840.113549.1.7.2';
-
     /** Receipt attribute: in-app array */
     private const int IN_APP_ARRAY_TYPE = 17;
 
     /** In-app attribute: transaction identifier */
     private const int TRANSACTION_IDENTIFIER_TYPE = 1703;
 
+    private static ?AttributeSetDecoder $decoder = null;
+
     private function __construct()
     {
+    }
+
+    /**
+     * Override the ASN.1 decoder (mainly for tests). Pass null to restore auto-detection.
+     */
+    public static function setDecoder(?AttributeSetDecoder $decoder): void
+    {
+        self::$decoder = $decoder;
     }
 
     /**
@@ -38,13 +49,8 @@ final class ReceiptUtility
             throw new ValueError('Failed to Base64-decode the app receipt.');
         }
 
-        $attributes = self::getReceiptAttributeSet($decoded);
-
-        foreach ($attributes as $attr) {
-            $type  = $attr['content'][0]['content'] ?? null;
-            $value = $attr['content'][2]['content'] ?? null;
-
-            if ((string) $type === (string) self::IN_APP_ARRAY_TYPE && is_string($value)) {
+        foreach (self::decoder()->decodePkcs7Receipt($decoded) as [$type, $value]) {
+            if ($type === (string) self::IN_APP_ARRAY_TYPE) {
                 return self::findTransactionIdInInAppPurchaseSet($value);
             }
         }
@@ -79,51 +85,47 @@ final class ReceiptUtility
         return $txm[1];
     }
 
-    /**
-     * Decode outer PKCS#7 and return the set of receipt attributes.
-     *
-     * @return array<int, mixed>
-     * @throws ValueError
-     */
-    private static function getReceiptAttributeSet(string $der): array
-    {
-        $root = ASN1::decodeBER($der);
-        $sequence = $root[0]['content'] ?? null;
-
-        // Guard the OID node
-        $oid = $sequence[0]['content'] ?? null;
-        if ($oid !== self::PKCS7_OID) {
-            throw new ValueError('Receipt is not a valid PKCS #7 container.');
-        }
-
-        // Walk down to the encapsulated receipt (as BER) and decode it
-        $data = $sequence[1]['content'][0]['content'][2]['content'][1]['content'][0]['content'] ?? null;
-        if (!is_string($data)) {
-            throw new ValueError('Could not find the receipt attribute set in the payload.');
-        }
-
-        $decodedSet = ASN1::decodeBER($data);
-        $attrs = $decodedSet[0]['content'] ?? null;
-
-        return is_array($attrs) ? $attrs : [];
-    }
-
     private static function findTransactionIdInInAppPurchaseSet(string $inAppPurchaseData): ?string
     {
-        $inAppDecoded = ASN1::decodeBER($inAppPurchaseData);
-        $inAppSet = $inAppDecoded[0]['content'] ?? [];
+        $decoder = self::decoder();
 
-        foreach ($inAppSet as $item) {
-            $type  = $item['content'][0]['content'] ?? null;
-            $value = $item['content'][2]['content'] ?? null;
+        try {
+            $inAppSet = $decoder->decodeAttributeSet($inAppPurchaseData);
+        } catch (ValueError) {
+            return null;
+        }
 
-            if ((string) $type === (string) self::TRANSACTION_IDENTIFIER_TYPE && is_string($value)) {
-                $final = ASN1::decodeBER($value);
-                $content = $final[0]['content'] ?? null;
-                return is_scalar($content) ? (string) $content : null;
+        foreach ($inAppSet as [$type, $value]) {
+            if ($type !== (string) self::TRANSACTION_IDENTIFIER_TYPE) {
+                continue;
+            }
+
+            try {
+                return $decoder->decodeScalar($value);
+            } catch (ValueError) {
+                return null;
             }
         }
 
         return null;
+    }
+
+    private static function decoder(): AttributeSetDecoder
+    {
+        return self::$decoder ??= self::detectDecoder();
+    }
+
+    private static function detectDecoder(): AttributeSetDecoder
+    {
+        // Class names are strings so static analysis doesn't require both phpseclib majors to be installed.
+        if (class_exists('phpseclib4\File\ASN1')) {
+            return new Phpseclib4AttributeSetDecoder();
+        }
+
+        if (class_exists('phpseclib3\File\ASN1')) {
+            return new Phpseclib3AttributeSetDecoder();
+        }
+
+        throw new ValueError('phpseclib/phpseclib ^3.0 or ^4.0 is required to parse app receipts.');
     }
 }
