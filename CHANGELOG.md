@@ -135,25 +135,26 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 - Google Play non-2xx responses throw `GooglePlay\APIException`; it extends `ValidationException`,
   so existing catch blocks are unaffected
   ([#248](https://github.com/aporat/store-receipt-validator/pull/248)).
-- App Store Server API requests go to Apple's documented hosts, `api.storekit.apple.com` and
-  `api.storekit-sandbox.apple.com`, instead of the legacy `*.itunes.apple.com` names. **Add the new
-  hosts to any egress allowlist before upgrading**
+- **Breaking:** App Store Server API requests go to Apple's documented hosts,
+  `api.storekit.apple.com` and `api.storekit-sandbox.apple.com`, instead of the legacy
+  `*.itunes.apple.com` names. Add the new hosts to any egress allowlist before upgrading
   ([#242](https://github.com/aporat/store-receipt-validator/pull/242)).
-- `sendConsumptionInformation()` targets the v2 endpoint (`/inApps/v2/transactions/consumption`)
-  again, as it did in 9.0.0 before 10.0.0 reverted it to v1, aligning with App Store Server API 1.19
-  and Apple's official libraries. `ConsumptionRequest` is the v2 model: `deliveryStatus` and
-  `refundPreference` take the new enums, and legacy v1 integers are still accepted and mapped.
-  `deliveryStatus` is required by v2, so a request without one now throws before any HTTP call. Pass
-  a `ConsumptionRequestV1` to keep using the v1 endpoint
+- **Breaking:** `sendConsumptionInformation()` targets the v2 endpoint
+  (`/inApps/v2/transactions/consumption`) again, as it did in 9.0.0 before 10.0.0 reverted it to
+  v1, aligning with App Store Server API 1.19 and Apple's official libraries. `ConsumptionRequest`
+  is the v2 model: `deliveryStatus` and `refundPreference` take the new enums, and legacy v1
+  integers are still accepted and mapped. `deliveryStatus` is required by v2, so a request without
+  one now throws before any HTTP call. Pass a `ConsumptionRequestV1` to keep using the v1 endpoint
   ([#236](https://github.com/aporat/store-receipt-validator/pull/236)).
 - `ServerNotification` reads the bundle ID, environment and app Apple ID from whichever payload
   section Apple populated (`data`, `summary`, `appData` or `externalPurchaseToken`). Summary and
   external purchase notifications previously reported an empty bundle ID and defaulted to sandbox. A
   notification with no environment now throws instead of being treated as sandbox
   ([#239](https://github.com/aporat/store-receipt-validator/pull/239)).
-- `TokenVerifier` now requires the App Store signing marker on the leaf certificate, the WWDR marker
-  on the intermediate, an `x5c` chain of exactly three certificates, and every certificate to be
-  valid at the payload's `signedDate`
+- **Breaking:** `TokenVerifier` now requires the App Store signing marker on the leaf certificate,
+  the WWDR marker on the intermediate, an `x5c` chain of exactly three certificates, and every
+  certificate to be valid at the payload's `signedDate`. Payloads signed with a chain that does not
+  match Apple's, including hand-rolled test chains, are rejected
   ([#230](https://github.com/aporat/store-receipt-validator/pull/230)).
 - `phpseclib/phpseclib` constraint is `^3.0 || ^4.0`. `ReceiptUtility` selects the matching ASN.1
   decoder at runtime ([#234](https://github.com/aporat/store-receipt-validator/pull/234), fixes
