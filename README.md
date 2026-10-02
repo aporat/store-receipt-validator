@@ -346,34 +346,55 @@ $validator->setAccessTokenProvider(
 ### 🛒 Amazon Appstore
 
 ```php
-use ReceiptValidator\Amazon\Validator;
+use ReceiptValidator\Amazon\APIError;
+use ReceiptValidator\Amazon\Validator as AmazonValidator;
+use ReceiptValidator\Environment;
+use ReceiptValidator\Exceptions\ValidationException;
 
-$validator = new Validator();
+// The shared secret from the Developer Console's Shared Key page.
+$validator = new AmazonValidator('SHARED_SECRET', Environment::PRODUCTION);
 
 try {
-    $response = $validator
-        ->setDeveloperSecret('SECRET')
-        ->setReceiptId('RECEIPT_ID')
-        ->setUserId('USER_ID')
-        ->validate();
-} catch (Exception $e) {
-    echo 'Error: ' . $e->getMessage() . PHP_EOL;
-    echo $e->getTraceAsString() . PHP_EOL;
-    exit;
+    // receiptId from PurchaseResponse.getReceipt().getReceiptId(),
+    // userId from PurchaseResponse.getUserData().getUserId()
+    $response = $validator->validate($receiptId, $userId);
+} catch (ValidationException $e) {
+    $error = APIError::fromException($e); // null for connection failures
+
+    if ($error?->isCanceledReceipt()) {
+        // HTTP 410: the receipt was valid once. Revoke what it granted.
+    } elseif ($error?->isRetryable()) {
+        // HTTP 429 or 500: back off and try again later.
+    }
+
+    echo 'Validation failed: ' . $e->getMessage() . PHP_EOL;
+    exit(1);
 }
 
-echo 'Receipt is valid.' . PHP_EOL;
+echo 'Product: ' . $response->getProductId() . PHP_EOL;
+echo 'Type: ' . $response->getProductType()?->name . PHP_EOL; // CONSUMABLE, ENTITLED or SUBSCRIPTION
+echo 'Entitled: ' . ($response->isEntitled() ? 'yes' : 'no') . PHP_EOL;
+echo 'Expires: ' . $response->getExpiresAt()?->toIso8601String() . PHP_EOL; // subscriptions only
+echo 'Country: ' . $response->getCountryCode() . PHP_EOL;
 
-foreach ($response->getTransactions() as $transaction) {
-    echo 'Product ID: ' . $transaction->getProductId() . PHP_EOL;
+$transaction = $response->getTransaction();
 
-    if ($transaction->getPurchaseDate() !== null) {
-        echo 'Purchase Date: ' . $transaction->getPurchaseDate()->toIso8601String() . PHP_EOL;
+if ($transaction?->isSubscription()) {
+    echo 'Auto-renewing: ' . ($transaction->isAutoRenewing() ? 'yes' : 'no') . PHP_EOL;
+    echo 'Free trial: ' . ($transaction->isInFreeTrial() ? 'yes' : 'no') . PHP_EOL;
+    echo 'Grace period: ' . ($transaction->isInGracePeriod() ? 'yes' : 'no') . PHP_EOL;
+    echo 'Quick Subscribe: ' . ($transaction->isQuickSubscribe() ? 'yes' : 'no') . PHP_EOL;
+    echo 'Cancel reason: ' . $transaction->getCancelReason()?->name . PHP_EOL;
+
+    foreach ($transaction->getPromotions() as $promotion) {
+        echo 'Promotion: ' . $promotion->getType()?->name . ' (' . $promotion->getStatus()?->name . ')' . PHP_EOL;
     }
 }
 ```
 
----
+A rejected receipt throws a `ValidationException` whose code is the HTTP status Amazon returned, and `APIError` maps the documented ones: `400` invalid receipt, `410` receipt no longer valid, `429` throttled, `496` invalid shared secret, `497` invalid user ID and `500` internal error.
+
+> ℹ️ The RVS sandbox (`Environment::SANDBOX`) accepts any non-empty shared secret and appends `_term` to `termSku`, which production does not. Test receipts come from Amazon's App Tester and carry `testTransaction: true`.
 
 ## 📋 Logging
 

@@ -4,66 +4,86 @@ declare(strict_types=1);
 
 namespace ReceiptValidator\Amazon;
 
+use ReceiptValidator\Exceptions\ValidationException;
+
 /**
- * Represents error responses from the Amazon RVS (Receipt Verification Service).
+ * Outcomes of a Receipt Verification Service (RVS) request, keyed by HTTP status code.
  *
- * This enum provides a type-safe way to handle specific error codes returned
- * by the Amazon API, encapsulating the error code, its string value, and a
- * human-readable message.
+ * Amazon signals the result of a verification purely through the status code; the
+ * response body of an error is not documented. The status code is also the code of the
+ * {@see ValidationException} the validator throws, so a caller can recover the case with
+ * {@see APIError::fromException()}.
  *
- * @see https://developer.amazon.com/docs/in-app-purchasing/iap-rvs-for-android-apps.html#error-response
+ * @see https://developer.amazon.com/docs/in-app-purchasing/iap-rvs-for-android-apps.html#response-codes
  */
-enum APIError: string
+enum APIError: int
 {
-    /**
-     * The receipt ID provided in the request is not valid.
-     */
-    case INVALID_RECEIPT_ID = 'InvalidReceiptId';
+    /** The receipt ID is invalid, or no transaction exists for it. */
+    case INVALID_RECEIPT = 400;
 
     /**
-     * The user ID provided in the request is not valid.
+     * The transaction represented by the receipt ID is no longer valid. Amazon says to
+     * treat it as a cancelled receipt: revoke the content it granted.
      */
-    case INVALID_USER_ID = 'InvalidUserId';
+    case RECEIPT_NO_LONGER_VALID = 410;
 
-    /**
-     * The developer secret provided in the request is not valid.
-     */
-    case INVALID_DEVELOPER_SECRET = 'InvalidDeveloperSecret';
+    /** The request was throttled. Reduce the calling rate and retry later. */
+    case THROTTLED = 429;
 
-    /**
-     * The request body was malformed or was not valid JSON.
-     */
-    case INVALID_JSON = 'InvalidJson';
+    /** The shared secret does not match the developer account. */
+    case INVALID_SHARED_SECRET = 496;
 
-    /**
-     * An unknown or internal error occurred on Amazon’s server.
-     */
-    case INTERNAL_ERROR = 'InternalError';
+    /** The user ID is not valid for this receipt. */
+    case INVALID_USER_ID = 497;
+
+    /** Amazon's server failed to process the request. */
+    case INTERNAL_ERROR = 500;
 
     /**
      * Returns a human-readable description for the error case.
-     *
-     * @return string
      */
     public function message(): string
     {
         return match ($this) {
-            self::INVALID_RECEIPT_ID       => 'The receipt ID is not valid.',
-            self::INVALID_USER_ID          => 'The user ID is not valid.',
-            self::INVALID_DEVELOPER_SECRET => 'The developer secret is not valid.',
-            self::INVALID_JSON             => 'The request JSON was malformed.',
-            self::INTERNAL_ERROR           => 'An unknown error occurred on the Amazon server.',
+            self::INVALID_RECEIPT         => 'The receipt ID is invalid or no transaction was found for it.',
+            self::RECEIPT_NO_LONGER_VALID => 'The receipt is no longer valid and should be treated as canceled.',
+            self::THROTTLED               => 'The request was throttled; reduce the calling rate and retry later.',
+            self::INVALID_SHARED_SECRET   => 'The shared secret is not valid.',
+            self::INVALID_USER_ID         => 'The user ID is not valid.',
+            self::INTERNAL_ERROR          => 'An internal error occurred on the Amazon server.',
         };
     }
 
     /**
-     * Safely creates an APIError case from a string, or null if unknown.
+     * Whether Amazon says the receipt should be treated as cancelled.
      *
-     * @param string $value
-     * @return self|null
+     * The receipt was once valid, so the caller should revoke whatever it granted rather
+     * than treat the failure as a bad request.
      */
-    public static function fromString(string $value): ?self
+    public function isCanceledReceipt(): bool
     {
-        return self::tryFrom($value);
+        return $this === self::RECEIPT_NO_LONGER_VALID;
+    }
+
+    /**
+     * Whether the same request may succeed if retried after a delay.
+     */
+    public function isRetryable(): bool
+    {
+        return match ($this) {
+            self::THROTTLED, self::INTERNAL_ERROR => true,
+            default                               => false,
+        };
+    }
+
+    /**
+     * Recovers the error case from a {@see ValidationException} thrown by the validator.
+     *
+     * Returns null for exceptions that did not originate from an RVS status code, such as
+     * a connection failure or a missing parameter.
+     */
+    public static function fromException(ValidationException $exception): ?self
+    {
+        return self::tryFrom($exception->getCode());
     }
 }

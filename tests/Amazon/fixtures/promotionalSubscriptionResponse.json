@@ -1,0 +1,29 @@
+{
+  "autoRenewing": true,
+  "baseReceipts": null,
+  "betaProduct": false,
+  "cancelDate": null,
+  "cancelReason": null,
+  "countryCode": "US",
+  "deferredDate": null,
+  "deferredSku": null,
+  "freeTrialEndDate": 1651730558000,
+  "fulfillmentDate": null,
+  "fulfillmentResult": null,
+  "gracePeriodEndDate": 1606985788979,
+  "parentProductId": null,
+  "productId": "1yearOTCharge",
+  "productType": "SUBSCRIPTION",
+  "promotions": [
+    {
+      "promotionStatus": "Queued",
+      "promotionType": "Introductory Price - All Customers"
+    }
+  ],
+  "purchaseDate": 1651644158000,
+  "receiptId": "IhE6m0uPLZ3dPz1WkGU5Ah6dmoDzJSLP3ed82jkxn2Y=:3:11",
+  "renewalDate": 1651730558000,
+  "term": "1 Week",
+  "termSku": "1yearOnetimechargeterm",
+  "testTransaction": false
+}
