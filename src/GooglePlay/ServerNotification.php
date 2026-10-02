@@ -23,8 +23,8 @@ use ReceiptValidator\Support\ValueCasting;
  * from the Android Publisher API before granting or removing entitlement. Verify
  * the Pub/Sub push itself (OIDC bearer token) at the HTTP layer.
  *
- * Exactly one of the four payloads (subscription, one-time product, voided
- * purchase, test) is present on any given notification.
+ * Exactly one of the five payloads (subscription, one-time product, voided
+ * purchase, pending refund review, test) is present on any given notification.
  *
  * @see https://developer.android.com/google/play/billing/rtdn-reference
  */
@@ -46,6 +46,8 @@ final class ServerNotification
     protected ?OneTimeProductNotification $oneTimeProductNotification = null;
 
     protected ?VoidedPurchaseNotification $voidedPurchaseNotification = null;
+
+    protected ?PendingRefundReviewNotification $pendingRefundReviewNotification = null;
 
     protected bool $testNotification = false;
 
@@ -82,12 +84,17 @@ final class ServerNotification
             $this->voidedPurchaseNotification = new VoidedPurchaseNotification($data['voidedPurchaseNotification']);
         }
 
+        if (is_array($data['pendingRefundReviewNotification'] ?? null)) {
+            $this->pendingRefundReviewNotification = new PendingRefundReviewNotification($data['pendingRefundReviewNotification']);
+        }
+
         $this->testNotification = array_key_exists('testNotification', $data) && $data['testNotification'] !== null;
 
         if (
             $this->subscriptionNotification === null
             && $this->oneTimeProductNotification === null
             && $this->voidedPurchaseNotification === null
+            && $this->pendingRefundReviewNotification === null
             && !$this->testNotification
         ) {
             throw new ValidationException('Google Play developer notification does not contain a recognised payload.');
@@ -158,6 +165,11 @@ final class ServerNotification
         return $this->voidedPurchaseNotification;
     }
 
+    public function getPendingRefundReviewNotification(): ?PendingRefundReviewNotification
+    {
+        return $this->pendingRefundReviewNotification;
+    }
+
     public function isTestNotification(): bool
     {
         return $this->testNotification;
@@ -178,9 +190,15 @@ final class ServerNotification
         return $this->voidedPurchaseNotification !== null;
     }
 
+    public function isPendingRefundReviewNotification(): bool
+    {
+        return $this->pendingRefundReviewNotification !== null;
+    }
+
     /**
      * The purchase token referenced by whichever payload is present, or null for a
-     * test notification.
+     * test or pending refund review notification (the latter carries an order ID and
+     * a pending refund token instead).
      */
     public function getPurchaseToken(): ?string
     {

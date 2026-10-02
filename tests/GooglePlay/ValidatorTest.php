@@ -200,7 +200,8 @@ final class ValidatorTest extends TestCase
     public function testAcknowledgeSubscriptionWithoutPayloadSendsEmptyObject(): void
     {
         $client = $this->mockClient(
-            fn (RequestInterface $r): bool => (string) $r->getBody() === '[]' || (string) $r->getBody() === '{}',
+            fn (RequestInterface $r): bool => $r->getHeaderLine('Content-Type') === 'application/json'
+                && (string) $r->getBody() === '{}',
             new GuzzleResponse(204, [], '')
         );
 
@@ -264,6 +265,17 @@ final class ValidatorTest extends TestCase
         );
 
         $this->newValidator($client)->acknowledgeProduct('sku', 'tok', 'p');
+    }
+
+    public function testAcknowledgeProductWithoutPayloadSendsEmptyObject(): void
+    {
+        $client = $this->mockClient(
+            fn (RequestInterface $r): bool => (string) $r->getUri() === self::BASE . '/purchases/products/sku/tokens/tok:acknowledge'
+                && (string) $r->getBody() === '{}',
+            new GuzzleResponse(204, [], '')
+        );
+
+        $this->newValidator($client)->acknowledgeProduct('sku', 'tok');
     }
 
     public function testConsumeProduct(): void
