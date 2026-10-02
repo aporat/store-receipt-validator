@@ -549,6 +549,8 @@ To get started:
 
 Found a bug or want a new feature? [Open an issue](https://github.com/aporat/store-receipt-validator/issues)
 
+Notable changes in each release are listed in the [CHANGELOG](CHANGELOG.md).
+
 ---
 
 ## 📄 License
