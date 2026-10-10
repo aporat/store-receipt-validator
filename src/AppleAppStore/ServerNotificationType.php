@@ -29,6 +29,17 @@ enum ServerNotificationType: string
     case OFFER_REDEEMED           = 'OFFER_REDEEMED';
     case PRICE_INCREASE           = 'PRICE_INCREASE';
 
+    // --- Advanced Commerce API ---
+
+    /** You changed a subscription's metadata with the Change Subscription Metadata endpoint. */
+    case METADATA_UPDATE          = 'METADATA_UPDATE';
+
+    /** You migrated a subscription with the Migrate a Subscription to Advanced Commerce API endpoint. */
+    case MIGRATION                = 'MIGRATION';
+
+    /** You changed a subscription's price with the Change Subscription Price endpoint. */
+    case PRICE_CHANGE             = 'PRICE_CHANGE';
+
     // --- Refund and Revocation Events ---
 
     case REFUND                   = 'REFUND';
@@ -42,6 +53,14 @@ enum ServerNotificationType: string
     case ONE_TIME_CHARGE          = 'ONE_TIME_CHARGE';
     case EXTERNAL_PURCHASE_TOKEN  = 'EXTERNAL_PURCHASE_TOKEN';
 
+    // --- App-level Events ---
+
+    /**
+     * A parent or guardian withdrew consent for a child's app usage. The payload
+     * carries `appData` rather than `data`.
+     */
+    case RESCIND_CONSENT          = 'RESCIND_CONSENT';
+
     // --- Testing ---
 
     case TEST                     = 'TEST';
@@ -50,6 +69,8 @@ enum ServerNotificationType: string
 
     /**
      * Represents an unknown or future notification type not yet handled by this library.
+     * Apple never sends this value; {@see ServerNotification::getRawNotificationType()}
+     * has the type Apple actually sent.
      */
     case UNKNOWN                  = 'UNKNOWN';
 
@@ -100,6 +121,18 @@ enum ServerNotificationType: string
         return in_array($this, [
             self::OFFER_REDEEMED,
             self::PRICE_INCREASE,
+        ], true);
+    }
+
+    /**
+     * Whether this notification reports a change you made through the Advanced Commerce API.
+     */
+    public function isAdvancedCommerce(): bool
+    {
+        return in_array($this, [
+            self::METADATA_UPDATE,
+            self::MIGRATION,
+            self::PRICE_CHANGE,
         ], true);
     }
 }

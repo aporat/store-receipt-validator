@@ -40,6 +40,8 @@ final class ServerNotificationSubtypeTest extends TestCase
         yield 'PRICE_INCREASE' => [ServerNotificationSubtype::PRICE_INCREASE, 'PRICE_INCREASE'];
         yield 'FAILURE' => [ServerNotificationSubtype::FAILURE, 'FAILURE'];
         yield 'UNREPORTED' => [ServerNotificationSubtype::UNREPORTED, 'UNREPORTED'];
+        yield 'CREATED' => [ServerNotificationSubtype::CREATED, 'CREATED'];
+        yield 'ACTIVE_TOKEN_REMINDER' => [ServerNotificationSubtype::ACTIVE_TOKEN_REMINDER, 'ACTIVE_TOKEN_REMINDER'];
         yield 'UNKNOWN' => [ServerNotificationSubtype::UNKNOWN, 'UNKNOWN'];
     }
 
@@ -53,6 +55,8 @@ final class ServerNotificationSubtypeTest extends TestCase
     {
         yield 'known value' => ['INITIAL_BUY', ServerNotificationSubtype::INITIAL_BUY];
         yield 'another known value' => ['BILLING_RETRY', ServerNotificationSubtype::BILLING_RETRY];
+        yield 'CREATED' => ['CREATED', ServerNotificationSubtype::CREATED];
+        yield 'ACTIVE_TOKEN_REMINDER' => ['ACTIVE_TOKEN_REMINDER', ServerNotificationSubtype::ACTIVE_TOKEN_REMINDER];
         yield 'unknown value falls back' => ['SOMETHING_NEW', ServerNotificationSubtype::UNKNOWN];
         yield 'empty string falls back' => ['', ServerNotificationSubtype::UNKNOWN];
         yield 'lowercase not matched' => ['initial_buy', ServerNotificationSubtype::UNKNOWN];
@@ -126,6 +130,37 @@ final class ServerNotificationSubtypeTest extends TestCase
         yield 'UNKNOWN is not refund reversal' => [ServerNotificationSubtype::UNKNOWN, false];
     }
 
+    #[DataProvider('externalPurchaseTokenProvider')]
+    public function testIsExternalPurchaseToken(ServerNotificationSubtype $case, bool $expected): void
+    {
+        self::assertSame($expected, $case->isExternalPurchaseToken());
+    }
+
+    public static function externalPurchaseTokenProvider(): iterable
+    {
+        yield 'CREATED' => [ServerNotificationSubtype::CREATED, true];
+        yield 'ACTIVE_TOKEN_REMINDER' => [ServerNotificationSubtype::ACTIVE_TOKEN_REMINDER, true];
+        yield 'UNREPORTED is not a token subtype' => [ServerNotificationSubtype::UNREPORTED, false];
+        yield 'UNKNOWN is not a token subtype' => [ServerNotificationSubtype::UNKNOWN, false];
+    }
+
+    /**
+     * Every subtype Apple documents, as of October 2026:
+     * https://developer.apple.com/documentation/appstoreservernotifications/subtype
+     */
+    public function testCoversEverySubtypeAppleDocuments(): void
+    {
+        $documented = [
+            'ACCEPTED', 'ACTIVE_TOKEN_REMINDER', 'AUTO_RENEW_DISABLED', 'AUTO_RENEW_ENABLED', 'BILLING_RECOVERY',
+            'BILLING_RETRY', 'CREATED', 'DOWNGRADE', 'FAILURE', 'GRACE_PERIOD', 'INITIAL_BUY', 'PENDING',
+            'PRICE_INCREASE', 'PRODUCT_NOT_FOR_SALE', 'RESUBSCRIBE', 'SUMMARY', 'UNREPORTED', 'UPGRADE', 'VOLUNTARY',
+        ];
+
+        $cases = array_map(static fn (ServerNotificationSubtype $case): string => $case->value, ServerNotificationSubtype::cases());
+
+        self::assertEqualsCanonicalizing([...$documented, 'UNKNOWN'], $cases);
+    }
+
     public function testEachCaseBelongsToAtMostOneCategory(): void
     {
         foreach (ServerNotificationSubtype::cases() as $case) {
@@ -134,6 +169,7 @@ final class ServerNotificationSubtypeTest extends TestCase
                 $case->isBillingRelated(),
                 $case->isPriceChange(),
                 $case->isRefundReversal(),
+                $case->isExternalPurchaseToken(),
             ]);
 
             self::assertLessThanOrEqual(

@@ -39,7 +39,20 @@ enum ServerNotificationSubtype: string
     case FAILURE            = 'FAILURE';
     case UNREPORTED         = 'UNREPORTED';
 
+    // --- External Purchase Tokens (custom links) ---
+
+    /** Apple created a custom link external purchase token for your app. */
+    case CREATED            = 'CREATED';
+
+    /** Monthly reminder that a custom link external purchase token is still active. */
+    case ACTIVE_TOKEN_REMINDER = 'ACTIVE_TOKEN_REMINDER';
+
     // --- Fallback ---
+
+    /**
+     * An unknown or future subtype. Apple never sends this value;
+     * {@see ServerNotification::getRawSubtype()} has the subtype Apple actually sent.
+     */
     case UNKNOWN            = 'UNKNOWN';
 
     /**
@@ -88,6 +101,17 @@ enum ServerNotificationSubtype: string
             self::PENDING,
             self::ACCEPTED,
             self::PRICE_INCREASE,
+        ], true);
+    }
+
+    /**
+     * Check if subtype is about a custom link external purchase token.
+     */
+    public function isExternalPurchaseToken(): bool
+    {
+        return in_array($this, [
+            self::CREATED,
+            self::ACTIVE_TOKEN_REMINDER,
         ], true);
     }
 

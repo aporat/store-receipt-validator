@@ -12,6 +12,27 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 
 ## [11.0.1] - Unreleased
 
+### Added
+- `AppleAppStore\ServerNotificationType` cases for every type Apple now documents:
+  `METADATA_UPDATE`, `MIGRATION` and `PRICE_CHANGE` (Advanced Commerce API), and `RESCIND_CONSENT`
+  (whose payload carries `appData`). New helper `isAdvancedCommerce()`.
+- `AppleAppStore\ServerNotificationSubtype` cases `CREATED` and `ACTIVE_TOKEN_REMINDER`, for custom
+  link `EXTERNAL_PURCHASE_TOKEN` notifications. New helper `isExternalPurchaseToken()`.
+- `AppleAppStore\ServerNotification::getRawNotificationType()`, `getRawSubtype()` and
+  `hasKnownNotificationType()`, which expose the values exactly as Apple sent them.
+
+### Fixed
+- A correctly signed App Store Server Notification whose `notificationType` this version doesn't
+  know no longer throws `ValidationException("Unknown notificationType: ...")`. It parses, with
+  `getNotificationType()` returning `ServerNotificationType::UNKNOWN` and
+  `getRawNotificationType()` the type Apple sent. Previously every type Apple added after a release
+  (including the four above) was rejected, which made webhook endpoints answer Apple with an error
+  and Apple retry. Signature verification is unchanged: an unsigned or wrongly signed payload still
+  throws.
+- Unknown subtypes already left `getSubtype()` null and still do; `getRawSubtype()` now carries the
+  value. A payload with no `notificationType` at all still throws, now with the message
+  "Server notification is missing its notificationType."
+
 ### Security
 - `AppleAppStore\Validator` no longer interpolates path parameters into App Store Server API
   URLs unchecked. A transaction ID containing `../`, `/`, `?` or `#` could previously redirect the

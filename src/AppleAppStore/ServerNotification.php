@@ -10,7 +10,6 @@ use ReceiptValidator\Environment;
 use ReceiptValidator\Exceptions\ValidationException;
 use ReceiptValidator\AppleAppStore\JWT\TokenGenerator;
 use ReceiptValidator\AppleAppStore\JWT\TokenVerifier;
-use ValueError;
 
 /**
  * Represents an App Store Server Notification V2.
@@ -20,7 +19,9 @@ use ValueError;
 class ServerNotification
 {
     protected ServerNotificationType $notificationType;
+    protected string $rawNotificationType = '';
     protected ?ServerNotificationSubtype $subtype = null;
+    protected ?string $rawSubtype = null;
     protected Environment $environment;
     protected CarbonImmutable $signedDate;
     protected string $bundleId = '';
@@ -55,17 +56,20 @@ class ServerNotification
 
         $claims = $token->claims()->all();
 
-        // notificationType (required)
-        $typeRaw = (string)($claims['notificationType'] ?? '');
-        try {
-            $this->notificationType = ServerNotificationType::from($typeRaw);
-        } catch (ValueError) {
-            throw new ValidationException("Unknown notificationType: $typeRaw");
+        // notificationType (required). A type this version doesn't know yet is
+        // not an error: Apple adds types over time and the payload is genuine,
+        // so it maps to UNKNOWN and the raw string stays available.
+        $typeRaw = is_scalar($claims['notificationType'] ?? null) ? (string) $claims['notificationType'] : '';
+        if ($typeRaw === '') {
+            throw new ValidationException('Server notification is missing its notificationType.');
         }
+        $this->rawNotificationType = $typeRaw;
+        $this->notificationType    = ServerNotificationType::fromString($typeRaw);
 
-        // subtype (optional)
-        if (!empty($claims['subtype'])) {
-            $this->subtype = ServerNotificationSubtype::tryFrom((string)$claims['subtype']);
+        // subtype (optional). An unrecognized subtype leaves getSubtype() null.
+        if (is_scalar($claims['subtype'] ?? null) && (string) $claims['subtype'] !== '') {
+            $this->rawSubtype = (string) $claims['subtype'];
+            $this->subtype    = ServerNotificationSubtype::tryFrom($this->rawSubtype);
         }
 
         // Simple scalars
@@ -100,14 +104,48 @@ class ServerNotification
         }
     }
 
+    /**
+     * The notification type, or {@see ServerNotificationType::UNKNOWN} for a type
+     * this version of the library doesn't know yet. Check
+     * {@see getRawNotificationType()} for the value Apple sent.
+     */
     public function getNotificationType(): ServerNotificationType
     {
         return $this->notificationType;
     }
 
+    /**
+     * The notificationType exactly as Apple sent it, including types this
+     * version of the library doesn't know yet.
+     */
+    public function getRawNotificationType(): string
+    {
+        return $this->rawNotificationType;
+    }
+
+    /**
+     * Whether the notification type is one this version of the library knows.
+     */
+    public function hasKnownNotificationType(): bool
+    {
+        return $this->notificationType !== ServerNotificationType::UNKNOWN;
+    }
+
+    /**
+     * The subtype, or null when the notification has none or carries a subtype
+     * this version of the library doesn't know yet ({@see getRawSubtype()}).
+     */
     public function getSubtype(): ?ServerNotificationSubtype
     {
         return $this->subtype;
+    }
+
+    /**
+     * The subtype exactly as Apple sent it, or null when the notification has none.
+     */
+    public function getRawSubtype(): ?string
+    {
+        return $this->rawSubtype;
     }
 
     public function getNotificationUUID(): string

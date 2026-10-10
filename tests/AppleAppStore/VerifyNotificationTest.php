@@ -10,9 +10,11 @@ use Lcobucci\JWT\Signer\Ecdsa\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token\Builder;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReceiptValidator\AppleAppStore\JWT\TokenVerifier;
 use ReceiptValidator\AppleAppStore\ServerNotification;
+use ReceiptValidator\AppleAppStore\ServerNotificationSubtype;
 use ReceiptValidator\AppleAppStore\ServerNotificationType;
 use ReceiptValidator\AppleAppStore\Validator;
 use ReceiptValidator\Environment;
@@ -231,6 +233,103 @@ final class VerifyNotificationTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // Notification types and subtypes, known and not
+    // -------------------------------------------------------------------------
+
+    /**
+     * @param array<string, mixed> $claims
+     */
+    #[DataProvider('newNotificationProvider')]
+    public function testNewNotificationTypesParse(array $claims, ServerNotificationType $type, ?ServerNotificationSubtype $subtype): void
+    {
+        $notification = $this->validator(Environment::SANDBOX, null)->verifyNotification(self::signNotification($claims));
+
+        self::assertSame($type, $notification->getNotificationType());
+        self::assertSame($type->value, $notification->getRawNotificationType());
+        self::assertTrue($notification->hasKnownNotificationType());
+        self::assertSame($subtype, $notification->getSubtype());
+        self::assertSame($subtype?->value, $notification->getRawSubtype());
+        self::assertSame('com.example', $notification->getBundleId());
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, ServerNotificationType, ?ServerNotificationSubtype}>
+     */
+    public static function newNotificationProvider(): iterable
+    {
+        $token = static fn (string $subtype): array => self::externalPurchaseTokenClaims($subtype);
+
+        yield 'METADATA_UPDATE' => [self::dataClaims([], 'METADATA_UPDATE', null), ServerNotificationType::METADATA_UPDATE, null];
+        yield 'MIGRATION' => [self::dataClaims([], 'MIGRATION', null), ServerNotificationType::MIGRATION, null];
+        yield 'PRICE_CHANGE' => [self::dataClaims([], 'PRICE_CHANGE', null), ServerNotificationType::PRICE_CHANGE, null];
+        yield 'RESCIND_CONSENT (appData)' => [[
+            'notificationType' => 'RESCIND_CONSENT',
+            'notificationUUID' => 'f6e8c7b2-1a2b-4c3d-8e9f-0a1b2c3d4e5f',
+            'signedDate'       => time() * 1000,
+            'version'          => '2.0',
+            'appData'          => ['bundleId' => 'com.example', 'environment' => 'Sandbox'],
+        ], ServerNotificationType::RESCIND_CONSENT, null];
+        yield 'EXTERNAL_PURCHASE_TOKEN / CREATED' => [$token('CREATED'), ServerNotificationType::EXTERNAL_PURCHASE_TOKEN, ServerNotificationSubtype::CREATED];
+        yield 'EXTERNAL_PURCHASE_TOKEN / ACTIVE_TOKEN_REMINDER' => [$token('ACTIVE_TOKEN_REMINDER'), ServerNotificationType::EXTERNAL_PURCHASE_TOKEN, ServerNotificationSubtype::ACTIVE_TOKEN_REMINDER];
+    }
+
+    public function testUnknownNotificationTypeParsesWithItsRawValue(): void
+    {
+        $jws = self::signNotification(self::dataClaims([], 'SOMETHING_APPLE_ADDS_LATER', 'AND_A_NEW_SUBTYPE'));
+
+        $notification = $this->validator(Environment::SANDBOX, null)->verifyNotification($jws);
+
+        self::assertSame(ServerNotificationType::UNKNOWN, $notification->getNotificationType());
+        self::assertSame('SOMETHING_APPLE_ADDS_LATER', $notification->getRawNotificationType());
+        self::assertFalse($notification->hasKnownNotificationType());
+        self::assertNull($notification->getSubtype());
+        self::assertSame('AND_A_NEW_SUBTYPE', $notification->getRawSubtype());
+        self::assertSame('com.example', $notification->getBundleId());
+    }
+
+    public function testUnknownSubtypeOnAKnownTypeParsesWithItsRawValue(): void
+    {
+        $jws = self::signNotification(self::dataClaims([], 'SUBSCRIBED', 'A_NEW_SUBTYPE'));
+
+        $notification = $this->validator(Environment::SANDBOX, null)->verifyNotification($jws);
+
+        self::assertSame(ServerNotificationType::SUBSCRIBED, $notification->getNotificationType());
+        self::assertTrue($notification->hasKnownNotificationType());
+        self::assertNull($notification->getSubtype());
+        self::assertSame('A_NEW_SUBTYPE', $notification->getRawSubtype());
+    }
+
+    public function testNotificationWithoutSubtypeHasNoRawSubtype(): void
+    {
+        $notification = $this->validator(Environment::SANDBOX, null)->verifyNotification(self::signNotification(self::dataClaims([], 'TEST', null)));
+
+        self::assertNull($notification->getSubtype());
+        self::assertNull($notification->getRawSubtype());
+    }
+
+    public function testUnknownNotificationTypeWithABadSignatureIsStillRejected(): void
+    {
+        $claims = self::dataClaims([], 'SOMETHING_APPLE_ADDS_LATER', null);
+
+        $this->expectException(ValidationException::class);
+
+        // Trusts only Apple's real chain, which did not sign this.
+        new ServerNotification(['signedPayload' => self::signNotification($claims)]);
+    }
+
+    public function testMissingNotificationTypeIsRejected(): void
+    {
+        $claims = self::dataClaims();
+        unset($claims['notificationType']);
+        $verifier = new TokenVerifier([self::fingerprint('intermediate.pem'), self::fingerprint('root.pem')]);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('missing its notificationType');
+
+        new ServerNotification(['signedPayload' => self::signNotification($claims)], $verifier);
+    }
+
+    // -------------------------------------------------------------------------
     // verifySignedAppTransaction(): app Apple ID
     // -------------------------------------------------------------------------
 
@@ -283,17 +382,36 @@ final class VerifyNotificationTest extends TestCase
      * @param array<string, mixed> $overrides Merged into the `data` section.
      * @return array<string, mixed>
      */
-    private static function dataClaims(array $overrides = []): array
+    private static function dataClaims(array $overrides = [], string $type = 'SUBSCRIBED', ?string $subtype = 'INITIAL_BUY'): array
     {
-        return [
-            'notificationType' => 'SUBSCRIBED',
-            'subtype'          => 'INITIAL_BUY',
+        return array_filter([
+            'notificationType' => $type,
+            'subtype'          => $subtype,
             'notificationUUID' => 'f6e8c7b2-1a2b-4c3d-8e9f-0a1b2c3d4e5f',
             'signedDate'       => time() * 1000,
             'version'          => '2.0',
             'data'             => $overrides + [
                 'bundleId'    => 'com.example',
                 'environment' => 'Sandbox',
+            ],
+        ], static fn (mixed $value): bool => $value !== null);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function externalPurchaseTokenClaims(string $subtype): array
+    {
+        return [
+            'notificationType'      => 'EXTERNAL_PURCHASE_TOKEN',
+            'subtype'               => $subtype,
+            'notificationUUID'      => 'f6e8c7b2-1a2b-4c3d-8e9f-0a1b2c3d4e5f',
+            'signedDate'            => time() * 1000,
+            'version'               => '2.0',
+            'externalPurchaseToken' => [
+                'externalPurchaseId' => 'SANDBOX_abc123',
+                'tokenCreationDate'  => time() * 1000,
+                'bundleId'           => 'com.example',
             ],
         ];
     }

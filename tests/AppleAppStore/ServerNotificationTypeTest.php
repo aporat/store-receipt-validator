@@ -41,6 +41,10 @@ final class ServerNotificationTypeTest extends TestCase
         yield 'CONSUMPTION_REQUEST' => [ServerNotificationType::CONSUMPTION_REQUEST, 'CONSUMPTION_REQUEST'];
         yield 'ONE_TIME_CHARGE' => [ServerNotificationType::ONE_TIME_CHARGE, 'ONE_TIME_CHARGE'];
         yield 'EXTERNAL_PURCHASE_TOKEN' => [ServerNotificationType::EXTERNAL_PURCHASE_TOKEN, 'EXTERNAL_PURCHASE_TOKEN'];
+        yield 'METADATA_UPDATE' => [ServerNotificationType::METADATA_UPDATE, 'METADATA_UPDATE'];
+        yield 'MIGRATION' => [ServerNotificationType::MIGRATION, 'MIGRATION'];
+        yield 'PRICE_CHANGE' => [ServerNotificationType::PRICE_CHANGE, 'PRICE_CHANGE'];
+        yield 'RESCIND_CONSENT' => [ServerNotificationType::RESCIND_CONSENT, 'RESCIND_CONSENT'];
         yield 'TEST' => [ServerNotificationType::TEST, 'TEST'];
         yield 'UNKNOWN' => [ServerNotificationType::UNKNOWN, 'UNKNOWN'];
     }
@@ -56,6 +60,10 @@ final class ServerNotificationTypeTest extends TestCase
         yield 'known value' => ['SUBSCRIBED', ServerNotificationType::SUBSCRIBED];
         yield 'another known value' => ['REFUND', ServerNotificationType::REFUND];
         yield 'test type' => ['TEST', ServerNotificationType::TEST];
+        yield 'METADATA_UPDATE' => ['METADATA_UPDATE', ServerNotificationType::METADATA_UPDATE];
+        yield 'MIGRATION' => ['MIGRATION', ServerNotificationType::MIGRATION];
+        yield 'PRICE_CHANGE' => ['PRICE_CHANGE', ServerNotificationType::PRICE_CHANGE];
+        yield 'RESCIND_CONSENT' => ['RESCIND_CONSENT', ServerNotificationType::RESCIND_CONSENT];
         yield 'unknown value falls back' => ['FUTURE_TYPE', ServerNotificationType::UNKNOWN];
         yield 'empty string falls back' => ['', ServerNotificationType::UNKNOWN];
         yield 'lowercase not matched' => ['subscribed', ServerNotificationType::UNKNOWN];
@@ -114,6 +122,41 @@ final class ServerNotificationTypeTest extends TestCase
         yield 'REFUND is not offer/price' => [ServerNotificationType::REFUND, false];
         yield 'TEST is not offer/price' => [ServerNotificationType::TEST, false];
         yield 'UNKNOWN is not offer/price' => [ServerNotificationType::UNKNOWN, false];
+    }
+
+    #[DataProvider('advancedCommerceProvider')]
+    public function testIsAdvancedCommerce(ServerNotificationType $case, bool $expected): void
+    {
+        self::assertSame($expected, $case->isAdvancedCommerce());
+    }
+
+    public static function advancedCommerceProvider(): iterable
+    {
+        yield 'METADATA_UPDATE' => [ServerNotificationType::METADATA_UPDATE, true];
+        yield 'MIGRATION' => [ServerNotificationType::MIGRATION, true];
+        yield 'PRICE_CHANGE' => [ServerNotificationType::PRICE_CHANGE, true];
+        yield 'PRICE_INCREASE is not Advanced Commerce' => [ServerNotificationType::PRICE_INCREASE, false];
+        yield 'RESCIND_CONSENT is not Advanced Commerce' => [ServerNotificationType::RESCIND_CONSENT, false];
+        yield 'UNKNOWN is not Advanced Commerce' => [ServerNotificationType::UNKNOWN, false];
+    }
+
+    /**
+     * Every notificationType Apple documents, as of October 2026:
+     * https://developer.apple.com/documentation/appstoreservernotifications/notificationtype
+     */
+    public function testCoversEveryTypeAppleDocuments(): void
+    {
+        $documented = [
+            'CONSUMPTION_REQUEST', 'DID_CHANGE_RENEWAL_PREF', 'DID_CHANGE_RENEWAL_STATUS', 'DID_FAIL_TO_RENEW',
+            'DID_RENEW', 'EXPIRED', 'EXTERNAL_PURCHASE_TOKEN', 'GRACE_PERIOD_EXPIRED', 'METADATA_UPDATE',
+            'MIGRATION', 'OFFER_REDEEMED', 'ONE_TIME_CHARGE', 'PRICE_CHANGE', 'PRICE_INCREASE', 'REFUND',
+            'REFUND_DECLINED', 'REFUND_REVERSED', 'RENEWAL_EXTENDED', 'RENEWAL_EXTENSION', 'RESCIND_CONSENT',
+            'REVOKE', 'SUBSCRIBED', 'TEST',
+        ];
+
+        $cases = array_map(static fn (ServerNotificationType $case): string => $case->value, ServerNotificationType::cases());
+
+        self::assertEqualsCanonicalizing([...$documented, 'UNKNOWN'], $cases);
     }
 
     public function testEachCaseBelongsToAtMostOneCategory(): void

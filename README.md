@@ -500,8 +500,10 @@ public function subscriptions(Request $request): JsonResponse {
     try {
         $notification = $validator->verifyNotification($request->all());
 
-        echo 'Type: ' . $notification->getNotificationType()->value . PHP_EOL;
-        echo 'Subtype: ' . ($notification->getSubtype()?->value ?? 'N/A') . PHP_EOL;
+        // A type Apple added after this release parses as ServerNotificationType::UNKNOWN;
+        // acknowledge it (2xx) so Apple stops retrying, and read the raw value if you need it.
+        echo 'Type: ' . $notification->getRawNotificationType() . PHP_EOL;
+        echo 'Subtype: ' . ($notification->getRawSubtype() ?? 'N/A') . PHP_EOL;
 
         $tx = $notification->getTransaction();
         if ($tx !== null) {
