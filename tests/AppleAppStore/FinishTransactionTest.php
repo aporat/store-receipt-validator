@@ -49,11 +49,11 @@ final class FinishTransactionTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'POST'
-                    && str_contains((string) $request->getUri(), '/inApps/v1/transactions/txn-abc123/finish');
+                    && str_contains((string) $request->getUri(), '/inApps/v1/transactions/2000000000000123/finish');
             }))
             ->willReturn(new GuzzleResponse(200, [], ''));
 
-        $this->validator->finishTransaction('txn-abc123');
+        $this->validator->finishTransaction('2000000000000123');
 
         $this->addToAssertionCount(1);
     }
@@ -65,6 +65,6 @@ final class FinishTransactionTest extends TestCase
             ->willReturn(new GuzzleResponse(401, [], ''));
 
         $this->expectException(ValidationException::class);
-        $this->validator->finishTransaction('txn-abc123');
+        $this->validator->finishTransaction('2000000000000123');
     }
 }

@@ -173,7 +173,7 @@ final class TransactionHistoryParamsTest extends TestCase
             }))
             ->willReturn(new GuzzleResponse(200, [], $this->historyJson()));
 
-        $validator->validate('txn-123');
+        $validator->validate('2000000000000123');
     }
 
     public function testValidateWithAscendingSortPassedThrough(): void
@@ -192,7 +192,7 @@ final class TransactionHistoryParamsTest extends TestCase
             }))
             ->willReturn(new GuzzleResponse(200, [], $this->historyJson()));
 
-        $validator->validate('txn-123', $params);
+        $validator->validate('2000000000000123', $params);
     }
 
     public function testValidateWithRevisionPassedThrough(): void
@@ -212,7 +212,7 @@ final class TransactionHistoryParamsTest extends TestCase
             }))
             ->willReturn(new GuzzleResponse(200, [], $this->historyJson()));
 
-        $validator->validate('txn-123', $params);
+        $validator->validate('2000000000000123', $params);
     }
 
     public function testValidateWithMultipleProductIdsUsesRepeatedKeys(): void
@@ -235,6 +235,6 @@ final class TransactionHistoryParamsTest extends TestCase
             }))
             ->willReturn(new GuzzleResponse(200, [], $this->historyJson()));
 
-        $validator->validate('txn-123', $params);
+        $validator->validate('2000000000000123', $params);
     }
 }

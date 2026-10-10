@@ -57,10 +57,10 @@ final class ExtendRenewalDateTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'PUT'
-                    && str_contains((string) $request->getUri(), '/inApps/v1/subscriptions/extend/orig-txn-001');
+                    && str_contains((string) $request->getUri(), '/inApps/v1/subscriptions/extend/1000000000000001');
             }))
             ->willReturn(new GuzzleResponse(200, [], json_encode([
-                'originalTransactionId' => 'orig-txn-001',
+                'originalTransactionId' => '1000000000000001',
                 'webOrderLineItemId'    => 'woli-123',
                 'success'               => true,
                 'effectiveDate'         => 1700000000000,
@@ -69,7 +69,7 @@ final class ExtendRenewalDateTest extends TestCase
         $request               = new ExtendRenewalDateRequest();
         $request->extendByDays = 30;
 
-        $response = $this->validator->extendSubscriptionRenewalDate('orig-txn-001', $request);
+        $response = $this->validator->extendSubscriptionRenewalDate('1000000000000001', $request);
         self::assertInstanceOf(ExtendRenewalDateResponse::class, $response);
     }
 
@@ -91,7 +91,7 @@ final class ExtendRenewalDateTest extends TestCase
                     && str_contains($request->getHeaderLine('Content-Type'), 'application/json');
             }))
             ->willReturn(new GuzzleResponse(200, [], json_encode([
-                'originalTransactionId' => 'orig-txn-001',
+                'originalTransactionId' => '1000000000000001',
                 'success'               => true,
             ], JSON_THROW_ON_ERROR)));
 
@@ -99,7 +99,7 @@ final class ExtendRenewalDateTest extends TestCase
         $request->extendByDays     = 14;
         $request->extendReasonCode = 1;
 
-        $this->validator->extendSubscriptionRenewalDate('orig-txn-001', $request);
+        $this->validator->extendSubscriptionRenewalDate('1000000000000001', $request);
     }
 
     public function testExtendRenewalDateThrowsOnApiError(): void
@@ -109,7 +109,7 @@ final class ExtendRenewalDateTest extends TestCase
             ->willReturn(new GuzzleResponse(401, [], ''));
 
         $this->expectException(ValidationException::class);
-        $this->validator->extendSubscriptionRenewalDate('orig-txn-001', new ExtendRenewalDateRequest());
+        $this->validator->extendSubscriptionRenewalDate('1000000000000001', new ExtendRenewalDateRequest());
     }
 
     // -------------------------------------------------------------------------
@@ -119,13 +119,13 @@ final class ExtendRenewalDateTest extends TestCase
     public function testExtendRenewalDateResponseParsesFields(): void
     {
         $response = new ExtendRenewalDateResponse([
-            'originalTransactionId' => 'orig-txn-001',
+            'originalTransactionId' => '1000000000000001',
             'webOrderLineItemId'    => 'woli-abc',
             'success'               => true,
             'effectiveDate'         => 1700000000000,
         ]);
 
-        self::assertSame('orig-txn-001', $response->getOriginalTransactionId());
+        self::assertSame('1000000000000001', $response->getOriginalTransactionId());
         self::assertSame('woli-abc', $response->getWebOrderLineItemId());
         self::assertTrue($response->isSuccess());
         self::assertNotNull($response->getEffectiveDate());

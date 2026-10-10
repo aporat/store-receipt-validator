@@ -22,7 +22,7 @@ use ReceiptValidator\Exceptions\ValidationException;
 final class SetAppAccountTokenTest extends TestCase
 {
     private const VALID_UUID  = 'a1b2c3d4-e5f6-4789-a012-b3c4d5e6f701';
-    private const TRANSACTION = 'txn-abc123';
+    private const TRANSACTION = '2000000000000001';
 
     private function makeValidator(ClientInterface $client): Validator
     {

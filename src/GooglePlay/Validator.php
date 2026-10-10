@@ -70,6 +70,10 @@ class Validator extends AbstractValidator
             throw new ValidationException('Google Play package name cannot be empty.');
         }
 
+        if (trim($packageName) === '' || $packageName === '.' || $packageName === '..') {
+            throw new ValidationException('Invalid Google Play package name.');
+        }
+
         $this->packageName = $packageName;
         $this->credentials = is_string($credentials) ? ServiceAccountCredentials::fromJson($credentials) : $credentials;
         $this->environment = $environment;
@@ -684,6 +688,12 @@ class Validator extends AbstractValidator
     {
         if ($value === '') {
             throw new ValidationException(sprintf('Google Play %s cannot be empty.', $label));
+        }
+
+        // rawurlencode() leaves "." alone, so a whole-segment "." or ".." would survive encoding
+        // and be collapsed by the HTTP client, moving the request to a different API path.
+        if (trim($value) === '' || $value === '.' || $value === '..') {
+            throw new ValidationException(sprintf('Invalid Google Play %s.', $label));
         }
     }
 }

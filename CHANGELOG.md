@@ -10,6 +10,30 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 
 ## [Unreleased]
 
+## [11.0.1] - Unreleased
+
+### Security
+- `AppleAppStore\Validator` no longer interpolates path parameters into App Store Server API
+  URLs unchecked. A transaction ID containing `../`, `/`, `?` or `#` could previously redirect the
+  authenticated request to a different endpoint (for example, `getTransactionInfo('../subscriptions/1')`
+  was sent as `GET /inApps/v1/subscriptions/1`).
+  - Transaction IDs and original transaction IDs, which Apple defines as numeric, must now be ASCII
+    digits only. Anything else (including an empty string or surrounding whitespace) throws
+    `ValidationException` before a request is sent. Affects `getTransactionHistory()`, `validate()`,
+    `getTransactionInfo()`, `finishTransaction()`, `setAppAccountToken()`,
+    `sendConsumptionInformation()`, `getRefundHistory()`, `getAllSubscriptionStatuses()` and
+    `extendSubscriptionRenewalDate()`.
+  - Free-form identifiers are percent-encoded as a single path segment, and empty, whitespace-only,
+    `.` and `..` values throw `ValidationException`. Affects `lookUpOrderId()`,
+    `getTestNotificationStatus()`, `getAppTransactionInfo()` (which also accepts an
+    `appTransactionId`) and both parameters of `getStatusOfSubscriptionRenewalDateExtensions()`.
+  - Valid numeric IDs are sent exactly as before.
+- `GooglePlay\Validator` and `Amazon\Validator` already percent-encoded every path parameter, but
+  `rawurlencode()` leaves `.` intact, so a purchase token, product ID, order ID, package name,
+  receipt ID, user ID or shared secret of exactly `.` or `..` became a dot segment that the HTTP
+  client collapses. Those values, and whitespace-only ones, now throw `ValidationException` before a
+  request is sent. All other values are encoded exactly as before.
+
 ## [11.0.0] - 2026-10-02
 
 ### Added
@@ -1584,7 +1608,8 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
   and `google/apiclient 1.0.4-beta`, with PSR-0 autoloading of the `ReceiptValidator` namespace from
   `src/`.
 
-[Unreleased]: https://github.com/aporat/store-receipt-validator/compare/11.0.0...HEAD
+[Unreleased]: https://github.com/aporat/store-receipt-validator/compare/11.0.1...HEAD
+[11.0.1]: https://github.com/aporat/store-receipt-validator/compare/11.0.0...11.0.1
 [11.0.0]: https://github.com/aporat/store-receipt-validator/compare/10.0.0...11.0.0
 [10.0.0]: https://github.com/aporat/store-receipt-validator/compare/9.0.0...10.0.0
 [9.0.0]: https://github.com/aporat/store-receipt-validator/compare/8.0.0...9.0.0

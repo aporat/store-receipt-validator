@@ -121,7 +121,7 @@ class Validator extends AbstractValidator
         string $transactionId,
         ?TransactionHistoryParams $params = null,
     ): Response {
-        $uri = sprintf('/inApps/v2/history/%s', $transactionId);
+        $uri = sprintf('/inApps/v2/history/%s', $this->numericPathId($transactionId, 'transaction ID'));
 
         return $this->makeRequest('GET', $uri, ($params ?? new TransactionHistoryParams())->toQueryParams());
     }
@@ -371,7 +371,7 @@ class Validator extends AbstractValidator
      */
     public function getTestNotificationStatus(string $testNotificationToken): CheckTestNotificationResponse
     {
-        $uri = sprintf('/inApps/v1/notifications/test/%s', $testNotificationToken);
+        $uri = sprintf('/inApps/v1/notifications/test/%s', $this->encodePathSegment($testNotificationToken, 'test notification token'));
 
         return new CheckTestNotificationResponse($this->makeRawRequest('GET', $uri));
     }
@@ -414,7 +414,7 @@ class Validator extends AbstractValidator
      */
     public function lookUpOrderId(string $orderId): OrderLookupResponse
     {
-        $uri = sprintf('/inApps/v1/lookup/%s', $orderId);
+        $uri = sprintf('/inApps/v1/lookup/%s', $this->encodePathSegment($orderId, 'order ID'));
 
         return new OrderLookupResponse($this->makeRawRequest('GET', $uri));
     }
@@ -432,7 +432,7 @@ class Validator extends AbstractValidator
      */
     public function getTransactionInfo(string $transactionId): Transaction
     {
-        $uri  = sprintf('/inApps/v1/transactions/%s', $transactionId);
+        $uri  = sprintf('/inApps/v1/transactions/%s', $this->numericPathId($transactionId, 'transaction ID'));
         $data = $this->makeRawRequest('GET', $uri);
 
         if (empty($data['signedTransactionInfo']) || !is_string($data['signedTransactionInfo'])) {
@@ -463,7 +463,10 @@ class Validator extends AbstractValidator
      */
     public function getAppTransactionInfo(string $transactionId): AppTransaction
     {
-        $uri  = sprintf('/inApps/v1/transactions/appTransactions/%s', $transactionId);
+        $uri  = sprintf(
+            '/inApps/v1/transactions/appTransactions/%s',
+            $this->encodePathSegment($transactionId, 'transaction ID')
+        );
         $data = $this->makeRawRequest('GET', $uri);
 
         if (empty($data['signedAppTransactionInfo']) || !is_string($data['signedAppTransactionInfo'])) {
@@ -696,7 +699,7 @@ class Validator extends AbstractValidator
      */
     public function finishTransaction(string $transactionId): void
     {
-        $uri = sprintf('/inApps/v1/transactions/%s/finish', $transactionId);
+        $uri = sprintf('/inApps/v1/transactions/%s/finish', $this->numericPathId($transactionId, 'transaction ID'));
 
         $this->makeRawRequest('POST', $uri);
     }
@@ -716,7 +719,10 @@ class Validator extends AbstractValidator
             );
         }
 
-        $uri = sprintf('/inApps/v1/transactions/%s/appAccountToken', $originalTransactionId);
+        $uri = sprintf(
+            '/inApps/v1/transactions/%s/appAccountToken',
+            $this->numericPathId($originalTransactionId, 'original transaction ID')
+        );
 
         $this->makeRawRequest('PUT', $uri, [], ['appAccountToken' => $appAccountToken]);
     }
@@ -753,7 +759,7 @@ class Validator extends AbstractValidator
         string $originalTransactionId,
         array $statuses = [],
     ): SubscriptionStatusResponse {
-        $uri = sprintf('/inApps/v1/subscriptions/%s', $originalTransactionId);
+        $uri = sprintf('/inApps/v1/subscriptions/%s', $this->numericPathId($originalTransactionId, 'transaction ID'));
 
         $queryParams = [];
         if ($statuses !== []) {
@@ -782,7 +788,7 @@ class Validator extends AbstractValidator
      */
     public function getRefundHistory(string $transactionId, ?string $revision = null): RefundHistoryResponse
     {
-        $uri         = sprintf('/inApps/v2/refund/lookup/%s', $transactionId);
+        $uri         = sprintf('/inApps/v2/refund/lookup/%s', $this->numericPathId($transactionId, 'transaction ID'));
         $queryParams = $revision !== null ? ['revision' => $revision] : [];
 
         return new RefundHistoryResponse($this->makeRawRequest('GET', $uri, $queryParams));
@@ -799,7 +805,10 @@ class Validator extends AbstractValidator
         string $originalTransactionId,
         ExtendRenewalDateRequest $request,
     ): ExtendRenewalDateResponse {
-        $uri = sprintf('/inApps/v1/subscriptions/extend/%s', $originalTransactionId);
+        $uri = sprintf(
+            '/inApps/v1/subscriptions/extend/%s',
+            $this->numericPathId($originalTransactionId, 'original transaction ID')
+        );
 
         return new ExtendRenewalDateResponse($this->makeRawRequest('PUT', $uri, [], $request->toArray()));
     }
@@ -833,7 +842,11 @@ class Validator extends AbstractValidator
         string $productId,
         string $requestIdentifier,
     ): MassExtendRenewalDateStatusResponse {
-        $uri = sprintf('/inApps/v1/subscriptions/extend/mass/%s/%s', $productId, $requestIdentifier);
+        $uri = sprintf(
+            '/inApps/v1/subscriptions/extend/mass/%s/%s',
+            $this->encodePathSegment($productId, 'product ID'),
+            $this->encodePathSegment($requestIdentifier, 'request identifier')
+        );
 
         return new MassExtendRenewalDateStatusResponse($this->makeRawRequest('GET', $uri));
     }
@@ -856,7 +869,7 @@ class Validator extends AbstractValidator
         ConsumptionRequest|ConsumptionRequestV1 $request,
     ): void {
         if ($request instanceof ConsumptionRequestV1) {
-            $uri = sprintf('/inApps/v1/transactions/consumption/%s', $transactionId);
+            $uri = sprintf('/inApps/v1/transactions/consumption/%s', $this->numericPathId($transactionId, 'transaction ID'));
         } else {
             if ($request->getDeliveryStatus() === null) {
                 throw new ValidationException(
@@ -864,10 +877,46 @@ class Validator extends AbstractValidator
                 );
             }
 
-            $uri = sprintf('/inApps/v2/transactions/consumption/%s', $transactionId);
+            $uri = sprintf('/inApps/v2/transactions/consumption/%s', $this->numericPathId($transactionId, 'transaction ID'));
         }
 
         $this->makeRawRequest('PUT', $uri, [], $request->toArray());
+    }
+
+    /**
+     * Validate an identifier Apple defines as numeric (transactionId, originalTransactionId)
+     * before it is placed in a request path.
+     *
+     * Only ASCII digits are accepted. Anything else (path separators, dot segments, query or
+     * fragment delimiters, whitespace, an empty string) could redirect the authenticated
+     * request to a different App Store Server API endpoint, so it is rejected outright.
+     *
+     * @throws ValidationException
+     */
+    private function numericPathId(string $value, string $label): string
+    {
+        if (preg_match('/\A[0-9]+\z/', $value) !== 1) {
+            throw new ValidationException(sprintf('Invalid %s: Apple %ss contain only digits.', $label, $label));
+        }
+
+        return $value;
+    }
+
+    /**
+     * Percent-encode a free-form identifier (order ID, product ID, token) as a single path segment.
+     *
+     * rawurlencode() leaves "." untouched, so the dot segments "." and ".." are rejected
+     * along with empty and whitespace-only values, which can never name a resource.
+     *
+     * @throws ValidationException
+     */
+    private function encodePathSegment(string $value, string $label): string
+    {
+        if (trim($value) === '' || $value === '.' || $value === '..') {
+            throw new ValidationException(sprintf('Invalid %s: it must be a non-empty identifier.', $label));
+        }
+
+        return rawurlencode($value);
     }
 
     /**

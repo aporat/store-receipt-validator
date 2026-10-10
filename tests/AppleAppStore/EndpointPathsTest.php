@@ -41,8 +41,8 @@ use ReflectionMethod;
 #[CoversClass(Validator::class)]
 final class EndpointPathsTest extends TestCase
 {
-    private const string TRANSACTION_ID          = 'txn-123';
-    private const string ORIGINAL_TRANSACTION_ID = 'orig-456';
+    private const string TRANSACTION_ID          = '2000000000000123';
+    private const string ORIGINAL_TRANSACTION_ID = '1000000000000456';
     private const string ORDER_ID                = 'ML0000000001';
     private const string PRODUCT_ID              = 'com.example.pro';
     private const string REQUEST_IDENTIFIER      = 'req-789';
