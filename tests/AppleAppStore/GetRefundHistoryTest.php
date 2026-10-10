@@ -55,7 +55,7 @@ final class GetRefundHistoryTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'GET'
-                    && str_contains((string) $request->getUri(), '/inApps/v2/refund/lookup/txn-abc123');
+                    && str_contains((string) $request->getUri(), '/inApps/v2/refund/lookup/2000000000000123');
             }))
             ->willReturn(new GuzzleResponse(200, [], json_encode([
                 'signedTransactions' => [],
@@ -63,7 +63,7 @@ final class GetRefundHistoryTest extends TestCase
                 'hasMore'            => false,
             ], JSON_THROW_ON_ERROR)));
 
-        $response = $this->validator->getRefundHistory('txn-abc123');
+        $response = $this->validator->getRefundHistory('2000000000000123');
         self::assertInstanceOf(RefundHistoryResponse::class, $response);
     }
 
@@ -83,7 +83,7 @@ final class GetRefundHistoryTest extends TestCase
                 'hasMore'            => false,
             ], JSON_THROW_ON_ERROR)));
 
-        $this->validator->getRefundHistory('txn-abc123', 'page2token');
+        $this->validator->getRefundHistory('2000000000000123', 'page2token');
     }
 
     public function testGetRefundHistoryThrowsOnApiError(): void
@@ -94,7 +94,7 @@ final class GetRefundHistoryTest extends TestCase
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Unauthenticated');
-        $this->validator->getRefundHistory('txn-abc123');
+        $this->validator->getRefundHistory('2000000000000123');
     }
 
     // -------------------------------------------------------------------------

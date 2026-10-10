@@ -70,14 +70,14 @@ final class SendConsumptionInformationTest extends TestCase
     {
         $this->expectRequest(static fn (RequestInterface $request): bool =>
             $request->getMethod() === 'PUT'
-            && str_contains((string) $request->getUri(), '/inApps/v2/transactions/consumption/txn-abc123'));
+            && str_contains((string) $request->getUri(), '/inApps/v2/transactions/consumption/2000000000000123'));
 
         $request = new ConsumptionRequest(
             customerConsented: true,
             sampleContentProvided: false,
             deliveryStatus: DeliveryStatus::DELIVERED,
         );
-        $this->validator->sendConsumptionInformation('txn-abc123', $request);
+        $this->validator->sendConsumptionInformation('2000000000000123', $request);
 
         $this->addToAssertionCount(1);
     }
@@ -101,7 +101,7 @@ final class SendConsumptionInformationTest extends TestCase
         $request->refundPreference = RefundPreference::GRANT_PRORATED;
         $request->setConsumptionPercent(50);
 
-        $this->validator->sendConsumptionInformation('txn-abc123', $request);
+        $this->validator->sendConsumptionInformation('2000000000000123', $request);
     }
 
     public function testSendConsumptionInformationRejectsMissingDeliveryStatus(): void
@@ -114,7 +114,7 @@ final class SendConsumptionInformationTest extends TestCase
         $this->expectExceptionMessage('deliveryStatus is required');
 
         $request = new ConsumptionRequest(customerConsented: true, sampleContentProvided: false);
-        $this->validator->sendConsumptionInformation('txn-abc123', $request);
+        $this->validator->sendConsumptionInformation('2000000000000123', $request);
     }
 
     public function testSendConsumptionInformationThrowsOnApiError(): void
@@ -125,7 +125,7 @@ final class SendConsumptionInformationTest extends TestCase
 
         $this->expectException(ValidationException::class);
         $request = new ConsumptionRequest(true, true, DeliveryStatus::DELIVERED);
-        $this->validator->sendConsumptionInformation('txn-abc123', $request);
+        $this->validator->sendConsumptionInformation('2000000000000123', $request);
     }
 
     // -------------------------------------------------------------------------
@@ -138,7 +138,7 @@ final class SendConsumptionInformationTest extends TestCase
             $decoded = json_decode((string) $request->getBody(), true);
 
             return $request->getMethod() === 'PUT'
-                && str_contains((string) $request->getUri(), '/inApps/v1/transactions/consumption/txn-abc123')
+                && str_contains((string) $request->getUri(), '/inApps/v1/transactions/consumption/2000000000000123')
                 && is_array($decoded)
                 && ($decoded['customerConsented'] ?? null) === true
                 && ($decoded['deliveryStatus'] ?? null) === 0
@@ -150,7 +150,7 @@ final class SendConsumptionInformationTest extends TestCase
         $request->deliveryStatus    = 0;
         $request->consumptionStatus = 3;
 
-        $this->validator->sendConsumptionInformation('txn-abc123', $request);
+        $this->validator->sendConsumptionInformation('2000000000000123', $request);
 
         $this->addToAssertionCount(1);
     }

@@ -53,7 +53,7 @@ final class GetTransactionInfoTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'GET'
-                    && str_contains((string) $request->getUri(), '/inApps/v1/transactions/txn-abc123')
+                    && str_contains((string) $request->getUri(), '/inApps/v1/transactions/2000000000000123')
                     && !str_contains((string) $request->getUri(), 'appTransaction')
                     && !str_contains((string) $request->getUri(), 'appAccountToken');
             }))
@@ -64,7 +64,7 @@ final class GetTransactionInfoTest extends TestCase
 
         // We only care that the correct endpoint was hit; the 400 triggers an exception.
         $this->expectException(ValidationException::class);
-        $this->validator->getTransactionInfo('txn-abc123');
+        $this->validator->getTransactionInfo('2000000000000123');
     }
 
     public function testRequestsIdentifyTheLibraryInUserAgent(): void
@@ -87,7 +87,7 @@ final class GetTransactionInfoTest extends TestCase
             ], JSON_THROW_ON_ERROR)));
 
         $this->expectException(ValidationException::class);
-        $this->validator->getTransactionInfo('txn-abc123');
+        $this->validator->getTransactionInfo('2000000000000123');
     }
 
     public function testGetTransactionInfoThrowsWhenSignedTransactionInfoMissing(): void
@@ -98,7 +98,7 @@ final class GetTransactionInfoTest extends TestCase
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Missing or invalid signedTransactionInfo');
-        $this->validator->getTransactionInfo('txn-abc123');
+        $this->validator->getTransactionInfo('2000000000000123');
     }
 
     public function testGetTransactionInfoThrowsOn401(): void
@@ -109,7 +109,7 @@ final class GetTransactionInfoTest extends TestCase
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Unauthenticated');
-        $this->validator->getTransactionInfo('txn-abc123');
+        $this->validator->getTransactionInfo('2000000000000123');
     }
 
     public function testGetTransactionInfoThrowsOn404(): void
@@ -120,6 +120,6 @@ final class GetTransactionInfoTest extends TestCase
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Not Found');
-        $this->validator->getTransactionInfo('txn-not-found');
+        $this->validator->getTransactionInfo('2000000000000404');
     }
 }

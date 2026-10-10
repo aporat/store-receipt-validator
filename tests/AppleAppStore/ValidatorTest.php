@@ -52,11 +52,11 @@ final class ValidatorTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'GET'
-                    && str_contains((string) $request->getUri(), '/inApps/v2/history/abc123');
+                    && str_contains((string) $request->getUri(), '/inApps/v2/history/2000000000000777');
             }))
             ->willReturn(new GuzzleResponse(200, [], $json));
 
-        $this->validator->getTransactionHistory('abc123');
+        $this->validator->getTransactionHistory('2000000000000777');
     }
 
     /**
@@ -73,11 +73,11 @@ final class ValidatorTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request): bool {
                 return $request->getMethod() === 'GET'
-                    && str_contains((string) $request->getUri(), '/inApps/v2/history/abc123');
+                    && str_contains((string) $request->getUri(), '/inApps/v2/history/2000000000000777');
             }))
             ->willReturn(new GuzzleResponse(200, [], $json));
 
-        $this->validator->validate('abc123');
+        $this->validator->validate('2000000000000777');
     }
 
     /**
@@ -120,7 +120,7 @@ final class ValidatorTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->expectExceptionCode(APIError::INVALID_TRANSACTION_ID->value);
 
-        $this->validator->validate('bad-id');
+        $this->validator->validate('2000000000000400');
     }
 
     /**
@@ -138,7 +138,7 @@ final class ValidatorTest extends TestCase
         $this->expectExceptionCode(401);
         $this->expectExceptionMessage('App Store API error [401]: Unauthenticated');
 
-        $this->validator->validate('fake-transaction-id');
+        $this->validator->validate('2000000000000401');
     }
 
     /**
@@ -156,7 +156,7 @@ final class ValidatorTest extends TestCase
         $this->expectExceptionCode(404);
         $this->expectExceptionMessage('App Store API error [404]: Not Found');
 
-        $this->validator->validate('does-not-exist');
+        $this->validator->validate('2000000000000402');
     }
 
     /**
@@ -185,7 +185,7 @@ final class ValidatorTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Invalid response format from App Store Server API');
 
-        $this->validator->validate('abc123');
+        $this->validator->validate('2000000000000777');
     }
 
     /**

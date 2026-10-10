@@ -96,6 +96,14 @@ final class Validator extends AbstractValidator
             throw new ValidationException('Missing Amazon receiptId');
         }
 
+        // rawurlencode() leaves "." alone, so a whole-segment "." or ".." would survive encoding
+        // and be collapsed by the HTTP client, moving the request to a different RVS path.
+        foreach (['developer secret' => $this->developerSecret, 'userId' => $this->userId, 'receiptId' => $this->receiptId] as $label => $value) {
+            if (trim($value) === '' || $value === '.' || $value === '..') {
+                throw new ValidationException(sprintf('Invalid Amazon %s', $label));
+            }
+        }
+
         $endpoint = $this->endpointForEnvironment();
 
         // URL-encode path segments to be safe with special characters
