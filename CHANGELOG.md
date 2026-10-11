@@ -21,7 +21,38 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 - `AppleAppStore\ServerNotification::getRawNotificationType()`, `getRawSubtype()` and
   `hasKnownNotificationType()`, which expose the values exactly as Apple sent them.
 
+- `AppleAppStore\JWT\TokenVerifier::setTrustedRootFingerprints()` and
+  `getTrustedRootFingerprints()`, and the `TokenVerifier::APPLE_ROOT_CA_G3_FINGERPRINT` constant.
+
+### Changed
+- `AppleAppStore\JWT\TokenVerifier` no longer pins Apple's WWDR intermediate certificate. It pins only
+  the root, Apple Root CA - G3, and applies the chain rules of Apple's App Store Server Library
+  (`ChainVerifier` in app-store-server-library-java, `_ChainVerifier` in -python,
+  `verifyCertificateChainWithoutCaching` in -node), without their optional online OCSP checks:
+  - exactly three certificates, leaf → intermediate → root;
+  - the root's fingerprint is trusted and it is self-signed;
+  - each certificate is issued by the next, by issuer name and by signature;
+  - the intermediate is a CA (`basicConstraints` CA:TRUE) with Apple's WWDR marker
+    1.2.840.113635.100.6.2.1, and the leaf has the App Store signing marker
+    1.2.840.113635.100.6.11.1;
+  - all three are valid at the payload's `signedDate` (then `receiptCreationDate`, then the current
+    time); the `alg` header must be ES256.
+
+  Previously a payload signed under any WWDR intermediate other than the pinned G6 certificate was
+  rejected, so Apple rotating its intermediate would have broken verification. Payloads under the
+  current G6 intermediate verify exactly as before.
+- The constructor's fingerprint list now names trusted **root** certificates, SHA-1 or SHA-256, with
+  or without colons, in any case. Lists written for earlier versions, which named
+  `[intermediate, root]`, keep working: the root entry is matched and a certificate that isn't
+  self-signed is never accepted as a root. An empty list or an entry that isn't a hex SHA-1/SHA-256
+  digest now throws `ValidationException` when the verifier is built; such a list could never verify
+  anything before.
+- The default trust's comment named the root "Apple Inc. Root Certificate"; it is Apple Root CA - G3.
+
 ### Fixed
+- An `x5c` entry that isn't a certificate no longer raises a PHP warning from `openssl_x509_read()`
+  (which frameworks turn into an `ErrorException`); it is reported as a `ValidationException` as
+  intended.
 - A correctly signed App Store Server Notification whose `notificationType` this version doesn't
   know no longer throws `ValidationException("Unknown notificationType: ...")`. It parses, with
   `getNotificationType()` returning `ServerNotificationType::UNKNOWN` and
