@@ -223,7 +223,10 @@ and [Generating a signature for promotional offers](https://developer.apple.com/
 use ReceiptValidator\Environment;
 use ReceiptValidator\iTunes\Validator as iTunesValidator;
 
-$validator = new ITunesValidator($sharedSecret, Environment::PRODUCTION);
+// Pass your app's bundle identifier so receipts issued to other apps are rejected.
+// Without it, any receipt Apple issued (for any app) validates.
+$validator = new ITunesValidator($sharedSecret, Environment::PRODUCTION, 'com.example.app');
+// or: $validator->setBundleId('com.example.app');
 
 try {
     $response = $validator->setReceiptData('BASE64_RECEIPT')->validate();
@@ -234,6 +237,9 @@ try {
 }
 
 echo 'Bundle ID: ' . $response->getBundleId() . PHP_EOL;
+// The environment that answered. A sandbox receipt sent to production (status 21007) is
+// retried in sandbox for this call only; $validator->getEnvironment() does not change.
+echo 'Environment: ' . $response->getEnvironment()->value . PHP_EOL;
 echo 'Original Purchase Date: ' . $response->getOriginalPurchaseDate()?->toIso8601String() . PHP_EOL;
 
 foreach ($response->getTransactions() as $tx) {
