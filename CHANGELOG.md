@@ -20,9 +20,13 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
   link `EXTERNAL_PURCHASE_TOKEN` notifications. New helper `isExternalPurchaseToken()`.
 - `AppleAppStore\ServerNotification::getRawNotificationType()`, `getRawSubtype()` and
   `hasKnownNotificationType()`, which expose the values exactly as Apple sent them.
-
 - `AppleAppStore\JWT\TokenVerifier::setTrustedRootFingerprints()` and
   `getTrustedRootFingerprints()`, and the `TokenVerifier::APPLE_ROOT_CA_G3_FINGERPRINT` constant.
+- `iTunes\Validator` can check the receipt's bundle identifier: pass it as the new third constructor
+  argument or call `setBundleId()` (read it back with `getBundleId()`). When set, a response whose
+  `receipt.bundle_id`, or `receipt.bid` for iOS 6-style receipts, is missing or different is rejected
+  with a `ValidationException`, including responses with status 21006 (subscription expired). When
+  not set, nothing changes, but any valid receipt from any app passes, so setting it is recommended.
 
 ### Changed
 - `AppleAppStore\JWT\TokenVerifier` no longer pins Apple's WWDR intermediate certificate. It pins only
@@ -47,9 +51,24 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
   self-signed is never accepted as a root. An empty list or an entry that isn't a hex SHA-1/SHA-256
   digest now throws `ValidationException` when the verifier is built; such a list could never verify
   anything before.
+- **Behavior change:** `iTunes\Validator` no longer changes its own environment when Apple redirects a
+  receipt. On status 21007 (sandbox receipt sent to production) or 21008 (production receipt sent to
+  sandbox), it retries in the other environment for that `validate()` call only.
+  `$validator->getEnvironment()` keeps returning the configured environment, so the next call starts
+  there again. To find out which environment answered, use `$response->getEnvironment()`, which
+  already reported it. Code that read the validator's environment after `validate()` to find this
+  out must switch to the response.
+- `iTunes\Validator` switches environment at most once per `validate()` call. Before, a production
+  → sandbox → production answer sequence could recurse without limit; a second redirect status is
+  now thrown as that status's `ValidationException`.
+- `iTunes\Validator` errors for non-200 HTTP answers now include the code, e.g. "Unable to get
+  response from iTunes server (HTTP 503)".
 - The default trust's comment named the root "Apple Inc. Root Certificate"; it is Apple Root CA - G3.
 
 ### Fixed
+- **Behavior change:** an `iTunes\Validator` response with no `status`, or a status that isn't an
+  integer, now throws a `ValidationException` ("iTunes server response has no valid status.").
+  Before, it was treated as status 0 and accepted as a valid receipt.
 - An `x5c` entry that isn't a certificate no longer raises a PHP warning from `openssl_x509_read()`
   (which frameworks turn into an `ErrorException`); it is reported as a `ValidationException` as
   intended.
