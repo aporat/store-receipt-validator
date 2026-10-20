@@ -42,7 +42,7 @@ composer require aporat/store-receipt-validator
 ### 📲 Apple App Store Server API
 
 ```php
-use ReceiptValidator\AppleAppStore\ReceiptUtility;
+use ReceiptValidator\AppleAppStore\AppReceiptVerifier;
 use ReceiptValidator\AppleAppStore\Validator as AppleValidator;
 use ReceiptValidator\Environment;
 
@@ -55,8 +55,11 @@ $bundleId = 'com.myapp';
 $receiptBase64Data = '...'; // your app receipt here
 
 // 🔑 Tip: Apple's Server API does not accept the full app receipt.
-// Use ReceiptUtility to extract the latest transaction ID.
-$transactionId = ReceiptUtility::extractTransactionIdFromAppReceipt($receiptBase64Data);
+// Verify the receipt offline first, then take the transaction ID from the
+// signed contents (see "StoreKit 1 app receipts" below). ReceiptUtility
+// reads the same ID without checking the signature.
+$receipt = (new AppReceiptVerifier())->verify($receiptBase64Data);
+$transactionId = $receipt->getTransactionId();
 
 $validator = new AppleValidator(
     signingKey: $signingKey,
@@ -267,6 +270,32 @@ foreach ($response->getLatestReceiptInfo() as $tx) {
     }
 }
 ```
+
+### 🧾 StoreKit 1 app receipts
+
+An app that still uses StoreKit 1 can only send its app receipt as proof of purchase. The receipt is PKCS #7 SignedData, and reading it without checking the signature lets any client wrap a transaction ID it happens to know in a receipt-shaped blob. `AppReceiptVerifier` checks the signature and the certificate chain offline, against the Apple Root CA shipped with the package, and returns only what the signed bytes say:
+
+```php
+use ReceiptValidator\AppleAppStore\AppReceiptVerifier;
+use ReceiptValidator\Exceptions\ValidationException;
+
+try {
+    $receipt = (new AppReceiptVerifier())->verify($receiptBase64Data);
+} catch (ValidationException $e) {
+    // Malformed, altered, unsigned, or not signed by Apple.
+}
+
+if ($receipt->getBundleId() !== 'com.myapp') {
+    // Apple's signature, but for another app.
+}
+
+$transactionId = $receipt->getTransactionId(); // the first in-app purchase, null when there is none
+$receipt->getTransactionIds();                 // every in-app purchase
+```
+
+What is checked: a single signer whose certificate carries Apple's receipt-signing marker (OID 1.2.840.113635.100.6.11.1), issued by a Worldwide Developer Relations CA (OID 1.2.840.113635.100.6.2.1) embedded in the receipt, issued in turn by the pinned Apple Root CA. Certificate validity dates are deliberately not checked: Apple's receipt signing certificates are short-lived and receipts signed by one that has since expired stay valid, so Apple's guidance is to verify the chain rather than the dates.
+
+Pass your own root PEM as the first constructor argument to verify receipts you sign in tests.
 
 ### 🤖 Google Play
 

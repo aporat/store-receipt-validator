@@ -10,6 +10,14 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 
 ## [Unreleased]
 
+### Added
+- `AppleAppStore\AppReceiptVerifier`: offline verification of a StoreKit 1 app receipt. Checks the
+  PKCS #7 signature, that the single signer carries Apple's receipt-signing marker and is issued by an
+  embedded WWDR CA that chains to the Apple Root CA shipped in `resources/`, then reads the bundle id
+  and in-app transaction ids from the signed bytes only, as an `AppleAppStore\AppReceipt`. Certificate
+  validity dates are not checked, per Apple's guidance for receipts. `ReceiptUtility` still reads a
+  receipt without verifying it and now says so.
+
 ## [11.0.1] - Unreleased
 
 ### Added
