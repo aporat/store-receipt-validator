@@ -11,7 +11,10 @@ use ValueError;
 
 /**
  * Low-level helpers to pull transaction identifiers out of Apple receipts.
- * No signature or PKI validation is performed here.
+ * No signature or PKI validation is performed here: anything a client sends
+ * is read as-is. To trust what you read, verify the receipt first with
+ * {@see AppReceiptVerifier}, which checks Apple's signature and chain offline
+ * and returns the same identifiers from the signed bytes.
  *
  * Works with phpseclib 3 or 4; the matching decoder is picked at runtime.
  */
