@@ -10,6 +10,8 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 
 ## [Unreleased]
 
+## [11.1.0] - 2026-10-20
+
 ### Added
 - `AppleAppStore\AppReceiptVerifier`: offline verification of a StoreKit 1 app receipt. Checks the
   PKCS #7 signature, that the single signer carries Apple's receipt-signing marker and is issued by an
@@ -17,10 +19,6 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
   and in-app transaction ids from the signed bytes only, as an `AppleAppStore\AppReceipt`. Certificate
   validity dates are not checked, per Apple's guidance for receipts. `ReceiptUtility` still reads a
   receipt without verifying it and now says so.
-
-## [11.0.1] - Unreleased
-
-### Added
 - `AppleAppStore\ServerNotificationType` cases for every type Apple now documents:
   `METADATA_UPDATE`, `MIGRATION` and `PRICE_CHANGE` (Advanced Commerce API), and `RESCIND_CONSENT`
   (whose payload carries `appData`). New helper `isAdvancedCommerce()`.
