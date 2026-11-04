@@ -1,11 +1,10 @@
 {
     "name": "aporat/store-receipt-validator",
-    "description": "PHP receipt validator for Apple App Store, Google Play and Amazon Appstore",
+    "description": "PHP receipt validator for Apple App Store and Google Play",
     "type": "library",
     "license": "Apache-2.0",
     "homepage": "https://github.com/aporat/store-receipt-validator",
     "keywords": [
-        "amazon appstore",
         "android",
         "apple",
         "google play",
