@@ -2,7 +2,7 @@
 
 [![Latest Stable Version](https://img.shields.io/packagist/v/aporat/store-receipt-validator.svg?style=flat-square&logo=composer)](https://packagist.org/packages/aporat/store-receipt-validator)  [![Downloads](https://img.shields.io/packagist/dt/aporat/store-receipt-validator.svg?style=flat-square&logo=composer)](https://packagist.org/packages/aporat/store-receipt-validator)  [![Codecov](https://img.shields.io/codecov/c/github/aporat/store-receipt-validator?style=flat-square)](https://codecov.io/github/aporat/store-receipt-validator)  ![GitHub Actions](https://img.shields.io/github/actions/workflow/status/aporat/store-receipt-validator/ci.yml?style=flat-square)  [![License](https://img.shields.io/packagist/l/aporat/store-receipt-validator.svg?style=flat-square)](LICENSE)
 
-A modern PHP library for validating in-app purchases from the Apple App Store (including legacy iTunes), Google Play and Amazon Appstore. Supports both production and sandbox environments with detailed response parsing.
+A modern PHP library for validating in-app purchases from the Apple App Store (including legacy iTunes) and Google Play. Supports both production and sandbox environments with detailed response parsing.
 
 > **Using Laravel?** Use [aporat/laravel-appstore-purchases](https://github.com/aporat/laravel-appstore-purchases) instead. It is a Laravel package built on top of this library, and adds Laravel events for App Store and Google Play server notifications, config-based setup and container bindings.
 
@@ -15,7 +15,6 @@ A modern PHP library for validating in-app purchases from the Apple App Store (i
 - ✅ Apple iTunes **Legacy API** support (deprecated by Apple, still available here)
 - ✅ Google Play **Developer API (Android Publisher v3)** support: subscriptions, one-time products, voided purchases
 - ✅ Google Play **Real-time Developer Notifications** parsing (Pub/Sub envelope included)
-- ✅ Amazon Appstore receipt validation
 - ✅ App Store **Server Notifications v1 & v2** parsing
 - ✅ Strong typing (PHP 8.4+), enums, and modern error handling
 - ✅ PSR-3 compatible logging support
@@ -421,59 +420,6 @@ $validator->setAccessTokenProvider(
     new CallbackAccessTokenProvider(fn () => $credentials->fetchAuthToken()['access_token'])
 );
 ```
-
-### 🛒 Amazon Appstore
-
-```php
-use ReceiptValidator\Amazon\APIError;
-use ReceiptValidator\Amazon\Validator as AmazonValidator;
-use ReceiptValidator\Environment;
-use ReceiptValidator\Exceptions\ValidationException;
-
-// The shared secret from the Developer Console's Shared Key page.
-$validator = new AmazonValidator('SHARED_SECRET', Environment::PRODUCTION);
-
-try {
-    // receiptId from PurchaseResponse.getReceipt().getReceiptId(),
-    // userId from PurchaseResponse.getUserData().getUserId()
-    $response = $validator->validate($receiptId, $userId);
-} catch (ValidationException $e) {
-    $error = APIError::fromException($e); // null for connection failures
-
-    if ($error?->isCanceledReceipt()) {
-        // HTTP 410: the receipt was valid once. Revoke what it granted.
-    } elseif ($error?->isRetryable()) {
-        // HTTP 429 or 500: back off and try again later.
-    }
-
-    echo 'Validation failed: ' . $e->getMessage() . PHP_EOL;
-    exit(1);
-}
-
-echo 'Product: ' . $response->getProductId() . PHP_EOL;
-echo 'Type: ' . $response->getProductType()?->name . PHP_EOL; // CONSUMABLE, ENTITLED or SUBSCRIPTION
-echo 'Entitled: ' . ($response->isEntitled() ? 'yes' : 'no') . PHP_EOL;
-echo 'Expires: ' . $response->getExpiresAt()?->toIso8601String() . PHP_EOL; // subscriptions only
-echo 'Country: ' . $response->getCountryCode() . PHP_EOL;
-
-$transaction = $response->getTransaction();
-
-if ($transaction?->isSubscription()) {
-    echo 'Auto-renewing: ' . ($transaction->isAutoRenewing() ? 'yes' : 'no') . PHP_EOL;
-    echo 'Free trial: ' . ($transaction->isInFreeTrial() ? 'yes' : 'no') . PHP_EOL;
-    echo 'Grace period: ' . ($transaction->isInGracePeriod() ? 'yes' : 'no') . PHP_EOL;
-    echo 'Quick Subscribe: ' . ($transaction->isQuickSubscribe() ? 'yes' : 'no') . PHP_EOL;
-    echo 'Cancel reason: ' . $transaction->getCancelReason()?->name . PHP_EOL;
-
-    foreach ($transaction->getPromotions() as $promotion) {
-        echo 'Promotion: ' . $promotion->getType()?->name . ' (' . $promotion->getStatus()?->name . ')' . PHP_EOL;
-    }
-}
-```
-
-A rejected receipt throws a `ValidationException` whose code is the HTTP status Amazon returned, and `APIError` maps the documented ones: `400` invalid receipt, `410` receipt no longer valid, `429` throttled, `496` invalid shared secret, `497` invalid user ID and `500` internal error.
-
-> ℹ️ The RVS sandbox (`Environment::SANDBOX`) accepts any non-empty shared secret and appends `_term` to `termSku`, which production does not. Test receipts come from Amazon's App Tester and carry `testTransaction: true`.
 
 ## 📋 Logging
 

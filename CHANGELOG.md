@@ -10,6 +10,11 @@ two disagreed, the diff was followed and the discrepancy is noted in the entry.
 
 ## [Unreleased]
 
+### Removed
+- **Breaking:** Amazon Appstore support (`ReceiptValidator\Amazon\*`: `Validator`, `Response`,
+  `Transaction`, `APIError` and the enums). Amazon shut the Appstore down on general Android devices
+  on 2025-08-20, so the Receipt Verification Service no longer has an audience here.
+
 ## [11.1.0] - 2026-10-20
 
 ### Added
