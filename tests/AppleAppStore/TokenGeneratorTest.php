@@ -11,6 +11,7 @@ use ReceiptValidator\AppleAppStore\JWT\TokenGenerator;
 use ReceiptValidator\AppleAppStore\JWT\TokenGeneratorConfig;
 use ReceiptValidator\AppleAppStore\JWT\TokenIssuer;
 use ReceiptValidator\AppleAppStore\JWT\TokenKey;
+use ReceiptValidator\Exceptions\ValidationException;
 
 /**
  * @group      apple-app-store
@@ -72,5 +73,58 @@ class TokenGeneratorTest extends TestCase
         $this->assertSame($expectedExpTs, $exp->getTimestamp(), sprintf('exp should be iat + %d minutes', $ttlMinutes));
 
         $this->assertSame($keyId, $token->headers()->get('kid'));
+    }
+
+    public function testGenerateRejectsAnEmptyIssuerId(): void
+    {
+        $signingKey = (string) file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
+        $issuer     = new TokenIssuer('', 'com.example.app', new TokenKey('kid', InMemory::plainText($signingKey)), new Sha256());
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Issuer ID cannot be empty');
+        (new TokenGenerator(TokenGeneratorConfig::forAppStore($issuer)))->generate();
+    }
+
+    public function testGenerateWrapsSignerFailures(): void
+    {
+        $issuer = new TokenIssuer('issuer-id', 'com.example.app', new TokenKey('kid', InMemory::plainText('not a key')), new Sha256());
+
+        try {
+            (new TokenGenerator(TokenGeneratorConfig::forAppStore($issuer)))->generate();
+            $this->fail('Expected a ValidationException');
+        } catch (ValidationException $e) {
+            $this->assertStringStartsWith('Failed to generate JWT: ', $e->getMessage());
+            $this->assertNotNull($e->getPrevious());
+        }
+    }
+
+    public function testDecodeTokenRejectsAnEmptyPayload(): void
+    {
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Cannot parse an empty JWS payload');
+        TokenGenerator::decodeToken('');
+    }
+
+    public function testDecodeTokenWrapsParseFailures(): void
+    {
+        try {
+            TokenGenerator::decodeToken('not.a.jws');
+            $this->fail('Expected a ValidationException');
+        } catch (ValidationException $e) {
+            $this->assertStringStartsWith('Failed to decode JWS payload: ', $e->getMessage());
+            $this->assertNotNull($e->getPrevious());
+        }
+    }
+
+    public function testDecodeTokenParsesAnUnverifiedToken(): void
+    {
+        $signingKey = (string) file_get_contents(__DIR__ . '/certs/testSigningKey.p8');
+        $issuer     = new TokenIssuer('issuer-id', 'com.example.app', new TokenKey('kid', InMemory::plainText($signingKey)), new Sha256());
+        $generated  = (new TokenGenerator(TokenGeneratorConfig::forAppStore($issuer)))->generate();
+
+        $decoded = TokenGenerator::decodeToken($generated->toString());
+
+        $this->assertSame('issuer-id', $decoded->claims()->get('iss'));
+        $this->assertSame('kid', $decoded->headers()->get('kid'));
     }
 }

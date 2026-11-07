@@ -115,4 +115,16 @@ final class ProductPurchaseV2Test extends TestCase
 
         self::assertFalse((new ProductPurchaseV2([]))->isConsumed());
     }
+
+    public function testIsConsumedWhenEveryLineItemIsConsumed(): void
+    {
+        $purchase = new ProductPurchaseV2([
+            'productLineItem' => [
+                ['productId' => 'a', 'productOfferDetails' => ['consumptionState' => 'CONSUMPTION_STATE_CONSUMED']],
+                ['productId' => 'b', 'productOfferDetails' => ['consumptionState' => 'CONSUMPTION_STATE_CONSUMED']],
+            ],
+        ]);
+
+        self::assertTrue($purchase->isConsumed());
+    }
 }

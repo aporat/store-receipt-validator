@@ -151,4 +151,27 @@ final class OrderTest extends TestCase
         self::assertSame([], $order->getLineItems());
         self::assertSame([], $order->getProductIds());
     }
+
+    public function testDeprecatedStringOfferPhasesMapToEnumCases(): void
+    {
+        $order = new Order([
+            'lineItems' => [
+                ['productId' => 'intro', 'subscriptionDetails' => ['offerPhase' => 'INTRODUCTORY']],
+                ['productId' => 'base', 'subscriptionDetails' => ['offerPhase' => 'BASE']],
+                ['productId' => 'odd', 'subscriptionDetails' => ['offerPhase' => 'SOMETHING_NEW']],
+                ['productId' => 'proration', 'subscriptionDetails' => ['offerPhaseDetails' => ['prorationPeriodDetails' => []]]],
+                ['productId' => 'base-details', 'subscriptionDetails' => ['offerPhaseDetails' => ['baseDetails' => []]]],
+            ],
+        ], Environment::SANDBOX);
+
+        $phases = array_map(static fn (OrderLineItem $item) => $item->getOfferPhase(), $order->getLineItems());
+
+        self::assertSame([
+            SubscriptionOfferPhase::INTRODUCTORY_PRICE,
+            SubscriptionOfferPhase::BASE_PRICE,
+            SubscriptionOfferPhase::UNSPECIFIED,
+            SubscriptionOfferPhase::PRORATION_PERIOD,
+            SubscriptionOfferPhase::BASE_PRICE,
+        ], $phases);
+    }
 }
