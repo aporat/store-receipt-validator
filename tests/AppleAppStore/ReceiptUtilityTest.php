@@ -140,4 +140,67 @@ final class ReceiptUtilityTest extends TestCase
             ],
         ];
     }
+
+    public function testInAppSetWithoutATransactionIdYieldsNull(): void
+    {
+        $decoder = new class implements AttributeSetDecoder {
+            public function decodePkcs7Receipt(string $der): array
+            {
+                return [['2', 'bundle'], ['17', 'in-app']];
+            }
+
+            public function decodeAttributeSet(string $ber): array
+            {
+                return [['1702', 'product'], ['1705', 'original']];
+            }
+
+            public function decodeScalar(string $ber): ?string
+            {
+                return 'never reached';
+            }
+        };
+
+        ReceiptUtility::setDecoder($decoder);
+
+        self::assertNull(ReceiptUtility::extractTransactionIdFromAppReceipt(base64_encode('x')));
+    }
+
+    public function testReceiptWithoutAnInAppSetYieldsNull(): void
+    {
+        $decoder = new class implements AttributeSetDecoder {
+            public function decodePkcs7Receipt(string $der): array
+            {
+                return [['2', 'bundle'], ['3', 'version']];
+            }
+
+            public function decodeAttributeSet(string $ber): array
+            {
+                throw new \LogicException('not reached');
+            }
+
+            public function decodeScalar(string $ber): ?string
+            {
+                throw new \LogicException('not reached');
+            }
+        };
+
+        ReceiptUtility::setDecoder($decoder);
+
+        self::assertNull(ReceiptUtility::extractTransactionIdFromAppReceipt(base64_encode('x')));
+    }
+
+    public function testLegacyReceiptWithUndecodablePurchaseInfoYieldsNull(): void
+    {
+        $receipt = base64_encode('{"purchase-info" = "***not-base64***";}');
+
+        self::assertNull(ReceiptUtility::extractTransactionIdFromTransactionReceipt($receipt));
+    }
+
+    public function testLegacyReceiptWhosePurchaseInfoLacksATransactionIdYieldsNull(): void
+    {
+        $purchaseInfo = base64_encode('{"product-id" = "com.example.plan";}');
+        $receipt      = base64_encode('{"purchase-info" = "' . $purchaseInfo . '";}');
+
+        self::assertNull(ReceiptUtility::extractTransactionIdFromTransactionReceipt($receipt));
+    }
 }

@@ -205,4 +205,31 @@ final class SignatureCreatorTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         new PromotionalOfferV2SignatureCreator($this->signingKey, 'keyId', '', 'bundleId');
     }
+
+    public function testPromotionalOfferRejectsEmptyArguments(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('must not be empty');
+        new PromotionalOfferSignatureCreator($this->signingKey, '', 'bundleId');
+    }
+
+    public function testPromotionalOfferRejectsEmptySigningKey(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new PromotionalOfferSignatureCreator('', 'keyId', 'bundleId');
+    }
+
+    public function testJwsCreatorWrapsEncodingFailures(): void
+    {
+        $creator = new IntroductoryOfferEligibilitySignatureCreator($this->signingKey, 'keyId', 'issuerId', 'bundleId', $this->clock);
+
+        try {
+            // Invalid UTF-8 cannot be JSON encoded into the payload.
+            $creator->createSignature("\xff\xfe", true, '2000000000000001');
+            self::fail('Expected a ValidationException');
+        } catch (\ReceiptValidator\Exceptions\ValidationException $e) {
+            self::assertStringStartsWith('Failed to create JWS signature: ', $e->getMessage());
+            self::assertNotNull($e->getPrevious());
+        }
+    }
 }

@@ -220,6 +220,137 @@ final class AppReceiptVerifierTest extends TestCase
         (new AppReceiptVerifier(self::testRootPem(), $decoder))->verify(self::signedReceipt('com.example', ['1']));
     }
 
+    public function testAnUnreadableTrustedRootIsRejected(): void
+    {
+        $verifier = new AppReceiptVerifier('this is not a certificate');
+        $receipt  = self::signedReceipt('com.example', ['1']);
+
+        // OpenSSL warns about the unparsable PEM before the verifier rejects it.
+        set_error_handler(static fn (): bool => true, E_WARNING);
+
+        try {
+            $verifier->verify($receipt);
+            self::fail('Expected a ValidationException');
+        } catch (ValidationException $e) {
+            self::assertStringContainsString('unreadable', $e->getMessage());
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    public function testAnInAppSetThatDoesNotDecodeIsSkipped(): void
+    {
+        $decoder = new class implements AttributeSetDecoder {
+            private int $calls = 0;
+
+            public function decodePkcs7Receipt(string $der): array
+            {
+                return [];
+            }
+
+            public function decodeAttributeSet(string $ber): array
+            {
+                if ($this->calls++ === 0) {
+                    return [['2', 'bundle'], ['17', 'broken'], ['17', 'fine']];
+                }
+
+                if ($ber === 'broken') {
+                    throw new ValueError('nope');
+                }
+
+                return [['1702', 'product'], ['1703', 'tx']];
+            }
+
+            public function decodeScalar(string $ber): ?string
+            {
+                return $ber === 'bundle' ? 'com.example' : '1000000000000009';
+            }
+        };
+
+        $receipt = (new AppReceiptVerifier(self::testRootPem(), $decoder))->verify(self::signedReceipt('com.example', ['1']));
+
+        self::assertSame('com.example', $receipt->getBundleId());
+        self::assertSame(['1000000000000009'], $receipt->getTransactionIds());
+    }
+
+    public function testAnInAppSetWithoutATransactionIdIsSkipped(): void
+    {
+        $decoder = new class implements AttributeSetDecoder {
+            private int $calls = 0;
+
+            public function decodePkcs7Receipt(string $der): array
+            {
+                return [];
+            }
+
+            public function decodeAttributeSet(string $ber): array
+            {
+                return $this->calls++ === 0
+                    ? [['2', 'bundle'], ['17', 'in-app']]
+                    : [['1702', 'product']];
+            }
+
+            public function decodeScalar(string $ber): ?string
+            {
+                return 'com.example';
+            }
+        };
+
+        $receipt = (new AppReceiptVerifier(self::testRootPem(), $decoder))->verify(self::signedReceipt('com.example', ['1']));
+
+        self::assertSame('com.example', $receipt->getBundleId());
+        self::assertSame([], $receipt->getTransactionIds());
+    }
+
+    public function testAScalarThatDoesNotDecodeLeavesNoBundleId(): void
+    {
+        $decoder = new class implements AttributeSetDecoder {
+            public function decodePkcs7Receipt(string $der): array
+            {
+                return [];
+            }
+
+            public function decodeAttributeSet(string $ber): array
+            {
+                return [['2', 'bundle']];
+            }
+
+            public function decodeScalar(string $ber): ?string
+            {
+                throw new ValueError('nope');
+            }
+        };
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('bundle id');
+
+        (new AppReceiptVerifier(self::testRootPem(), $decoder))->verify(self::signedReceipt('com.example', ['1']));
+    }
+
+    public function testOnlyTheFirstBundleIdAttributeCounts(): void
+    {
+        $decoder = new class implements AttributeSetDecoder {
+            public function decodePkcs7Receipt(string $der): array
+            {
+                return [];
+            }
+
+            public function decodeAttributeSet(string $ber): array
+            {
+                return [['2', 'first'], ['2', 'second']];
+            }
+
+            public function decodeScalar(string $ber): ?string
+            {
+                return $ber;
+            }
+        };
+
+        $receipt = (new AppReceiptVerifier(self::testRootPem(), $decoder))->verify(self::signedReceipt('com.example', []));
+
+        self::assertSame('first', $receipt->getBundleId());
+    }
+
     private function testVerifier(): AppReceiptVerifier
     {
         return new AppReceiptVerifier(self::testRootPem());

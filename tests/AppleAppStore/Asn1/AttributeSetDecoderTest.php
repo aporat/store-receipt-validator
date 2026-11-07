@@ -78,4 +78,95 @@ final class AttributeSetDecoderTest extends TestCase
         $this->expectExceptionMessage('Could not find the receipt attribute set');
         $this->decoder->decodePkcs7Receipt($ber);
     }
+
+    public function testDecodeScalarRejectsMalformedInput(): void
+    {
+        $this->expectException(ValueError::class);
+        $this->expectExceptionMessage('Malformed BER data');
+        $this->decoder->decodeScalar("\x30\x82\xff\xff");
+    }
+
+    public function testDecodeScalarRejectsEmptyInput(): void
+    {
+        $this->expectException(ValueError::class);
+        $this->decoder->decodeScalar('');
+    }
+
+    public function testDecodePkcs7ReceiptRejectsOtherContentTypes(): void
+    {
+        // ContentInfo { id-data OID, [0] { OCTET STRING "" } }
+        $ber = self::sequence(self::ID_DATA . "\xa0\x02\x04\x00");
+
+        $this->expectException(ValueError::class);
+        $this->expectExceptionMessage('not a valid PKCS #7 container');
+        $this->decoder->decodePkcs7Receipt($ber);
+    }
+
+    public function testDecodePkcs7ReceiptRejectsContainerWithoutContent(): void
+    {
+        // ContentInfo { signedData OID } and nothing else
+        $this->expectException(ValueError::class);
+        $this->expectExceptionMessage('Could not find the receipt attribute set');
+        $this->decoder->decodePkcs7Receipt(self::sequence(self::ID_SIGNED_DATA));
+    }
+
+    public function testDecodePkcs7ReceiptRejectsSignedDataWithoutEncapsulatedContent(): void
+    {
+        $this->expectException(ValueError::class);
+        $this->expectExceptionMessage('Could not find the receipt attribute set');
+        $this->decoder->decodePkcs7Receipt(self::signedDataContainer(null));
+    }
+
+    public function testDecodePkcs7ReceiptReturnsTheEmbeddedAttributeSet(): void
+    {
+        // SET { SEQUENCE { INTEGER 2, INTEGER 1, OCTET STRING "ab" } }
+        $set = "\x31\x0c\x30\x0a\x02\x01\x02\x02\x01\x01\x04\x02ab";
+
+        self::assertSame([['2', 'ab']], $this->decoder->decodePkcs7Receipt(self::signedDataContainer($set)));
+    }
+
+    public function testDecodePkcs7ReceiptRejectsEncapsulatedContentThatIsNotAnAttributeSet(): void
+    {
+        $this->expectException(ValueError::class);
+        $this->expectExceptionMessage('Could not find the receipt attribute set');
+        $this->decoder->decodePkcs7Receipt(self::signedDataContainer("\x02\x01\x05")); // INTEGER 5
+    }
+
+    private const string ID_DATA        = "\x06\x09\x2a\x86\x48\x86\xf7\x0d\x01\x07\x01";
+    private const string ID_SIGNED_DATA = "\x06\x09\x2a\x86\x48\x86\xf7\x0d\x01\x07\x02";
+
+    /**
+     * ContentInfo { signedData, [0] SignedData { version, digestAlgorithms,
+     * encapContentInfo { id-data [, [0] OCTET STRING eContent] }, signerInfos } }
+     */
+    private static function signedDataContainer(?string $eContent): string
+    {
+        $encap = self::ID_DATA . ($eContent === null ? '' : self::tagged(0xA0, self::tagged(0x04, $eContent)));
+
+        $signedData = self::sequence(
+            "\x02\x01\x01"                 // version 1
+            . "\x31\x00"                    // digestAlgorithms: empty SET
+            . self::sequence($encap)        // encapContentInfo
+            . "\x31\x00"                    // signerInfos: empty SET
+        );
+
+        return self::sequence(self::ID_SIGNED_DATA . self::tagged(0xA0, $signedData));
+    }
+
+    private static function sequence(string $content): string
+    {
+        return self::tagged(0x30, $content);
+    }
+
+    private static function tagged(int $tag, string $content): string
+    {
+        $length = strlen($content);
+        if ($length < 0x80) {
+            return chr($tag) . chr($length) . $content;
+        }
+
+        $lengthBytes = ltrim(pack('N', $length), "\x00");
+
+        return chr($tag) . chr(0x80 | strlen($lengthBytes)) . $lengthBytes . $content;
+    }
 }

@@ -110,4 +110,24 @@ class ServerNotificationTest extends TestCase
 
         new ServerNotification($data, $this->sharedSecret);
     }
+
+    public function testThrowsWhenPasswordMissingAndNoSharedSecretGiven(): void
+    {
+        $data = $this->validData;
+        unset($data['password']);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Missing password');
+        new ServerNotification($data);
+    }
+
+    public function testThrowsWhenPasswordEmptyAndNoSharedSecretGiven(): void
+    {
+        $data             = $this->validData;
+        $data['password'] = '';
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Missing password');
+        new ServerNotification($data);
+    }
 }
